@@ -19,6 +19,9 @@ parser.add_argument(
 )
 args = vars(parser.parse_args())
 
+# this will help us create a different color for each class
+COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
+
 # load the best model and trained weights
 model = create_model(num_classes=NUM_CLASSES)
 checkpoint = torch.load('outputs/best_model.pth', map_location=DEVICE)
@@ -92,18 +95,20 @@ while(cap.isOpened()):
             
             # draw the bounding boxes and write the class name on top of it
             for j, box in enumerate(draw_boxes):
+                class_name = pred_classes[j]
+                color = COLORS[CLASSES.index(class_name)]
                 cv2.rectangle(frame,
                             (int(box[0]), int(box[1])),
                             (int(box[2]), int(box[3])),
-                            (0, 255, 0), 2)
-                cv2.putText(frame, pred_classes[j], 
+                            color, 2)
+                cv2.putText(frame, class_name, 
                             (int(box[0]), int(box[1]-5)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
                             2, lineType=cv2.LINE_AA)
-                cv2.putText(frame, f"{fps:.0f} FPS", 
-                            (15, 25),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
-                            2, lineType=cv2.LINE_AA)
+        cv2.putText(frame, f"{fps:.1f} FPS", 
+                    (15, 25),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
+                    2, lineType=cv2.LINE_AA)
 
         cv2.imshow('image', frame)
         out.write(frame)
