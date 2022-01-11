@@ -6,7 +6,7 @@ import time
 import argparse
 import pathlib
 
-from model import create_model
+from models.fasterrcnn_resnet50 import create_model
 from config import (
     NUM_CLASSES, DEVICE, CLASSES
 )
