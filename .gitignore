@@ -1,4 +1,4 @@
 data/*
 outputs/*.pth
 inference_outputs
-__pycache__/
+*__pycache__/

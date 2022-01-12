@@ -5,7 +5,7 @@ import glob as glob
 import os
 import time
 
-from model import create_model
+from models.fasterrcnn_resnet50 import create_model
 
 from config import (
     NUM_CLASSES, DEVICE, CLASSES
