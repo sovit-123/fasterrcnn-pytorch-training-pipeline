@@ -22,7 +22,6 @@ class CustomDataset(Dataset):
         
         # get all the image paths in sorted order
         self.image_paths = glob.glob(f"{self.dir_path}/*.jpg")
-        print(self.image_paths)
         self.all_images = [image_path.split(os.path.sep)[-1] for image_path in self.image_paths]
         self.all_images = sorted(self.all_images)
 

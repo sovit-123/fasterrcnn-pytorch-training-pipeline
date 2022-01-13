@@ -2,7 +2,7 @@ from config import (
     DEVICE, NUM_CLASSES, NUM_EPOCHS, OUT_DIR,
     VISUALIZE_TRANSFORMED_IMAGES, NUM_WORKERS,
 )
-from models.fasterrcnn_resnet50 import create_model
+from models.fasterrcnn_mbv3_large import create_model
 from custom_utils import Averager, SaveBestModel, save_model, save_loss_plot
 from tqdm.auto import tqdm
 from datasets import (
