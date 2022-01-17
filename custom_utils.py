@@ -116,7 +116,11 @@ def show_tranformed_image(train_loader):
 
 def save_model(epoch, model, optimizer):
     """
-    Function to save the trained model till current epoch, or whenver called
+    Function to save the trained model till current epoch, or whenever called.
+
+    :param epoch: The epoch number.
+    :param model: The neural network model.
+    :param optimizer: The optimizer.
     """
     torch.save({
                 'epoch': epoch+1,
@@ -124,17 +128,38 @@ def save_model(epoch, model, optimizer):
                 'optimizer_state_dict': optimizer.state_dict(),
                 }, 'outputs/last_model.pth')
 
-def save_loss_plot(OUT_DIR, train_loss, val_loss):
+def save_loss_plot(OUT_DIR, train_loss_list, val_loss_list):
+    """
+    Function to save both train and validation loss graphs.
+    
+    :param OUT_DIR: Path to save the graphs.
+    :param train_loss_list: List containing the training loss values.
+    :param val_loss_list: List containing the validation loss values.
+    """
     figure_1, train_ax = plt.subplots()
     figure_2, valid_ax = plt.subplots()
-    train_ax.plot(train_loss, color='tab:blue')
+    train_ax.plot(train_loss_list, color='tab:blue')
     train_ax.set_xlabel('iterations')
     train_ax.set_ylabel('train loss')
-    valid_ax.plot(val_loss, color='tab:red')
+    valid_ax.plot(val_loss_list, color='tab:red')
     valid_ax.set_xlabel('iterations')
     valid_ax.set_ylabel('validation loss')
     figure_1.savefig(f"{OUT_DIR}/train_loss.png")
     figure_2.savefig(f"{OUT_DIR}/valid_loss.png")
     print('SAVING PLOTS COMPLETE...')
+    plt.close('all')
 
+def save_train_loss_plot(OUT_DIR, train_loss_list):
+    """
+    Function to save both train loss graph.
+    
+    :param OUT_DIR: Path to save the graphs.
+    :param train_loss_list: List containing the training loss values.
+    """
+    figure_1, train_ax = plt.subplots()
+    train_ax.plot(train_loss_list, color='tab:blue')
+    train_ax.set_xlabel('iterations')
+    train_ax.set_ylabel('train loss')
+    figure_1.savefig(f"{OUT_DIR}/train_loss.png")
+    print('SAVING PLOTS COMPLETE...')
     plt.close('all')

@@ -5,7 +5,7 @@ import glob as glob
 import os
 import time
 
-from models.fasterrcnn_resnet50 import create_model
+from models.fasterrcnn_mbv3_large import create_model
 
 from config import (
     NUM_CLASSES, DEVICE, CLASSES
@@ -16,12 +16,12 @@ COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 # load the best model and trained weights
 model = create_model(num_classes=NUM_CLASSES)
-checkpoint = torch.load('outputs/best_model.pth', map_location=DEVICE)
+checkpoint = torch.load('outputs/last_model.pth', map_location=DEVICE)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to(DEVICE).eval()
 
 # directory where all the images are present
-DIR_TEST = 'data/Uno Cards.v2-raw.voc/test'
+DIR_TEST = 'data/Aquarium Combined.v2-raw-1024.voc/test'
 test_images = glob.glob(f"{DIR_TEST}/*.jpg")
 print(f"Test instances: {len(test_images)}")
 

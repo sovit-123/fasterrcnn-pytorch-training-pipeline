@@ -15,7 +15,7 @@ def create_model(num_classes):
 
     # We need the output channels of the last convolutional layers from
     # the features for the Faster RCNN model.
-    # It is 960 for MobilNetV3.
+    # It is 960 for MobileNetV3.
     backbone.out_channels = 960
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
