@@ -5,7 +5,7 @@ import glob as glob
 import os
 import time
 
-from models.fasterrcnn_efficientnet_b4 import create_model
+from models.fasterrcnn_mobilenetv3_large_320_fpn import create_model
 
 from config import (
     NUM_CLASSES, DEVICE, CLASSES

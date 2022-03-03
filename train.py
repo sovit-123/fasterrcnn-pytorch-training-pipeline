@@ -10,7 +10,7 @@ from datasets import (
     create_train_dataset, create_valid_dataset, 
     create_train_loader, create_valid_loader
 )
-from models.fasterrcnn_efficientnet_b4 import create_model
+from models.fasterrcnn_mobilenetv3_large_320_fpn import create_model
 from custom_utils import (
     save_model, 
     save_train_loss_plot,
