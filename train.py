@@ -4,17 +4,17 @@ from torch_utils.engine import (
 from config import (
     DEVICE, NUM_CLASSES,
     NUM_EPOCHS, NUM_WORKERS,
-    OUT_DIR
+    OUT_DIR, VISUALIZE_TRANSFORMED_IMAGES
 )
 from datasets import (
     create_train_dataset, create_valid_dataset, 
     create_train_loader, create_valid_loader
 )
-from models.fasterrcnn_mobilenetv3_large_320_fpn import create_model
+from models.fasterrcnn_mobilenetv3_large_fpn import create_model
 from custom_utils import (
     save_model, 
     save_train_loss_plot,
-    Averager
+    Averager, show_tranformed_image
 )
 
 import torch
@@ -26,6 +26,9 @@ if __name__ == '__main__':
     valid_loader = create_valid_loader(valid_dataset, NUM_WORKERS)
     print(f"Number of training samples: {len(train_dataset)}")
     print(f"Number of validation samples: {len(valid_dataset)}\n")
+
+    if VISUALIZE_TRANSFORMED_IMAGES:
+        show_tranformed_image(train_loader)
 
     # Initialize the Averager class.
     train_loss_hist = Averager()

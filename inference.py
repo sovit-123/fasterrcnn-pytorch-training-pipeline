@@ -11,6 +11,12 @@ from config import (
     NUM_CLASSES, DEVICE, CLASSES
 )
 
+# For same annotation colors each time.
+np.random.seed(42)
+
+# Create inference result dir if not present.
+os.makedirs(os.path.join('inference_outputs', 'images'), exist_ok=True)
+
 # this will help us create a different color for each class
 COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
@@ -21,7 +27,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.to(DEVICE).eval()
 
 # directory where all the images are present
-DIR_TEST = 'data/Aquarium Combined.v2-raw-1024.voc/test'
+DIR_TEST = 'data/Chess Pieces.v23-raw.voc/test'
 test_images = glob.glob(f"{DIR_TEST}/*.jpg")
 print(f"Test instances: {len(test_images)}")
 

@@ -6,7 +6,7 @@ import time
 import argparse
 import pathlib
 
-from models.fasterrcnn_mbv3_large import create_model
+from models.fasterrcnn_mobilenetv3_large_fpn import create_model
 from config import (
     NUM_CLASSES, DEVICE, CLASSES
 )
@@ -15,23 +15,28 @@ from config import (
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '-i', '--input', help='path to input video',
-    default='data/uno_custom_test_data/video_1.mp4'
+    default='data/inference_data/video_1.mp4'
 )
 args = vars(parser.parse_args())
+
+# For same annotation colors each time.
+np.random.seed(42)
+
+# Create inference result dir if not present.
+os.makedirs(os.path.join('inference_outputs', 'videos'), exist_ok=True)
 
 # this will help us create a different color for each class
 COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 # load the best model and trained weights
 model = create_model(num_classes=NUM_CLASSES)
-checkpoint = torch.load('outputs/best_model.pth', map_location=DEVICE)
+checkpoint = torch.load('outputs/last_model.pth', map_location=DEVICE)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to(DEVICE).eval()
 
 # define the detection threshold...
 # ... any detection having score below this will be discarded
-detection_threshold = 0.8
-RESIZE_TO = (512, 512)
+detection_threshold = 0.6
 
 cap = cv2.VideoCapture(args['input'])
 
@@ -41,6 +46,8 @@ if (cap.isOpened() == False):
 # get the frame width and height
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
+
+RESIZE_TO = (frame_width, frame_height)
 
 save_name = str(pathlib.Path(args['input'])).split(os.path.sep)[-1].split('.')[0]
 # define codec and create VideoWriter object 
