@@ -27,7 +27,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.to(DEVICE).eval()
 
 # directory where all the images are present
-DIR_TEST = 'data/Chess Pieces.v23-raw.voc/test'
+DIR_TEST = 'data/Aquarium Combined.v2-raw-1024.voc/test'
 test_images = glob.glob(f"{DIR_TEST}/*.jpg")
 print(f"Test instances: {len(test_images)}")
 
