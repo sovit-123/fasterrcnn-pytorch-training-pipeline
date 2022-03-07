@@ -38,7 +38,7 @@ model.to(DEVICE).eval()
 # directory where all the images are present
 DIR_TEST = args['input']
 test_images = []
-if isdir(DIR_TEST):
+if os.path.isdir(DIR_TEST):
     image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm']
     for file_type in image_file_types:
         test_images.extend(glob.glob(f"{DIR_TEST}/{file_type}"))
