@@ -4,12 +4,21 @@ import torch
 import glob as glob
 import os
 import time
+import argparse
 
 from models.fasterrcnn_mobilenetv3_large_320_fpn import create_model
 
 from config import (
     NUM_CLASSES, DEVICE, CLASSES
 )
+
+# construct the argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '-i', '--input', 
+    help='folder path to input input image (one image or a folder path)',
+)
+args = vars(parser.parse_args())
 
 # For same annotation colors each time.
 np.random.seed(42)
@@ -27,8 +36,14 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.to(DEVICE).eval()
 
 # directory where all the images are present
-DIR_TEST = 'data/Aquarium Combined.v2-raw-1024.voc/test'
-test_images = glob.glob(f"{DIR_TEST}/*.jpg")
+DIR_TEST = args['input']
+test_images = []
+if isdir(DIR_TEST):
+    image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm']
+    for file_type in image_file_types:
+        test_images.extend(glob.glob(f"{DIR_TEST}/{file_type}"))
+else:
+    test_images.append(DIR_TEST)
 print(f"Test instances: {len(test_images)}")
 
 # define the detection threshold...
