@@ -44,6 +44,16 @@ if __name__ == '__main__':
     # Define the optimizer.
     optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
 
+    # LR will be zero as we approach `steps` number of epochs each time.
+    # If `steps = 5`, LR will slowly reduce to zero every 5 epochs.
+    steps = 10
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, 
+        T_0=steps,
+        T_mult=1,
+        verbose=True
+    )
+
     for epoch in range(NUM_EPOCHS):
         train_loss_hist.reset()
 
@@ -54,7 +64,8 @@ if __name__ == '__main__':
             DEVICE, 
             epoch, 
             train_loss_hist,
-            print_freq=100
+            print_freq=100,
+            scheduler=scheduler
         )
 
         evaluate(model, valid_loader, device=DEVICE)

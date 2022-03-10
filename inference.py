@@ -6,7 +6,7 @@ import os
 import time
 import argparse
 
-from models.fasterrcnn_mobilenetv3_large_320_fpn import create_model
+from models.fasterrcnn_mobilenetv3_large_fpn import create_model
 
 from config import (
     NUM_CLASSES, DEVICE, CLASSES
@@ -48,7 +48,7 @@ print(f"Test instances: {len(test_images)}")
 
 # define the detection threshold...
 # ... any detection having score below this will be discarded
-detection_threshold = 0.8
+detection_threshold = 0.4
 
 # to count the total number of frames iterated through
 frame_count = 0

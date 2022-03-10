@@ -18,6 +18,7 @@ def train_one_epoch(
     train_loss_hist,
     print_freq, 
     scaler=None,
+    scheduler=None
 ):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -36,6 +37,7 @@ def train_one_epoch(
             optimizer, start_factor=warmup_factor, total_iters=warmup_iters
         )
 
+    step_counter = 0
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
@@ -71,6 +73,9 @@ def train_one_epoch(
 
         batch_loss_list.append(loss_value)
         train_loss_hist.send(loss_value)
+
+        if scheduler is not None:
+            scheduler.step(epoch + (step_counter/len(data_loader)))
 
     return metric_logger, batch_loss_list
 
