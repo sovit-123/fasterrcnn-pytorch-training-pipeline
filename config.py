@@ -3,7 +3,7 @@ import torch
 BATCH_SIZE = 4 # increase / decrease according to GPU memeory
 RESIZE_TO = 512 # resize the image for training and transforms
 NUM_EPOCHS = 50 # number of epochs to train for
-NUM_WORKERS = 4
+NUM_WORKERS = 0
 
 DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
   
@@ -37,7 +37,7 @@ CLASSES = [
 NUM_CLASSES = len(CLASSES)
 
 # whether to visualize images after creating the data loaders
-VISUALIZE_TRANSFORMED_IMAGES = False
+VISUALIZE_TRANSFORMED_IMAGES = True
 
 # location to save model and plots
 OUT_DIR = 'outputs'

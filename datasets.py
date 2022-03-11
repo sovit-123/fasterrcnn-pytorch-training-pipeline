@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 import glob as glob
+import random
 
 from xml.etree import ElementTree as et
 from config import (
@@ -54,9 +55,8 @@ class CustomDataset(Dataset):
                 self.all_annot_paths.remove(annot_path)
                 self.all_image_paths.remove(annot_path.split('.xml')[0]+'.jpg')
 
-    def __getitem__(self, idx):
-        # capture the image name and the full image path
-        image_name = self.all_images[idx]
+    def load_image_and_labels(self, index):
+        image_name = self.all_images[index]
         image_path = os.path.join(self.images_path, image_name)
 
         # read the image
@@ -71,6 +71,7 @@ class CustomDataset(Dataset):
         annot_file_path = os.path.join(self.labels_path, annot_filename)
         
         boxes = []
+        orig_boxes = []
         labels = []
         tree = et.parse(annot_file_path)
         root = tree.getroot()
@@ -93,6 +94,8 @@ class CustomDataset(Dataset):
             ymin = int(member.find('bndbox').find('ymin').text)
             # ymax = right corner y-coordinates
             ymax = int(member.find('bndbox').find('ymax').text)
+
+            orig_boxes.append([xmin, ymin, xmax, ymax])
             
             # resize the bounding boxes according to the...
             # ... desired `width`, `height`
@@ -111,6 +114,82 @@ class CustomDataset(Dataset):
         iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64)
         # labels to tensor
         labels = torch.as_tensor(labels, dtype=torch.int64)
+        return image, image_resized, orig_boxes, \
+            boxes, labels, area, iscrowd, (image_width, image_height)
+
+
+    def load_cutmix_image_and_boxes(self, index):
+        """ 
+        This implementation of cutmix author:  https://www.kaggle.com/nvnnghia 
+        Refactoring and adaptation: https://www.kaggle.com/shonenkov
+        """
+        image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
+        h, w, c = image.shape
+        s = h // 2
+    
+        xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
+        indexes = [index] + [random.randint(0, len(self.images_path) - 1) for _ in range(3)]
+
+        result_image = np.full((h, w, 3), 1, dtype=np.float32)
+        result_boxes = []
+        result_classes = []
+
+        for i, index in enumerate(indexes):
+            image, image_resized, orig_boxes, boxes, \
+            labels, area, iscrowd, dims = self.load_image_and_labels(
+            index=index
+            )
+            if i == 0:
+                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
+            elif i == 1:  # top right
+                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
+                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+            elif i == 2:  # bottom left
+                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, max(xc, w), min(y2a - y1a, h)
+            elif i == 3:  # bottom right
+                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+            result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
+            padw = x1a - x1b
+            padh = y1a - y1b
+
+            boxes[:, 0] += padw
+            boxes[:, 1] += padh
+            boxes[:, 2] += padw
+            boxes[:, 3] += padh
+
+            result_boxes.append(boxes)
+        print('1', result_boxes)
+        result_boxes = np.concatenate(result_boxes, 0)
+        print('2', result_boxes)
+        np.clip(result_boxes[:, 0:], 0, 2 * s, out=result_boxes[:, 0:])
+        result_boxes = result_boxes.astype(np.int32)
+        result_boxes = result_boxes[np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)]
+        return result_image, result_boxes
+
+    def __getitem__(self, idx):
+        # capture the image name and the full image path
+        image, image_resized, orig_boxes, boxes, \
+            labels, area, iscrowd, dims = self.load_image_and_labels(
+            index=idx
+        )
+
+        # print(boxes)
+        # image_resized, boxes = self.load_cutmix_image_and_boxes(
+        #     idx, image_resized, boxes, self.height
+        # )
+        # print(boxes)
+        # print(len(boxes)) 
+        # for j, box in enumerate(boxes):
+        #     color = (0, 255, 0)
+        #     cv2.rectangle(image_resized,
+        #                 (int(box[0]), int(box[1])),
+        #                 (int(box[2]), int(box[3])),
+        #                 color, 2)
+        # cv2.imshow('image_resized', image_resized)
+        # cv2.waitKey(0)
 
         # prepare the final `target` dictionary
         target = {}
