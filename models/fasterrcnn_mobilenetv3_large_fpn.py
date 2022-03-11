@@ -29,8 +29,8 @@ def create_model(num_classes):
 #             pretrained=True
 #         )
 #     else:
-#         # assert min_size is not None and max_size is not None, \
-#             # 'Please provide both min and max size'
+#         assert min_size is not None and max_size is not None, \
+#             'Please provide both min and max size'
 #         model = torchvision.models.detection.fasterrcnn_mobilenet_v3_large_fpn(
 #             pretrained=True, max_size=max_size
 #         )

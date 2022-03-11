@@ -39,6 +39,12 @@ if __name__ == '__main__':
     # Initialize the model and move to the computation device.
     model = create_model(num_classes=NUM_CLASSES)
     model = model.to(DEVICE)
+    # Total parameters and trainable parameters.
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"{total_params:,} total parameters.")
+    total_trainable_params = sum(
+        p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"{total_trainable_params:,} training parameters.\n")
     # Get the model parameters.
     params = [p for p in model.parameters() if p.requires_grad]
     # Define the optimizer.
