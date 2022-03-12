@@ -1,3 +1,4 @@
+from ast import arg
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
@@ -18,9 +19,17 @@ from custom_utils import (
 )
 
 import torch
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '-ma', '--mosaic', action='store_true',
+    help='whether to add mosaic augmentation during training'
+)
+args = vars(parser.parse_args())
 
 if __name__ == '__main__':
-    train_dataset = create_train_dataset()
+    train_dataset = create_train_dataset(args['mosaic'])
     valid_dataset = create_valid_dataset()
     train_loader = create_train_loader(train_dataset, NUM_WORKERS)
     valid_loader = create_valid_loader(valid_dataset, NUM_WORKERS)
@@ -48,11 +57,12 @@ if __name__ == '__main__':
     # Get the model parameters.
     params = [p for p in model.parameters() if p.requires_grad]
     # Define the optimizer.
-    optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
+    # optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
+    optimizer = torch.optim.AdamW(params, lr=0.0001, weight_decay=0.0005)
 
     # LR will be zero as we approach `steps` number of epochs each time.
     # If `steps = 5`, LR will slowly reduce to zero every 5 epochs.
-    steps = 10
+    steps = NUM_EPOCHS + 25
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
         optimizer, 
         T_0=steps,
@@ -71,7 +81,7 @@ if __name__ == '__main__':
             epoch, 
             train_loss_hist,
             print_freq=100,
-            scheduler=scheduler
+            scheduler=None
         )
 
         evaluate(model, valid_loader, device=DEVICE)

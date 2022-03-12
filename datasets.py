@@ -13,13 +13,17 @@ from config import (
     BATCH_SIZE
 )
 from torch.utils.data import Dataset, DataLoader
-from custom_utils import collate_fn, get_train_transform, get_valid_transform
+from custom_utils import (
+    collate_fn, get_train_transform, 
+    get_valid_transform, visualize_mosaic_images
+)
 
 # the dataset class
 class CustomDataset(Dataset):
     def __init__(
         self, images_path, labels_path, 
-        width, height, classes, transforms=None
+        width, height, classes, transforms=None, 
+        train=False, mosaic=False
     ):
         self.transforms = transforms
         self.images_path = images_path
@@ -27,6 +31,8 @@ class CustomDataset(Dataset):
         self.height = height
         self.width = width
         self.classes = classes
+        self.train = train
+        self.mosaic = mosaic
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm']
         self.all_image_paths = []
         
@@ -118,18 +124,21 @@ class CustomDataset(Dataset):
             boxes, labels, area, iscrowd, (image_width, image_height)
 
 
-    def load_cutmix_image_and_boxes(self, index):
+    def load_cutmix_image_and_boxes(self, index, resize_factor=512):
         """ 
-        This implementation of cutmix author:  https://www.kaggle.com/nvnnghia 
-        Refactoring and adaptation: https://www.kaggle.com/shonenkov
+        Adapted from: https://www.kaggle.com/shonenkov/oof-evaluation-mixup-efficientdet
         """
         image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
+        orig_image = image.copy()
+        # Resize the image according to the `confg.py` resize.
+        image = cv2.resize(image, resize_factor)
         h, w, c = image.shape
         s = h // 2
     
         xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
         indexes = [index] + [random.randint(0, len(self.images_path) - 1) for _ in range(3)]
-
+        
+        # Create empty image with the above resized image.
         result_image = np.full((h, w, 3), 1, dtype=np.float32)
         result_boxes = []
         result_classes = []
@@ -139,6 +148,10 @@ class CustomDataset(Dataset):
             labels, area, iscrowd, dims = self.load_image_and_labels(
             index=index
             )
+            # Resize the current image according to the above resize,
+            # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
+            # will give error when image sizes are different.
+            image = cv2.resize(image, resize_factor)
             if i == 0:
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
@@ -159,37 +172,44 @@ class CustomDataset(Dataset):
             boxes[:, 1] += padh
             boxes[:, 2] += padw
             boxes[:, 3] += padh
-
+            
             result_boxes.append(boxes)
-        print('1', result_boxes)
+            for class_name in labels:
+                result_classes.append(class_name)
+
+        final_classes = []
         result_boxes = np.concatenate(result_boxes, 0)
-        print('2', result_boxes)
         np.clip(result_boxes[:, 0:], 0, 2 * s, out=result_boxes[:, 0:])
         result_boxes = result_boxes.astype(np.int32)
-        result_boxes = result_boxes[np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)]
-        return result_image, result_boxes
+        for idx in range(len(result_boxes)):
+            if ((result_boxes[idx,2]-result_boxes[idx,0])*(result_boxes[idx,3]-result_boxes[idx,1])) > 0:
+                final_classes.append(result_classes[idx])
+        result_boxes = result_boxes[
+            np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)
+        ]
+        # print(result_boxes)
+        # print(result_classes)
+        return orig_image, result_image/255., torch.tensor(result_boxes), \
+            torch.tensor(np.array(final_classes)), area, iscrowd, dims
 
     def __getitem__(self, idx):
         # capture the image name and the full image path
-        image, image_resized, orig_boxes, boxes, \
-            labels, area, iscrowd, dims = self.load_image_and_labels(
-            index=idx
-        )
+        if not self.mosaic:
+            image, image_resized, orig_boxes, boxes, \
+                labels, area, iscrowd, dims = self.load_image_and_labels(
+                index=idx
+            )
 
-        # print(boxes)
-        # image_resized, boxes = self.load_cutmix_image_and_boxes(
-        #     idx, image_resized, boxes, self.height
-        # )
-        # print(boxes)
-        # print(len(boxes)) 
-        # for j, box in enumerate(boxes):
-        #     color = (0, 255, 0)
-        #     cv2.rectangle(image_resized,
-        #                 (int(box[0]), int(box[1])),
-        #                 (int(box[2]), int(box[3])),
-        #                 color, 2)
-        # cv2.imshow('image_resized', image_resized)
-        # cv2.waitKey(0)
+        if self.train and self.mosaic:
+            while True:
+                image, image_resized, boxes, labels, \
+                    area, iscrowd, dims = self.load_cutmix_image_and_boxes(
+                    idx, resize_factor=(self.height, self.width)
+                )
+                if len(boxes) > 0:
+                    break
+        
+        # visualize_mosaic_images(boxes, labels, image_resized)
 
         # prepare the final `target` dictionary
         target = {}
@@ -200,8 +220,15 @@ class CustomDataset(Dataset):
         image_id = torch.tensor([idx])
         target["image_id"] = image_id
         # apply the image transforms
-        if self.transforms:
+        if self.transforms and not self.mosaic:
             sample = self.transforms(image=image_resized,
+                                     bboxes=target['boxes'],
+                                     labels=labels)
+            image_resized = sample['image']
+            target['boxes'] = torch.Tensor(sample['bboxes'])
+        elif self.mosaic: # Apply simple validation transforms with mosaic.
+            transforms = get_valid_transform()
+            sample = transforms(image=image_resized,
                                      bboxes=target['boxes'],
                                      labels=labels)
             image_resized = sample['image']
@@ -213,16 +240,18 @@ class CustomDataset(Dataset):
         return len(self.all_images)
 
 # prepare the final datasets and data loaders
-def create_train_dataset():
+def create_train_dataset(mosaic=False):
     train_dataset = CustomDataset(
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
-        RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform()
+        RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform(),
+        train=True, mosaic=mosaic
     )
     return train_dataset
 def create_valid_dataset():
     valid_dataset = CustomDataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        RESIZE_TO, RESIZE_TO, CLASSES, get_valid_transform()
+        RESIZE_TO, RESIZE_TO, CLASSES, get_valid_transform(),
+        train=False
     )
     return valid_dataset
 

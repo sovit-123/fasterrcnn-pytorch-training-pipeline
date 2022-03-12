@@ -103,6 +103,7 @@ def show_tranformed_image(train_loader):
             boxes = targets[i]['boxes'].cpu().numpy().astype(np.int32)
             labels = targets[i]['labels'].cpu().numpy().astype(np.int32)
             sample = images[i].permute(1, 2, 0).cpu().numpy()
+            sample = cv2.cvtColor(sample, cv2.COLOR_RGB2BGR)
             for box_num, box in enumerate(boxes):
                 cv2.rectangle(sample,
                             (box[0], box[1]),
@@ -164,3 +165,21 @@ def save_train_loss_plot(OUT_DIR, train_loss_list):
     figure_1.savefig(f"{OUT_DIR}/train_loss.png")
     print('SAVING PLOTS COMPLETE...')
     plt.close('all')
+
+def visualize_mosaic_images(boxes, labels, image_resized):
+    print(boxes)
+    print(labels)
+    image_resized = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
+    for j, box in enumerate(boxes):
+        color = (0, 255, 0)
+        classn = labels[j]
+        cv2.rectangle(image_resized,
+                    (int(box[0]), int(box[1])),
+                    (int(box[2]), int(box[3])),
+                    color, 2)
+        cv2.putText(image_resized, CLASSES[classn], 
+                    (int(box[0]), int(box[1]-5)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
+                    2, lineType=cv2.LINE_AA)
+    cv2.imshow('image_resized', image_resized)
+    cv2.waitKey(0)
