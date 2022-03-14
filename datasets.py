@@ -220,19 +220,20 @@ class CustomDataset(Dataset):
         image_id = torch.tensor([idx])
         target["image_id"] = image_id
         # apply the image transforms
-        if self.transforms and not self.mosaic:
+        # if self.transforms and not self.mosaic:
+        if self.transforms:
             sample = self.transforms(image=image_resized,
                                      bboxes=target['boxes'],
                                      labels=labels)
             image_resized = sample['image']
             target['boxes'] = torch.Tensor(sample['bboxes'])
-        elif self.mosaic: # Apply simple validation transforms with mosaic.
-            transforms = get_valid_transform()
-            sample = transforms(image=image_resized,
-                                     bboxes=target['boxes'],
-                                     labels=labels)
-            image_resized = sample['image']
-            target['boxes'] = torch.Tensor(sample['bboxes'])
+        # elif self.mosaic: # Apply simple validation transforms with mosaic.
+        #     transforms = get_valid_transform()
+        #     sample = transforms(image=image_resized,
+        #                              bboxes=target['boxes'],
+        #                              labels=labels)
+        #     image_resized = sample['image']
+        #     target['boxes'] = torch.Tensor(sample['bboxes'])
             
         return image_resized, target
 

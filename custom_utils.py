@@ -66,12 +66,17 @@ def collate_fn(batch):
 # define the training tranforms
 def get_train_transform():
     return A.Compose([
-        A.MotionBlur(blur_limit=3, p=0.2),
+        A.MotionBlur(blur_limit=3, p=0.1),
         A.Blur(blur_limit=3, p=0.1),
         A.RandomBrightnessContrast(
-            brightness_limit=0.2, p=0.5
+            brightness_limit=0.2, p=0.1
         ),
-        A.ColorJitter(p=0.5),
+        A.ColorJitter(p=0.1),
+        A.RandomSunFlare(p=0.1),
+        # `RandomScale` for multi-res training,
+        # `scale_factor` should not be too high, else may result in 
+        # negative convolutional dimensions.
+        A.RandomScale(scale_limit=0.15, p=0.1),
         ToTensorV2(p=1.0),
     ], bbox_params={
         'format': 'pascal_voc',

@@ -1,4 +1,3 @@
-from ast import arg
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
