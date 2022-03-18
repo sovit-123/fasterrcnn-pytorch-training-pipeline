@@ -6,12 +6,6 @@ import glob as glob
 import random
 
 from xml.etree import ElementTree as et
-from config import (
-    CLASSES, RESIZE_TO, 
-    TRAIN_DIR_IMAGES, VALID_DIR_IMAGES, 
-    TRAIN_DIR_LABELS, VALID_DIR_LABELS,
-    BATCH_SIZE
-)
 from torch.utils.data import Dataset, DataLoader
 from custom_utils import (
     collate_fn, get_train_transform, 
@@ -241,34 +235,43 @@ class CustomDataset(Dataset):
         return len(self.all_images)
 
 # prepare the final datasets and data loaders
-def create_train_dataset(mosaic=False):
+def create_train_dataset(
+    train_dir_images, train_dir_labels, 
+    resize_width, resize_height, classes,
+    mosaic=False
+):
     train_dataset = CustomDataset(
-        TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
-        RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform(),
+        train_dir_images, train_dir_labels,
+        resize_width, resize_height, classes, 
+        get_train_transform(),
         train=True, mosaic=mosaic
     )
     return train_dataset
-def create_valid_dataset():
+def create_valid_dataset(
+    valid_dir_images, valid_dir_labels, 
+    resize_width, resize_height, classes
+):
     valid_dataset = CustomDataset(
-        VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        RESIZE_TO, RESIZE_TO, CLASSES, get_valid_transform(),
+        valid_dir_images, valid_dir_labels, 
+        resize_width, resize_height, classes, 
+        get_valid_transform(),
         train=False
     )
     return valid_dataset
 
-def create_train_loader(train_dataset, num_workers=0):
+def create_train_loader(train_dataset, batch_size, num_workers=0):
     train_loader = DataLoader(
         train_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
         collate_fn=collate_fn
     )
     return train_loader
-def create_valid_loader(valid_dataset, num_workers=0):
+def create_valid_loader(valid_dataset, batch_size, num_workers=0):
     valid_loader = DataLoader(
         valid_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn

@@ -3,9 +3,9 @@ import cv2
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import os
 
 from albumentations.pytorch import ToTensorV2
-from config import DEVICE, CLASSES
 
 plt.style.use('ggplot')
 
@@ -66,17 +66,21 @@ def collate_fn(batch):
 # define the training tranforms
 def get_train_transform():
     return A.Compose([
-        A.MotionBlur(blur_limit=3, p=0.1),
+        A.MotionBlur(blur_limit=3, p=0.2),
         A.Blur(blur_limit=3, p=0.1),
         A.RandomBrightnessContrast(
-            brightness_limit=0.2, p=0.1
+            brightness_limit=0.2, p=0.5
         ),
-        A.ColorJitter(p=0.1),
-        A.RandomSunFlare(p=0.1),
+        A.ColorJitter(p=0.5),
+        # A.RandomSunFlare(p=0.1),
         # `RandomScale` for multi-res training,
         # `scale_factor` should not be too high, else may result in 
         # negative convolutional dimensions.
-        A.RandomScale(scale_limit=0.15, p=0.1),
+        # A.RandomScale(scale_limit=0.15, p=0.1),
+        # A.Normalize(
+        #     (0.485, 0.456, 0.406),
+        #     (0.229, 0.224, 0.225)
+        # ),
         ToTensorV2(p=1.0),
     ], bbox_params={
         'format': 'pascal_voc',
@@ -86,6 +90,10 @@ def get_train_transform():
 # define the validation transforms
 def get_valid_transform():
     return A.Compose([
+        # A.Normalize(
+        #     (0.485, 0.456, 0.406),
+        #     (0.229, 0.224, 0.225)
+        # ),
         ToTensorV2(p=1.0),
     ], bbox_params={
         'format': 'pascal_voc', 
@@ -188,3 +196,99 @@ def visualize_mosaic_images(boxes, labels, image_resized):
                     2, lineType=cv2.LINE_AA)
     cv2.imshow('image_resized', image_resized)
     cv2.waitKey(0)
+
+def save_model_state(epoch, model, optimizer, OUT_DIR):
+    """
+    Function to save the trained model till current epoch, or whenever called.
+    :param epoch: The epoch number.
+    :param model: The neural network model.
+    :param optimizer: The optimizer.
+    """
+    torch.save({
+                'epoch': epoch+1,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                }, f'{OUT_DIR}/last_model_state.pth')
+
+def save_train_loss_plot(OUT_DIR, train_loss_list):
+    """
+    Function to save both train loss graph.
+    
+    :param OUT_DIR: Path to save the graphs.
+    :param train_loss_list: List containing the training loss values.
+    """
+    figure_1, train_ax = plt.subplots()
+    train_ax.plot(train_loss_list, color='tab:blue')
+    train_ax.set_xlabel('iterations')
+    train_ax.set_ylabel('train loss')
+    figure_1.savefig(f"{OUT_DIR}/train_loss.png")
+    print('SAVING PLOTS COMPLETE...')
+    plt.close('all')
+
+def denormalize(x, mean=None, std=None):
+    # 3, H, W, B
+    # print(x.shape)
+    # ten = x.clone().permute(1, 2, 3, 0)
+    for t, m, s in zip(x, mean, std):
+        t.mul_(s).add_(m)
+    # B, 3, H, W
+    return torch.clamp(x, 0, 1)
+
+def save_validation_results(images, detections, counter, OUT_DIR):
+    """
+    Function to save validation results if provided in `config.py`.
+    :param images: All the images from the current batch.
+    :param detections: All the detection results.
+    :param counter: Step counter for saving with unique ID.
+    """
+    IMG_MEAN = [0.485, 0.456, 0.406]
+    IMG_STD = [0.229, 0.224, 0.225]
+    for i, detection in enumerate(detections):
+        image_c = images[i].clone()
+        # image_c = denormalize(image_c, IMG_MEAN, IMG_STD)
+        image_c = image_c.detach().cpu().numpy().astype(np.float32)
+        image = np.transpose(image_c, (1, 2, 0))
+
+        image = np.ascontiguousarray(image, dtype=np.float32)
+
+        scores = detection['scores'].cpu().numpy()
+        labels = detection['labels']
+        bboxes = detection['boxes'].detach().cpu().numpy()
+        boxes = bboxes[scores >= 0.3].astype(np.int32)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        for j, box in enumerate(boxes):
+            cv2.rectangle(
+                image, 
+                (int(box[0]), int(box[1])),
+                (int(box[2]), int(box[3])),
+                (0, 0, 255), 2
+            )
+        cv2.imwrite(f"{OUT_DIR}/image_{i}_{counter}.jpg", image*255.)
+
+def set_infer_dir():
+    """
+    This functions counts the number of inference directories already present
+    and creates a new one in `outputs/inference/`. 
+    And returns the directory path.
+    """
+    if not os.path.exists('outputs/inference'):
+        os.makedirs('outputs/inference')
+    num_infer_dirs_present = len(os.listdir('outputs/inference/'))
+    next_dir_num = num_infer_dirs_present + 1
+    new_dir_name = f"outputs/inference/res_{next_dir_num}"
+    os.makedirs(new_dir_name, exist_ok=True)
+    return new_dir_name
+
+def set_training_dir():
+    """
+    This functions counts the number of training directories already present
+    and creates a new one in `outputs/training/`. 
+    And returns the directory path.
+    """
+    if not os.path.exists('outputs/training'):
+        os.makedirs('outputs/training')
+    num_train_dirs_present = len(os.listdir('outputs/training/'))
+    next_dir_num = num_train_dirs_present + 1
+    new_dir_name = f"outputs/training/res_{next_dir_num}"
+    os.makedirs(new_dir_name, exist_ok=True)
+    return new_dir_name

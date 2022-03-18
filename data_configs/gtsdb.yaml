@@ -1,20 +1,11 @@
-import torch
-
-BATCH_SIZE = 4 # increase / decrease according to GPU memeory
-RESIZE_TO = 640 # resize the image for training and transforms
-NUM_EPOCHS = 200 # number of epochs to train for
-NUM_WORKERS = 4
-
-DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-  
 # Images and labels direcotry should be relative to train.py
-TRAIN_DIR_IMAGES = 'data/GTSDB/train_images'
-TRAIN_DIR_LABELS = 'data/GTSDB/train_xmls'
-VALID_DIR_IMAGES = 'data/GTSDB/valid_images'
-VALID_DIR_LABELS = 'data/GTSDB/valid_xmls'
+TRAIN_DIR_IMAGES: 'data/GTSDB/train_images'
+TRAIN_DIR_LABELS: 'data/GTSDB/train_xmls'
+VALID_DIR_IMAGES: 'data/GTSDB/valid_images'
+VALID_DIR_LABELS: 'data/GTSDB/valid_xmls'
 
-# classes: 0 index is reserved for background
-CLASSES = [
+# Class names.
+CLASSES: [
     '__background__',
     'Speed limit (20km/h)', 'Speed limit (30km/h)', 'Speed limit (50km/h)', 
     'Speed limit (60km/h)', 'Speed limit (70km/h)', 'Speed limit (80km/h)', 
@@ -34,10 +25,11 @@ CLASSES = [
     'End of no passing', 'End of no passing by vehicles over 3.5 metric tons'
 ]
 
-NUM_CLASSES = len(CLASSES)
+# Number of classes (object classes + 1 for Faster RCNN).
+NC: 44
 
-# whether to visualize images after creating the data loaders
-VISUALIZE_TRANSFORMED_IMAGES = True
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True
 
-# location to save model and plots
-OUT_DIR = 'outputs'
+# Whether to visualize images after creating the data loaders
+VISUALIZE_TRANSFORMED_IMAGES: True
