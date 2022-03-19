@@ -9,8 +9,9 @@ import yaml
 import matplotlib.pyplot as plt
 
 from models.create_fasterrcnn_model import create_model
-from custom_utils import set_infer_dir
-from torchvision import transforms as transforms
+from utils.annotations import inference_annotations
+from utils.general import set_infer_dir
+from utils.transforms import infer_transforms
 
 def collect_all_images(dir_test):
     """
@@ -28,15 +29,7 @@ def collect_all_images(dir_test):
             test_images.extend(glob.glob(f"{dir_test}/{file_type}"))
     else:
         test_images.append(dir_test)
-    return test_images
-
-def transform_image(image):
-    # Define the torchvision image transforms.
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.ToTensor(),
-    ])
-    return transform(image)
+    return test_images    
 
 if __name__ == "__main__":
     # Construct the argument parser.
@@ -119,7 +112,7 @@ if __name__ == "__main__":
         orig_image = image.copy()
         # BGR to RGB
         image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
-        image = transform_image(image)
+        image = infer_transforms(image)
         # Add batch dimension.
         image = torch.unsqueeze(image, 0)
         start_time = time.time()
@@ -137,27 +130,10 @@ if __name__ == "__main__":
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
-            boxes = outputs[0]['boxes'].data.numpy()
-            scores = outputs[0]['scores'].data.numpy()
-            # Filter out boxes according to `detection_threshold`.
-            boxes = boxes[scores >= detection_threshold].astype(np.int32)
-            draw_boxes = boxes.copy()
-            # Get all the predicited class names.
-            pred_classes = [CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]
-            
-            # Draw the bounding boxes and write the class name on top of it.
-            for j, box in enumerate(draw_boxes):
-                class_name = pred_classes[j]
-                color = COLORS[CLASSES.index(class_name)]
-                cv2.rectangle(orig_image,
-                            (int(box[0]), int(box[1])),
-                            (int(box[2]), int(box[3])),
-                            color, 2)
-                cv2.putText(orig_image, class_name, 
-                            (int(box[0]), int(box[1]-5)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
-                            2, lineType=cv2.LINE_AA)
-
+            orig_image = inference_annotations(
+                outputs, detection_threshold, CLASSES,
+                COLORS, orig_image
+            )
             if args['show_image']:
                 cv2.imshow('Prediction', orig_image)
                 cv2.waitKey(1)

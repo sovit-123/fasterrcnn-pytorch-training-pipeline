@@ -19,3 +19,4 @@
   * `video_2.mp4`: https://www.youtube.com/watch?v=BQo87tGRM74
   * `video_3.mp4`: https://pixabay.com/videos/chess-chess-pieces-chess-board-19598/
   * `video_4.mp4`: https://www.youtube.com/watch?v=vnqkraiSiTI
+  * `video_5.mp4`: https://www.youtube.com/watch?v=yOlYNps3Lq8

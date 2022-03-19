@@ -5,13 +5,12 @@ from datasets import (
     create_train_dataset, create_valid_dataset, 
     create_train_loader, create_valid_loader
 )
-from custom_utils import (
-    save_model_state,
-    save_train_loss_plot,
-    set_training_dir,
-    Averager
-)
 from models.create_fasterrcnn_model import create_model
+from utils.general import (
+    set_training_dir, Averager, 
+    save_model_state, save_train_loss_plot,
+    show_tranformed_image
+)
 
 import torch
 import argparse
@@ -67,6 +66,7 @@ if __name__ == '__main__':
     NUM_EPOCHS = args['epochs']
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch_size']
+    VISUALIZE_TRANSFORMED_IMAGES = data_configs['VISUALIZE_TRANSFORMED_IMAGES']
     OUT_DIR = set_training_dir()
 
     # Model configurations
@@ -85,6 +85,9 @@ if __name__ == '__main__':
     valid_loader = create_valid_loader(valid_dataset, BATCH_SIZE, NUM_WORKERS)
     print(f"Number of training samples: {len(train_dataset)}")
     print(f"Number of validation samples: {len(valid_dataset)}\n")
+
+    if VISUALIZE_TRANSFORMED_IMAGES:
+        show_tranformed_image(train_loader, DEVICE, CLASSES)
 
     # Initialize the Averager class.
     train_loss_hist = Averager()

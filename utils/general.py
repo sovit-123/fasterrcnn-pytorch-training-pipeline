@@ -1,11 +1,8 @@
-import albumentations as A
 import cv2
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import os
-
-from albumentations.pytorch import ToTensorV2
 
 plt.style.use('ggplot')
 
@@ -56,63 +53,18 @@ class SaveBestModel:
                 'optimizer_state_dict': optimizer.state_dict(),
                 }, 'outputs/best_model.pth')
 
-def collate_fn(batch):
-    """
-    To handle the data loading as different images may have different number 
-    of objects and to handle varying size tensors as well.
-    """
-    return tuple(zip(*batch))
-
-# define the training tranforms
-def get_train_transform():
-    return A.Compose([
-        A.MotionBlur(blur_limit=3, p=0.2),
-        A.Blur(blur_limit=3, p=0.1),
-        A.RandomBrightnessContrast(
-            brightness_limit=0.2, p=0.5
-        ),
-        A.ColorJitter(p=0.5),
-        # A.RandomSunFlare(p=0.1),
-        # `RandomScale` for multi-res training,
-        # `scale_factor` should not be too high, else may result in 
-        # negative convolutional dimensions.
-        # A.RandomScale(scale_limit=0.15, p=0.1),
-        # A.Normalize(
-        #     (0.485, 0.456, 0.406),
-        #     (0.229, 0.224, 0.225)
-        # ),
-        ToTensorV2(p=1.0),
-    ], bbox_params={
-        'format': 'pascal_voc',
-        'label_fields': ['labels']
-    })
-
-# define the validation transforms
-def get_valid_transform():
-    return A.Compose([
-        # A.Normalize(
-        #     (0.485, 0.456, 0.406),
-        #     (0.229, 0.224, 0.225)
-        # ),
-        ToTensorV2(p=1.0),
-    ], bbox_params={
-        'format': 'pascal_voc', 
-        'label_fields': ['labels']
-    })
-
-
-def show_tranformed_image(train_loader):
+def show_tranformed_image(train_loader, device, classes):
     """
     This function shows the transformed images from the `train_loader`.
     Helps to check whether the tranformed images along with the corresponding
     labels are correct or not.
-    Only runs if `VISUALIZE_TRANSFORMED_IMAGES = True` in config.py.
+    
     """
     if len(train_loader) > 0:
         for i in range(3):
             images, targets = next(iter(train_loader))
-            images = list(image.to(DEVICE) for image in images)
-            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+            images = list(image.to(device) for image in images)
+            targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
             boxes = targets[i]['boxes'].cpu().numpy().astype(np.int32)
             labels = targets[i]['labels'].cpu().numpy().astype(np.int32)
             sample = images[i].permute(1, 2, 0).cpu().numpy()
@@ -122,7 +74,7 @@ def show_tranformed_image(train_loader):
                             (box[0], box[1]),
                             (box[2], box[3]),
                             (0, 0, 255), 2)
-                cv2.putText(sample, CLASSES[labels[box_num]], 
+                cv2.putText(sample, classes[labels[box_num]], 
                             (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 
                             1.0, (0, 0, 255), 2)
             cv2.imshow('Transformed image', sample)
@@ -179,7 +131,7 @@ def save_train_loss_plot(OUT_DIR, train_loss_list):
     print('SAVING PLOTS COMPLETE...')
     plt.close('all')
 
-def visualize_mosaic_images(boxes, labels, image_resized):
+def visualize_mosaic_images(boxes, labels, image_resized, classes):
     print(boxes)
     print(labels)
     image_resized = cv2.cvtColor(image_resized, cv2.COLOR_RGB2BGR)
@@ -190,11 +142,11 @@ def visualize_mosaic_images(boxes, labels, image_resized):
                     (int(box[0]), int(box[1])),
                     (int(box[2]), int(box[3])),
                     color, 2)
-        cv2.putText(image_resized, CLASSES[classn], 
+        cv2.putText(image_resized, classes[classn], 
                     (int(box[0]), int(box[1]-5)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
                     2, lineType=cv2.LINE_AA)
-    cv2.imshow('image_resized', image_resized)
+    cv2.imshow('Mosaic', image_resized)
     cv2.waitKey(0)
 
 def save_model_state(epoch, model, optimizer, OUT_DIR):

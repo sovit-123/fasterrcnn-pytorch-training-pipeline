@@ -9,7 +9,9 @@ import yaml
 import matplotlib.pyplot as plt
 
 from models.create_fasterrcnn_model import create_model
-from custom_utils import set_infer_dir
+from utils.general import set_infer_dir
+from utils.annotations import inference_annotations
+from utils.transforms import infer_transforms
 from torchvision import transforms as transforms
 
 def read_return_video_data(video_path):
@@ -19,14 +21,6 @@ def read_return_video_data(video_path):
     frame_height = int(cap.get(4))
     assert (frame_width != 0 and frame_height !=0), 'Please check video path...'
     return cap, frame_width, frame_height
-
-def transform_image(image):
-    # Define the torchvision image transforms.
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.ToTensor(),
-    ])
-    return transform(image)
 
 if __name__ == '__main__':
     # Construct the argument parser.
@@ -117,7 +111,7 @@ if __name__ == '__main__':
             frame = cv2.resize(frame, RESIZE_TO)
             image = frame.copy()
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            image = transform_image(image)
+            image = infer_transforms(image)
             # Add batch dimension.
             image = torch.unsqueeze(image, 0)
             # Get the start time.
@@ -140,26 +134,10 @@ if __name__ == '__main__':
             outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
-                boxes = outputs[0]['boxes'].data.numpy()
-                scores = outputs[0]['scores'].data.numpy()
-                # Filter out boxes according to `detection_threshold`.
-                boxes = boxes[scores >= detection_threshold].astype(np.int32)
-                draw_boxes = boxes.copy()
-                # Get all the predicited class names.
-                pred_classes = [CLASSES[i] for i in outputs[0]['labels'].cpu().numpy()]
-                
-                # dDaw the bounding boxes and write the class name on top of it.
-                for j, box in enumerate(draw_boxes):
-                    class_name = pred_classes[j]
-                    color = COLORS[CLASSES.index(class_name)]
-                    cv2.rectangle(frame,
-                                (int(box[0]), int(box[1])),
-                                (int(box[2]), int(box[3])),
-                                color, 2)
-                    cv2.putText(frame, class_name, 
-                                (int(box[0]), int(box[1]-5)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
-                                2, lineType=cv2.LINE_AA)
+                frame = inference_annotations(
+                    outputs, detection_threshold, CLASSES,
+                    COLORS, frame
+                )
             cv2.putText(frame, f"{fps:.1f} FPS", 
                         (15, 25),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
