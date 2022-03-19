@@ -6,16 +6,10 @@ import glob as glob
 import random
 
 from xml.etree import ElementTree as et
-from config import (
-    CLASSES, RESIZE_TO, 
-    TRAIN_DIR_IMAGES, VALID_DIR_IMAGES, 
-    TRAIN_DIR_LABELS, VALID_DIR_LABELS,
-    BATCH_SIZE
-)
 from torch.utils.data import Dataset, DataLoader
-from custom_utils import (
-    collate_fn, get_train_transform, 
-    get_valid_transform, visualize_mosaic_images
+from utils.general import visualize_mosaic_images
+from utils.transforms import (
+    get_train_transform, get_valid_transform
 )
 
 # the dataset class
@@ -209,7 +203,7 @@ class CustomDataset(Dataset):
                 if len(boxes) > 0:
                     break
         
-        # visualize_mosaic_images(boxes, labels, image_resized)
+        # visualize_mosaic_images(boxes, labels, image_resized, self.classes)
 
         # prepare the final `target` dictionary
         target = {}
@@ -240,70 +234,53 @@ class CustomDataset(Dataset):
     def __len__(self):
         return len(self.all_images)
 
+def collate_fn(batch):
+    """
+    To handle the data loading as different images may have different number 
+    of objects and to handle varying size tensors as well.
+    """
+    return tuple(zip(*batch))
+
 # prepare the final datasets and data loaders
-def create_train_dataset(mosaic=False):
+def create_train_dataset(
+    train_dir_images, train_dir_labels, 
+    resize_width, resize_height, classes,
+    mosaic=True
+):
     train_dataset = CustomDataset(
-        TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
-        RESIZE_TO, RESIZE_TO, CLASSES, get_train_transform(),
+        train_dir_images, train_dir_labels,
+        resize_width, resize_height, classes, 
+        get_train_transform(),
         train=True, mosaic=mosaic
     )
     return train_dataset
-def create_valid_dataset():
+def create_valid_dataset(
+    valid_dir_images, valid_dir_labels, 
+    resize_width, resize_height, classes
+):
     valid_dataset = CustomDataset(
-        VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        RESIZE_TO, RESIZE_TO, CLASSES, get_valid_transform(),
+        valid_dir_images, valid_dir_labels, 
+        resize_width, resize_height, classes, 
+        get_valid_transform(),
         train=False
     )
     return valid_dataset
 
-def create_train_loader(train_dataset, num_workers=0):
+def create_train_loader(train_dataset, batch_size, num_workers=0):
     train_loader = DataLoader(
         train_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
         collate_fn=collate_fn
     )
     return train_loader
-def create_valid_loader(valid_dataset, num_workers=0):
+def create_valid_loader(valid_dataset, batch_size, num_workers=0):
     valid_loader = DataLoader(
         valid_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn
     )
     return valid_loader
-
-
-# execute datasets.py using Python command from Terminal...
-# ... to visualize sample images
-# USAGE: python datasets.py
-if __name__ == '__main__':
-    # sanity check of the Dataset pipeline with sample visualization
-    dataset = CustomDataset(
-        TRAIN_DIR_IMAGES, RESIZE_TO, RESIZE_TO, CLASSES
-    )
-    print(f"Number of training images: {len(dataset)}")
-    
-    # function to visualize a single sample
-    def visualize_sample(image, target):
-        for box_num in range(len(target['boxes'])):
-            box = target['boxes'][box_num]
-            label = CLASSES[target['labels'][box_num]]
-            cv2.rectangle(
-                image, 
-                (int(box[0]), int(box[1])), (int(box[2]), int(box[3])),
-                (0, 255, 0), 2
-            )
-            cv2.putText(
-                image, label, (int(box[0]), int(box[1]-5)), 
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2
-            )
-        cv2.imshow('Image', image)
-        cv2.waitKey(0)
-        
-    NUM_SAMPLES_TO_VISUALIZE = 5
-    for i in range(NUM_SAMPLES_TO_VISUALIZE):
-        image, target = dataset[i]
-        visualize_sample(image, target)

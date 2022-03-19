@@ -1,4 +1,5 @@
 data/*
-outputs/*.pth
+!data/README.md
+outputs/
 inference_outputs
 *__pycache__/

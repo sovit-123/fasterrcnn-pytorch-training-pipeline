@@ -7,6 +7,7 @@ import torchvision.models.detection.mask_rcnn
 from torch_utils import utils
 from torch_utils.coco_eval import CocoEvaluator
 from torch_utils.coco_utils import get_coco_api_from_dataset
+from utils.general import save_validation_results
 
 
 def train_one_epoch(
@@ -93,7 +94,13 @@ def _get_iou_types(model):
 
 
 @torch.inference_mode()
-def evaluate(model, data_loader, device):
+def evaluate(
+    model, 
+    data_loader, 
+    device, 
+    save_valid_preds=False,
+    out_dir=None
+):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
@@ -106,7 +113,9 @@ def evaluate(model, data_loader, device):
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
 
+    counter = 0
     for images, targets in metric_logger.log_every(data_loader, 100, header):
+        counter += 1
         images = list(img.to(device) for img in images)
 
         if torch.cuda.is_available():
@@ -122,6 +131,9 @@ def evaluate(model, data_loader, device):
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
+
+        if save_valid_preds:
+            save_validation_results(images, outputs, counter, out_dir)
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
