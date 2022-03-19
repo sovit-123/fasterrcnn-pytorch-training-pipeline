@@ -32,4 +32,4 @@ NC: 44
 SAVE_VALID_PREDICTION_IMAGES: True
 
 # Whether to visualize images after creating the data loaders
-VISUALIZE_TRANSFORMED_IMAGES: True
+VISUALIZE_TRANSFORMED_IMAGES: False
