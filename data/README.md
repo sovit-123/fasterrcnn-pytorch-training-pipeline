@@ -2,6 +2,12 @@
 
 
 
+**A list of training and inference datasets to try out the custom training on.**
+
+**You can also download the videos/images from [Inference Data](#Inference-Data) section to test out your trained models.**
+
+
+
 ## Dataset Links 
 
 * Uno Cards.v2-raw.voc: https://public.roboflow.com/object-detection/uno-cards
@@ -9,6 +15,10 @@
 * Pothole.v1-raw.voc: https://public.roboflow.com/object-detection/pothole/1
 * `Chess Pieces.v23-raw.voc`: https://public.roboflow.com/object-detection/chess-full/23
 * `GTSDB`: https://benchmark.ini.rub.de/gtsdb_news.html
+* `PlantDoc.v1-resize-416x416.voc`: https://public.roboflow.com/object-detection/plantdoc.
+* `smoke_pascal_voc`: https://www.kaggle.com/didiruh/smoke-pascal-voc.
+* `Exclusively Dark (ExDARK) dataset`: https://github.com/cs-chan/Exclusively-Dark-Image-Dataset.
+* Pascal VOC 2007 and 2012 dataset: https://pjreddie.com/projects/pascal-voc-dataset-mirror/
 
 
 

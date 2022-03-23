@@ -1,0 +1,22 @@
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: '../../xml_od_data/voc_07_12/final_xml_dataset/train/images'
+TRAIN_DIR_LABELS: '../../xml_od_data/voc_07_12/final_xml_dataset/train/labels'
+VALID_DIR_IMAGES: '../../xml_od_data/voc_07_12/final_xml_dataset/valid/images'
+VALID_DIR_LABELS: '../../xml_od_data/voc_07_12/final_xml_dataset/valid/labels'
+
+# Class names.
+CLASSES: [
+    '__background__',
+    "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat",
+    "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person",
+    "pottedplant", "sheep", "sofa", "train", "tvmonitor"
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 21
+
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True
+
+# Whether to visualize images after creating the data loaders
+VISUALIZE_TRANSFORMED_IMAGES: True

@@ -1,8 +1,8 @@
 # Images and labels direcotry should be relative to train.py
-TRAIN_DIR_IMAGES: 'data/GTSDB/train_images'
-TRAIN_DIR_LABELS: 'data/GTSDB/train_xmls'
-VALID_DIR_IMAGES: 'data/GTSDB/valid_images'
-VALID_DIR_LABELS: 'data/GTSDB/valid_xmls'
+TRAIN_DIR_IMAGES: '../../xml_od_data/GTSDB/train_images'
+TRAIN_DIR_LABELS: '../../xml_od_data/GTSDB/train_xmls'
+VALID_DIR_IMAGES: '../../xml_od_data/GTSDB/valid_images'
+VALID_DIR_LABELS: '../../xml_od_data/GTSDB/valid_xmls'
 
 # Class names.
 CLASSES: [
@@ -25,7 +25,7 @@ CLASSES: [
     'End of no passing', 'End of no passing by vehicles over 3.5 metric tons'
 ]
 
-# Number of classes (object classes + 1 for Faster RCNN).
+# Number of classes (object classes + 1 for background class in Faster RCNN).
 NC: 44
 
 # Whether to save the predictions of the validation set while training.

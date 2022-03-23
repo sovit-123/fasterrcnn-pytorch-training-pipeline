@@ -10,7 +10,7 @@ import torch.nn as nn
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
-def create_model(num_classes):
+def create_model(num_classes, pretrained=True, coco_model=False):
     # Load the pretrained ResNet18 backbone.
     conv1 = torchvision.models.resnet18(pretrained=True).conv1
     bn1 = torchvision.models.resnet18(pretrained=True).bn1
