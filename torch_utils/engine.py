@@ -133,7 +133,7 @@ def evaluate(
         evaluator_time = time.time() - evaluator_time
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
 
-        if save_valid_preds:
+        if save_valid_preds and counter == 1:
             save_validation_results(
                 images, outputs, counter, out_dir, classes
             )

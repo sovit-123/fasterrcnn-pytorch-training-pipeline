@@ -188,7 +188,7 @@ def denormalize(x, mean=None, std=None):
 
 def save_validation_results(images, detections, counter, out_dir, classes):
     """
-    Function to save validation results if provided in `config.py`.
+    Function to save validation results.
     :param images: All the images from the current batch.
     :param detections: All the detection results.
     :param counter: Step counter for saving with unique ID.
