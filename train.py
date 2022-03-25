@@ -48,6 +48,10 @@ if __name__ == '__main__':
         '-ims', '--img-size', dest='img_size', default=512, type=int, 
         help='image size to feed to the network'
     )
+    parser.add_argument(
+        '-pn', '--project-name', default=None, type=str, dest='project_name',
+        help='training result dir name in outputs/training/, (default res_#)'
+    )
     args = vars(parser.parse_args())
 
     # Load the data configurations
@@ -67,7 +71,7 @@ if __name__ == '__main__':
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch_size']
     VISUALIZE_TRANSFORMED_IMAGES = data_configs['VISUALIZE_TRANSFORMED_IMAGES']
-    OUT_DIR = set_training_dir()
+    OUT_DIR = set_training_dir(args['project_name'])
 
     # Model configurations
     IMAGE_WIDTH = args['img_size']
@@ -117,7 +121,7 @@ if __name__ == '__main__':
         optimizer, 
         T_0=steps,
         T_mult=1,
-        verbose=True
+        verbose=False
     )
 
     for epoch in range(NUM_EPOCHS):
@@ -131,7 +135,7 @@ if __name__ == '__main__':
             epoch, 
             train_loss_hist,
             print_freq=100,
-            scheduler=scheduler
+            scheduler=None
         )
 
         evaluate(
@@ -139,7 +143,8 @@ if __name__ == '__main__':
             valid_loader, 
             device=DEVICE,
             save_valid_preds=SAVE_VALID_PREDICTIONS,
-            out_dir=OUT_DIR
+            out_dir=OUT_DIR,
+            classes=CLASSES
         )
 
         # Add the current epoch's batch-wise lossed to the `train_loss_list`.

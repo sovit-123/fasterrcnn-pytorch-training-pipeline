@@ -99,7 +99,8 @@ def evaluate(
     data_loader, 
     device, 
     save_valid_preds=False,
-    out_dir=None
+    out_dir=None,
+    classes=None
 ):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
@@ -133,7 +134,9 @@ def evaluate(
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
 
         if save_valid_preds:
-            save_validation_results(images, outputs, counter, out_dir)
+            save_validation_results(
+                images, outputs, counter, out_dir, classes
+            )
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()

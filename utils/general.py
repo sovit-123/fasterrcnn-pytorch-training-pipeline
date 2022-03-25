@@ -186,7 +186,7 @@ def denormalize(x, mean=None, std=None):
     # B, 3, H, W
     return torch.clamp(x, 0, 1)
 
-def save_validation_results(images, detections, counter, OUT_DIR):
+def save_validation_results(images, detections, counter, out_dir, classes):
     """
     Function to save validation results if provided in `config.py`.
     :param images: All the images from the current batch.
@@ -206,16 +206,23 @@ def save_validation_results(images, detections, counter, OUT_DIR):
         scores = detection['scores'].cpu().numpy()
         labels = detection['labels']
         bboxes = detection['boxes'].detach().cpu().numpy()
-        boxes = bboxes[scores >= 0.3].astype(np.int32)
+        boxes = bboxes[scores >= 0.5].astype(np.int32)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        # Get all the predicited class names.
+        pred_classes = [classes[i] for i in labels.cpu().numpy()]
         for j, box in enumerate(boxes):
+            class_name = pred_classes[j]
             cv2.rectangle(
                 image, 
                 (int(box[0]), int(box[1])),
                 (int(box[2]), int(box[3])),
                 (0, 0, 255), 2
             )
-        cv2.imwrite(f"{OUT_DIR}/image_{i}_{counter}.jpg", image*255.)
+            cv2.putText(image, class_name, 
+                    (int(box[0]), int(box[1]-5)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 
+                    2, lineType=cv2.LINE_AA)
+        cv2.imwrite(f"{out_dir}/image_{i}_{counter}.jpg", image*255.)
 
 def set_infer_dir():
     """
@@ -231,7 +238,7 @@ def set_infer_dir():
     os.makedirs(new_dir_name, exist_ok=True)
     return new_dir_name
 
-def set_training_dir():
+def set_training_dir(dir_name=None):
     """
     This functions counts the number of training directories already present
     and creates a new one in `outputs/training/`. 
@@ -239,8 +246,13 @@ def set_training_dir():
     """
     if not os.path.exists('outputs/training'):
         os.makedirs('outputs/training')
-    num_train_dirs_present = len(os.listdir('outputs/training/'))
-    next_dir_num = num_train_dirs_present + 1
-    new_dir_name = f"outputs/training/res_{next_dir_num}"
-    os.makedirs(new_dir_name, exist_ok=True)
-    return new_dir_name
+    if dir_name:
+        new_dir_name = f"outputs/training/{dir_name}"
+        os.makedirs(new_dir_name, exist_ok=True)
+        return new_dir_name
+    else:
+        num_train_dirs_present = len(os.listdir('outputs/training/'))
+        next_dir_num = num_train_dirs_present + 1
+        new_dir_name = f"outputs/training/res_{next_dir_num}"
+        os.makedirs(new_dir_name, exist_ok=True)
+        return new_dir_name
