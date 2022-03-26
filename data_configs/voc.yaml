@@ -17,6 +17,3 @@ NC: 21
 
 # Whether to save the predictions of the validation set while training.
 SAVE_VALID_PREDICTION_IMAGES: True
-
-# Whether to visualize images after creating the data loaders
-VISUALIZE_TRANSFORMED_IMAGES: True

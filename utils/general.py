@@ -1,4 +1,5 @@
 import cv2
+from cv2 import line
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -53,7 +54,7 @@ class SaveBestModel:
                 'optimizer_state_dict': optimizer.state_dict(),
                 }, 'outputs/best_model.pth')
 
-def show_tranformed_image(train_loader, device, classes):
+def show_tranformed_image(train_loader, device, classes, colors):
     """
     This function shows the transformed images from the `train_loader`.
     Helps to check whether the tranformed images along with the corresponding
@@ -67,16 +68,21 @@ def show_tranformed_image(train_loader, device, classes):
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
             boxes = targets[i]['boxes'].cpu().numpy().astype(np.int32)
             labels = targets[i]['labels'].cpu().numpy().astype(np.int32)
+            # Get all the predicited class names.
+            pred_classes = [classes[i] for i in targets[i]['labels'].cpu().numpy()]
             sample = images[i].permute(1, 2, 0).cpu().numpy()
             sample = cv2.cvtColor(sample, cv2.COLOR_RGB2BGR)
             for box_num, box in enumerate(boxes):
+                class_name = pred_classes[box_num]
+                color = colors[classes.index(class_name)]
                 cv2.rectangle(sample,
                             (box[0], box[1]),
                             (box[2], box[3]),
-                            (0, 0, 255), 2)
+                            color, 2,
+                            cv2.LINE_AA)
                 cv2.putText(sample, classes[labels[box_num]], 
                             (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 
-                            1.0, (0, 0, 255), 2)
+                            1.0, color, 2, cv2.LINE_AA)
             cv2.imshow('Transformed image', sample)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
@@ -186,7 +192,7 @@ def denormalize(x, mean=None, std=None):
     # B, 3, H, W
     return torch.clamp(x, 0, 1)
 
-def save_validation_results(images, detections, counter, out_dir, classes):
+def save_validation_results(images, detections, counter, out_dir, classes, colors):
     """
     Function to save validation results.
     :param images: All the images from the current batch.
@@ -212,15 +218,16 @@ def save_validation_results(images, detections, counter, out_dir, classes):
         pred_classes = [classes[i] for i in labels.cpu().numpy()]
         for j, box in enumerate(boxes):
             class_name = pred_classes[j]
+            color = colors[classes.index(class_name)]
             cv2.rectangle(
                 image, 
                 (int(box[0]), int(box[1])),
                 (int(box[2]), int(box[3])),
-                (0, 0, 255), 2
+                color, 2, lineType=cv2.LINE_AA
             )
             cv2.putText(image, class_name, 
                     (int(box[0]), int(box[1]-5)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
                     2, lineType=cv2.LINE_AA)
         cv2.imwrite(f"{out_dir}/image_{i}_{counter}.jpg", image*255.)
 

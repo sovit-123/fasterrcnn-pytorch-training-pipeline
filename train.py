@@ -11,10 +11,15 @@ from utils.general import (
     save_model_state, save_train_loss_plot,
     show_tranformed_image
 )
+from utils.logging import log, set_log, coco_log
 
 import torch
 import argparse
 import yaml
+import numpy as np
+
+# For same annotation colors each time.
+np.random.seed(42)
 
 if __name__ == '__main__':
     # Construct the argument parser.
@@ -52,6 +57,10 @@ if __name__ == '__main__':
         '-pn', '--project-name', default=None, type=str, dest='project_name',
         help='training result dir name in outputs/training/, (default res_#)'
     )
+    parser.add_argument(
+        '-vt', '--viz-transformed', dest='vis_transformed', action='store_true',
+        help='visualize transformed images fed to the network'
+    )
     args = vars(parser.parse_args())
 
     # Load the data configurations
@@ -70,8 +79,11 @@ if __name__ == '__main__':
     NUM_EPOCHS = args['epochs']
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch_size']
-    VISUALIZE_TRANSFORMED_IMAGES = data_configs['VISUALIZE_TRANSFORMED_IMAGES']
+    VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
     OUT_DIR = set_training_dir(args['project_name'])
+    COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
+    # Set logging file.
+    set_log(OUT_DIR)
 
     # Model configurations
     IMAGE_WIDTH = args['img_size']
@@ -91,7 +103,7 @@ if __name__ == '__main__':
     print(f"Number of validation samples: {len(valid_dataset)}\n")
 
     if VISUALIZE_TRANSFORMED_IMAGES:
-        show_tranformed_image(train_loader, DEVICE, CLASSES)
+        show_tranformed_image(train_loader, DEVICE, CLASSES, COLORS)
 
     # Initialize the Averager class.
     train_loss_hist = Averager()
@@ -138,13 +150,14 @@ if __name__ == '__main__':
             scheduler=None
         )
 
-        evaluate(
+        coco_evaluator, stats = evaluate(
             model, 
             valid_loader, 
             device=DEVICE,
             save_valid_preds=SAVE_VALID_PREDICTIONS,
             out_dir=OUT_DIR,
-            classes=CLASSES
+            classes=CLASSES,
+            colors=COLORS
         )
 
         # Add the current epoch's batch-wise lossed to the `train_loss_list`.

@@ -8,7 +8,7 @@ from torch_utils import utils
 from torch_utils.coco_eval import CocoEvaluator
 from torch_utils.coco_utils import get_coco_api_from_dataset
 from utils.general import save_validation_results
-
+from utils.logging import coco_log, log
 
 def train_one_epoch(
     model, 
@@ -100,7 +100,8 @@ def evaluate(
     device, 
     save_valid_preds=False,
     out_dir=None,
-    classes=None
+    classes=None,
+    colors=None
 ):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
@@ -135,7 +136,7 @@ def evaluate(
 
         if save_valid_preds and counter == 1:
             save_validation_results(
-                images, outputs, counter, out_dir, classes
+                images, outputs, counter, out_dir, classes, colors
             )
 
     # gather the stats from all processes
@@ -145,6 +146,7 @@ def evaluate(
 
     # accumulate predictions from all images
     coco_evaluator.accumulate()
-    coco_evaluator.summarize()
+    stats = coco_evaluator.summarize()
+    coco_log(out_dir, stats)
     torch.set_num_threads(n_threads)
-    return coco_evaluator
+    return coco_evaluator, stats
