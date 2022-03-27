@@ -8,7 +8,6 @@ from torch_utils import utils
 from torch_utils.coco_eval import CocoEvaluator
 from torch_utils.coco_utils import get_coco_api_from_dataset
 from utils.general import save_validation_results
-from utils.logging import coco_log, log
 
 def train_one_epoch(
     model, 
@@ -147,6 +146,5 @@ def evaluate(
     # accumulate predictions from all images
     coco_evaluator.accumulate()
     stats = coco_evaluator.summarize()
-    coco_log(out_dir, stats)
     torch.set_num_threads(n_threads)
     return coco_evaluator, stats

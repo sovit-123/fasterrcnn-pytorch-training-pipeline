@@ -1,3 +1,12 @@
+"""
+USAGE
+
+Training on custom ResNet:
+python train.py --model fasterrcnn_custom_resnet --epochs 2 --config data_configs/voc.yaml  --no-mosaic --batch-size 16
+Training on ResNet50 FPN with custom project folder name and visualizing transformed images before training begins:
+python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
+"""
+
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
@@ -61,6 +70,19 @@ if __name__ == '__main__':
         '-vt', '--viz-transformed', dest='vis_transformed', action='store_true',
         help='visualize transformed images fed to the network'
     )
+    parser.add_argument(
+        '-nm', '--no-mosaic', dest='no_mosaic', action='store_false',
+        help='pass this to not to use mosaic augmentation'
+    )
+    parser.add_argument(
+        '-uta', '--use-train-aug', dest='use_train_aug', action='store_true',
+        help='whether to use train augmentation, uses some advanced augmentation \
+              that may make training difficult when used with mosaic'
+    )
+    parser.add_argument(
+        '-ca', '--cosine-annealing', dest='cosine_annealing', action='store_true',
+        help='use cosine annealing warm restarts'
+    )
     args = vars(parser.parse_args())
 
     # Load the data configurations
@@ -91,7 +113,9 @@ if __name__ == '__main__':
     device = 'cuda:0'
     train_dataset = create_train_dataset(
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
+        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+        use_train_aug=args['use_train_aug'],
+        mosaic=args['no_mosaic']
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
@@ -126,15 +150,19 @@ if __name__ == '__main__':
     # Define the optimizer.
     # optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
     optimizer = torch.optim.AdamW(params, lr=0.0001, weight_decay=0.0005)
-    # LR will be zero as we approach `steps` number of epochs each time.
-    # If `steps = 5`, LR will slowly reduce to zero every 5 epochs.
-    steps = NUM_EPOCHS + 25
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, 
-        T_0=steps,
-        T_mult=1,
-        verbose=False
-    )
+
+    if args['cosine_annealing']:
+        # LR will be zero as we approach `steps` number of epochs each time.
+        # If `steps = 5`, LR will slowly reduce to zero every 5 epochs.
+        steps = 2
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, 
+            T_0=steps,
+            T_mult=1,
+            verbose=False
+        )
+    else:
+        scheduler = None
 
     for epoch in range(NUM_EPOCHS):
         train_loss_hist.reset()
@@ -147,7 +175,7 @@ if __name__ == '__main__':
             epoch, 
             train_loss_hist,
             print_freq=100,
-            scheduler=None
+            scheduler=scheduler
         )
 
         coco_evaluator, stats = evaluate(
@@ -170,3 +198,5 @@ if __name__ == '__main__':
 
         # Save loss plot.
         save_train_loss_plot(OUT_DIR, train_loss_list)
+
+        coco_log(OUT_DIR, stats)

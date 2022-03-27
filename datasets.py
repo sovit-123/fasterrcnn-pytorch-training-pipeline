@@ -9,7 +9,8 @@ from xml.etree import ElementTree as et
 from torch.utils.data import Dataset, DataLoader
 from utils.general import visualize_mosaic_images
 from utils.transforms import (
-    get_train_transform, get_valid_transform
+    get_train_transform, get_valid_transform,
+    get_train_aug
 )
 
 # the dataset class
@@ -17,9 +18,11 @@ class CustomDataset(Dataset):
     def __init__(
         self, images_path, labels_path, 
         width, height, classes, transforms=None, 
+        use_train_aug=False,
         train=False, mosaic=False
     ):
         self.transforms = transforms
+        self.use_train_aug = use_train_aug
         self.images_path = images_path
         self.labels_path = labels_path
         self.height = height
@@ -213,21 +216,20 @@ class CustomDataset(Dataset):
         target["iscrowd"] = iscrowd
         image_id = torch.tensor([idx])
         target["image_id"] = image_id
-        # apply the image transforms
-        # if self.transforms and not self.mosaic:
+        if self.use_train_aug: # Use train augmentation if argument is passed.
+            train_aug = get_train_aug()
+            sample = train_aug(image=image_resized,
+                                     bboxes=target['boxes'],
+                                     labels=labels)
+            image_resized = sample['image']
+            target['boxes'] = torch.Tensor(sample['bboxes'])
         if self.transforms:
             sample = self.transforms(image=image_resized,
                                      bboxes=target['boxes'],
                                      labels=labels)
             image_resized = sample['image']
             target['boxes'] = torch.Tensor(sample['bboxes'])
-        # elif self.mosaic: # Apply simple validation transforms with mosaic.
-        #     transforms = get_valid_transform()
-        #     sample = transforms(image=image_resized,
-        #                              bboxes=target['boxes'],
-        #                              labels=labels)
-        #     image_resized = sample['image']
-        #     target['boxes'] = torch.Tensor(sample['bboxes'])
+        
             
         return image_resized, target
 
@@ -245,12 +247,14 @@ def collate_fn(batch):
 def create_train_dataset(
     train_dir_images, train_dir_labels, 
     resize_width, resize_height, classes,
+    use_train_aug=False,
     mosaic=True
 ):
     train_dataset = CustomDataset(
         train_dir_images, train_dir_labels,
         resize_width, resize_height, classes, 
         get_train_transform(),
+        use_train_aug=use_train_aug,
         train=True, mosaic=mosaic
     )
     return train_dataset
