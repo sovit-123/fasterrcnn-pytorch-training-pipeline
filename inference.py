@@ -44,7 +44,7 @@ if __name__ == "__main__":
         help='(optional) path to the data config file'
     )
     parser.add_argument(
-        '-m', '--model', default='fasterrcnn_resnet50',
+        '-m', '--model', default='fasterrcnn_resnet50_fpn',
         help='name of the model'
     )
     parser.add_argument(
@@ -141,7 +141,7 @@ if __name__ == "__main__":
                 plt.imshow(orig_image[:, :, ::-1])
                 plt.axis('off')
                 plt.show()
-            cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
+        cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {i+1} done...")
         print('-'*50)
 

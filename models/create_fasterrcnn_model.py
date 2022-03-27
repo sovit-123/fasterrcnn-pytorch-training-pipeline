@@ -11,7 +11,9 @@ def return_fasterrcnn_resnet50_fpn(
 def return_fasterrcnn_mobilenetv3_large_fpn(
     num_classes, pretrained=True, coco_model=False
 ):
-    model = fasterrcnn_mobilenetv3_large_fpn.create_model(num_classes)
+    model = fasterrcnn_mobilenetv3_large_fpn.create_model(
+        num_classes, pretrained=pretrained, coco_model=coco_model
+    )
     return model
 
 def return_fasterrcnn_resnet50(

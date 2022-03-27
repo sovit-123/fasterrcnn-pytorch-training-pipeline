@@ -128,18 +128,21 @@ Taking an exmaple of the [smoke dataset](https://www.kaggle.com/didiruh/smoke-pa
 The content of the `smoke.yaml` should be the following:
 
 ```yaml
-# TRAIN_DIR should be relative to train.py
-TRAIN_DIR_IMAGES: data/smoke_pascal_voc/archive/train/images
-TRAIN_DIR_LABELS: data/smoke_pascal_voc/archive/train/annotations
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: ../../xml_od_data/smoke_pascal_voc/archive/train/images
+TRAIN_DIR_LABELS: ../../xml_od_data/smoke_pascal_voc/archive/train/annotations
 # VALID_DIR should be relative to train.py
-VALID_DIR_IMAGES: data/smoke_pascal_voc/archive/valid/images
-VALID_DIR_LABELS: data/smoke_pascal_voc/archive/valid/annotations
+VALID_DIR_IMAGES: ../../xml_od_data/smoke_pascal_voc/archive/valid/images
+VALID_DIR_LABELS: ../../xml_od_data/smoke_pascal_voc/archive/valid/annotations
+
 # Class names.
-CLASSES: ['smoke']
-# Number of classes.
-NC: 1
-# Whether to save the predictions of the validation set while training.
-SAVE_VALID_PREDICTION_IMAGES: True
+CLASSES: [
+    '__background__',
+    'smoke'
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 2
 
 # Whether to save the predictions of the validation set while training.
 SAVE_VALID_PREDICTION_IMAGES: True
@@ -222,3 +225,42 @@ IoU metric: bbox
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.683
 SAVING PLOTS COMPLETE...
 ```
+
+
+
+## Inference
+
+### Image Inference on COCO Pretrained Model
+
+By default using Faster RCNN ResNet50 FPN model.
+
+```
+python inference.py
+```
+
+Use model of your choice with an image input.
+
+```
+python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input example_test_data/image_1.jpg
+```
+
+### Image Inference in Custom Trained Model
+
+In this case model name, weights path, and data config (YAML) file path is mandatory.
+
+```
+python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input data/inference_data/image_1.jpg --config data_configs/smoke.yaml --weights outputs/training/smoke_training/last_model_state.pth
+```
+
+### Video Inference on COCO Pretrrained Model
+
+```
+python inference_video.py
+```
+
+### Video Inference in Custom Trained Model
+
+```
+python inference_video.py --model fasterrcnn_mobilenetv3_large_fpn --input data/inference_data/video_1.mp4 --config data_configs/smoke.yaml --weights outputs/training/smoke_training/last_model_state.pth 
+```
+

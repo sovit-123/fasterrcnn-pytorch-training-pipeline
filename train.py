@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-m', '--model', default='fasterrcnn_resnet50',
+        '-m', '--model', default='fasterrcnn_resnet50_fpn',
         help='name of the model'
     )
     parser.add_argument(

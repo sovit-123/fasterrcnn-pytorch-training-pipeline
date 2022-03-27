@@ -35,7 +35,7 @@ if __name__ == '__main__':
         help='(optional) path to the data config file'
     )
     parser.add_argument(
-        '-m', '--model', default='fasterrcnn_resnet50',
+        '-m', '--model', default='fasterrcnn_resnet50_fpn',
         help='name of the model'
     )
     parser.add_argument(

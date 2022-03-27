@@ -1,4 +1,4 @@
-image_path: data/inference_data/image_1.jpg
+image_path: example_test_data/image_1.jpg
 NC: 91
 CLASSES: [
     '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',

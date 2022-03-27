@@ -1,4 +1,4 @@
-video_path: data/inference_data/video_4.mp4
+video_path: example_test_data/video_1.mp4
 NC: 91
 CLASSES: [
     '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
