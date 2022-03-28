@@ -122,5 +122,4 @@ def create_model(num_classes, pretrained=True, coco_model=False):
         rpn_anchor_generator=anchor_generator,
         box_roi_pool=roi_pooler
     )
-    print(model)
     return model

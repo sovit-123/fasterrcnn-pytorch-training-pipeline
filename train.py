@@ -154,7 +154,7 @@ if __name__ == '__main__':
     if args['cosine_annealing']:
         # LR will be zero as we approach `steps` number of epochs each time.
         # If `steps = 5`, LR will slowly reduce to zero every 5 epochs.
-        steps = 2
+        steps = 25
         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer, 
             T_0=steps,
