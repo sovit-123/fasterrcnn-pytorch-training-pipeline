@@ -75,14 +75,15 @@ class CustomResNet(nn.Module):
 
 def create_model(num_classes, pretrained=True, coco_model=False):
     # Load the pretrained ResNet18 backbone.
-    if pretrained:
-        print('Loading Tiny ImageNet weights...')
-        custom_resnet = CustomResNet(num_classes=200)
-        checkpoint = torch.load('outputs/custom_resnet_weights/model_best.pth.tar')
-        custom_resnet.load_state_dict(checkpoint['state_dict'])
-    else:
-        print('Loading Custom ResNet with random weights')
-        custom_resnet = CustomResNet(num_classes=10)
+    # if pretrained:
+        # print('Loading Tiny ImageNet weights...')
+        # custom_resnet = CustomResNet(num_classes=200)
+        # checkpoint = torch.load('outputs/custom_resnet_weights/model_best.pth.tar')
+        # custom_resnet.load_state_dict(checkpoint['state_dict'])
+    # else:
+    print('Loading Custom ResNet with random weights')
+    custom_resnet = CustomResNet(num_classes=10)
+
     block1 = custom_resnet.block1
     block2 = custom_resnet.block2
     block3 = custom_resnet.block3

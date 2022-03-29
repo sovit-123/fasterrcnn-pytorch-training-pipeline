@@ -223,7 +223,7 @@ class CustomDataset(Dataset):
                                      labels=labels)
             image_resized = sample['image']
             target['boxes'] = torch.Tensor(sample['bboxes'])
-        if self.transforms:
+        else:
             sample = self.transforms(image=image_resized,
                                      bboxes=target['boxes'],
                                      labels=labels)

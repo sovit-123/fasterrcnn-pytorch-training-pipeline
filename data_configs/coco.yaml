@@ -1,0 +1,29 @@
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: '../../xml_od_data/Microsoft COCO.v2-raw.voc/train'
+TRAIN_DIR_LABELS: '../../xml_od_data/Microsoft COCO.v2-raw.voc/train'
+VALID_DIR_IMAGES: '../../xml_od_data/Microsoft COCO.v2-raw.voc/valid'
+VALID_DIR_LABELS: '../../xml_od_data/Microsoft COCO.v2-raw.voc/valid'
+
+# Class names.
+CLASSES: [
+    '__background__',
+    'aeroplane', 'apple', 'backpack', 'banana', 'baseball bat', 
+    'baseball glove', 'bear', 'bed', 'bench', 'bicycle', 'bird',
+    'boat', 'book', 'bottle', 'bowl', 'broccoli', 'bus', 'cake', 'car',
+    'carrot', 'cat', 'cell phone', 'chair', 'clock', 'cow', 'cup', 
+    'diningtable', 'dog', 'donut', 'elephant', 'fire hydrant', 'fork', 
+    'frisbee', 'giraffe', 'hair drier', 'handbag', 'horse', 'hot dog', 
+    'keyboard', 'kite', 'knife', 'laptop', 'microwave', 'motorbike', 'mouse', 
+    'orange', 'oven', 'parking meter', 'person', 'pizza', 'pottedplant', 
+    'refrigerator', 'remote', 'sandwich', 'scissors', 'sheep', 'sink', 
+    'skateboard', 'skis', 'snowboard', 'sofa', 'spoon', 'sports ball', 
+    'stop sign', 'suitcase', 'surfboard', 'teddy bear', 'tennis racket', 
+    'tie', 'toaster', 'toilet', 'toothbrush', 'traffic light', 'train', 
+    'truck', 'tvmonitor', 'umbrella', 'vase', 'wine glass', 'zebra'
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 80
+
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True

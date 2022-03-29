@@ -7,6 +7,7 @@ Training on ResNet50 FPN with custom project folder name and visualizing transfo
 python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
 """
 
+from tabnanny import check
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
@@ -83,6 +84,10 @@ if __name__ == '__main__':
         '-ca', '--cosine-annealing', dest='cosine_annealing', action='store_true',
         help='use cosine annealing warm restarts'
     )
+    parser.add_argument(
+        '-mw', '--weights', default=None, type=str,
+        help='path to model weights if resuming training'
+    )
     args = vars(parser.parse_args())
 
     # Load the data configurations
@@ -137,6 +142,13 @@ if __name__ == '__main__':
 
     create_model = create_model[args['model']]
     model = create_model(num_classes=NUM_CLASSES)
+
+    # Load pretrained weights if path is provided.
+    if args['weights'] is not None:
+        print('Loading trained weights...')
+        checkpoint = torch.load(args['weights'])
+        model.load_state_dict(checkpoint['model_state_dict'])
+
     print(model)
     model = model.to(DEVICE)
     # Total parameters and trainable parameters.
@@ -154,7 +166,7 @@ if __name__ == '__main__':
     if args['cosine_annealing']:
         # LR will be zero as we approach `steps` number of epochs each time.
         # If `steps = 5`, LR will slowly reduce to zero every 5 epochs.
-        steps = 25
+        steps = NUM_EPOCHS + 10
         scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer, 
             T_0=steps,
