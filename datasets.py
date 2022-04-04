@@ -37,39 +37,60 @@ class CustomDataset(Dataset):
         for file_type in self.image_file_types:
             self.all_image_paths.extend(glob.glob(f"{self.images_path}/{file_type}"))
         self.all_annot_paths = glob.glob(f"{self.labels_path}/*.xml")
-        # Remove all annotations and images when no object is present.
-        self.read_and_clean()
         self.all_images = [image_path.split(os.path.sep)[-1] for image_path in self.all_image_paths]
         self.all_images = sorted(self.all_images)
+        # Remove all annotations and images when no object is present.
+        self.read_and_clean()
         
     def read_and_clean(self):
-        """
-        This function will discard any images and labels when the XML 
-        file does not contain any object.
-        """
+        # Discard any images and labels when the XML 
+        # file does not contain any object.
         for annot_path in self.all_annot_paths:
             tree = et.parse(annot_path)
             root = tree.getroot()
             object_present = False
             for member in root.findall('object'):
-                object_present = True
+                if member.find('bndbox'):
+                    object_present = True
             if object_present == False:
-                print(f"Removing {annot_path} and corresponding image")
+                image_name = annot_path.split(os.path.sep)[-1].split('.xml')[0]
+                image_root = self.all_image_paths[0].split(os.path.sep)[:-1]
+                remove_image = f"{'/'.join(image_root)}/{image_name}.jpg"
+                print(f"Removing {annot_path} and corresponding {remove_image}")
                 self.all_annot_paths.remove(annot_path)
-                self.all_image_paths.remove(annot_path.split('.xml')[0]+'.jpg')
+                self.all_image_paths.remove(remove_image)
+
+        # Discard any image file when no annotation file 
+        # is not found for the image. 
+        for image_name in self.all_images:
+            possible_xml_name = f"{self.labels_path}/{image_name.split('.jpg')[0]}.xml"
+            if possible_xml_name not in self.all_annot_paths:
+                print(f"{possible_xml_name} not found...")
+                print(f"Removing {image_name} image")
+                # items = [item for item in items if item != element]
+                self.all_images = [image_instance for image_instance in self.all_images if image_instance != image_name]
+                # self.all_images.remove(image_name)
+
+        # for image_path in self.all_image_paths:
+        #     image_name = image_path.split(os.path.sep)[-1].split('.jpg')[0]
+        #     possible_xml_name = f"{self.labels_path}/{image_name.split('.jpg')[0]}.xml"
+        #     if possible_xml_name not in self.all_annot_paths:
+        #         print(f"{possible_xml_name} not found...")
+        #         print(f"Removing {image_name} image")
+        #         self.all_image_paths.remove(image_path)
 
     def load_image_and_labels(self, index):
         image_name = self.all_images[index]
         image_path = os.path.join(self.images_path, image_name)
 
-        # read the image
+        # Read the image.
         image = cv2.imread(image_path)
-        # convert BGR to RGB color format
+        # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image_resized = cv2.resize(image, (self.width, self.height))
         image_resized /= 255.0
         
-        # capture the corresponding XML file for getting the annotations
+        # Capture the corresponding XML file for getting the annotations.
         annot_filename = image_name[:-4] + '.xml'
         annot_file_path = os.path.join(self.labels_path, annot_filename)
         
@@ -79,14 +100,14 @@ class CustomDataset(Dataset):
         tree = et.parse(annot_file_path)
         root = tree.getroot()
         
-        # get the height and width of the image
+        # Get the height and width of the image.
         image_width = image.shape[1]
         image_height = image.shape[0]
-        
-        # box coordinates for xml files are extracted and corrected for image size given
+                
+        # Box coordinates for xml files are extracted and corrected for image size given.
         for member in root.findall('object'):
-            # map the current object name to `classes` list to get...
-            # ... the label index and append to `labels` list
+            # Map the current object name to `classes` list to get
+            # the label index and append to `labels` list.
             labels.append(self.classes.index(member.find('name').text))
             
             # xmin = left corner x-coordinates
@@ -98,10 +119,14 @@ class CustomDataset(Dataset):
             # ymax = right corner y-coordinates
             ymax = int(member.find('bndbox').find('ymax').text)
 
+            ymax, xmax = self.check_image_and_annotation(
+                xmax, ymax, image_width, image_height
+            )
+
             orig_boxes.append([xmin, ymin, xmax, ymax])
             
-            # resize the bounding boxes according to the...
-            # ... desired `width`, `height`
+            # Resize the bounding boxes according to the
+            # desired `width`, `height`.
             xmin_final = (xmin/image_width)*self.width
             xmax_final = (xmax/image_width)*self.width
             ymin_final = (ymin/image_height)*self.height
@@ -109,16 +134,27 @@ class CustomDataset(Dataset):
             
             boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
         
-        # bounding box to tensor
+        # Bounding box to tensor.
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
-        # area of the bounding boxes
+        # Area of the bounding boxes.
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
-        # no crowd instances
+        # No crowd instances.
         iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64)
-        # labels to tensor
+        # Labels to tensor.
         labels = torch.as_tensor(labels, dtype=torch.int64)
         return image, image_resized, orig_boxes, \
             boxes, labels, area, iscrowd, (image_width, image_height)
+
+    def check_image_and_annotation(self, xmax, ymax, width, height):
+        """
+        Check that all x_max and y_max are not more than the image
+        width or height.
+        """
+        if ymax > height:
+            ymax = height
+        if xmax > width:
+            xmax = width
+        return ymax, xmax
 
 
     def load_cutmix_image_and_boxes(self, index, resize_factor=512):
@@ -184,13 +220,11 @@ class CustomDataset(Dataset):
         result_boxes = result_boxes[
             np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)
         ]
-        # print(result_boxes)
-        # print(result_classes)
         return orig_image, result_image/255., torch.tensor(result_boxes), \
             torch.tensor(np.array(final_classes)), area, iscrowd, dims
 
     def __getitem__(self, idx):
-        # capture the image name and the full image path
+        # Capture the image name and the full image path.
         if not self.mosaic:
             image, image_resized, orig_boxes, boxes, \
                 labels, area, iscrowd, dims = self.load_image_and_labels(
@@ -208,7 +242,7 @@ class CustomDataset(Dataset):
         
         # visualize_mosaic_images(boxes, labels, image_resized, self.classes)
 
-        # prepare the final `target` dictionary
+        # Prepare the final `target` dictionary.
         target = {}
         target["boxes"] = boxes
         target["labels"] = labels
@@ -243,7 +277,7 @@ def collate_fn(batch):
     """
     return tuple(zip(*batch))
 
-# prepare the final datasets and data loaders
+# Prepare the final datasets and data loaders.
 def create_train_dataset(
     train_dir_images, train_dir_labels, 
     resize_width, resize_height, classes,
