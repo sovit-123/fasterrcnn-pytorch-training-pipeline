@@ -93,7 +93,7 @@ if __name__ == "__main__":
     # Load weights if path provided.
     if args['weights'] is not None:
         model = create_model(num_classes=NUM_CLASSES, coco_model=False)
-        checkpoint = torch.load(args['weights'])
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)
         model.load_state_dict(checkpoint['model_state_dict'])
     model.to(DEVICE).eval()
 
