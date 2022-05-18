@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # Load pretrained weights if path is provided.
     if args['weights'] is not None:
         print('Loading trained weights...')
-        checkpoint = torch.load(args['weights'])
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)
         model.load_state_dict(checkpoint['model_state_dict'])
 
     print(model)
