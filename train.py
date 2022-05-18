@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # Model configurations
     IMAGE_WIDTH = args['img_size']
     IMAGE_HEIGHT = args['img_size']
-    device = 'cuda:0'
+    
     train_dataset = create_train_dataset(
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
