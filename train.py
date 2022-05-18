@@ -139,6 +139,7 @@ if __name__ == '__main__':
     # Train and validation loss lists to store loss values of all
     # iterations till ena and plot graphs for all iterations.
     train_loss_list = []
+    start_epochs = 0
 
     create_model = create_model[args['model']]
     model = create_model(num_classes=NUM_CLASSES)
@@ -147,7 +148,15 @@ if __name__ == '__main__':
     if args['weights'] is not None:
         print('Loading trained weights...')
         checkpoint = torch.load(args['weights'], map_location=DEVICE)
-        model.load_state_dict(checkpoint['model_state_dict'])
+        print(checkpoint)        
+        model.load_state_dict(checkpoint['model_state_dict'])        
+        if checkpoint['epoch']:
+            start_epochs = checkpoint['epoch']
+            print(f"Resuming from epoch {start_epochs}...")
+        if checkpoint['train_loss_hist']:
+            train_loss_hist = checkpoint['train_loss_hist']
+        
+
 
     print(model)
     model = model.to(DEVICE)
@@ -176,7 +185,7 @@ if __name__ == '__main__':
     else:
         scheduler = None
 
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
 
         _, batch_loss_list = train_one_epoch(
