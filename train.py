@@ -153,8 +153,8 @@ if __name__ == '__main__':
         if checkpoint['epoch']:
             start_epochs = checkpoint['epoch']
             print(f"Resuming from epoch {start_epochs}...")
-        if checkpoint['train_loss_hist']:
-            train_loss_hist = checkpoint['train_loss_hist']
+        if checkpoint['train_loss_list']:
+            train_loss_list = checkpoint['train_loss_list']
         
 
 
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         # Save the current epoch model state. This can be used 
         # to resume training. It saves model state dict, number of
         # epochs trained for, optimizer state dict, and loss function.
-        save_model_state(epoch, model, optimizer, OUT_DIR)
+        save_model_state(epoch, model, optimizer, train_loss_list, OUT_DIR)
 
         # Save loss plot.
         save_train_loss_plot(OUT_DIR, train_loss_list)
