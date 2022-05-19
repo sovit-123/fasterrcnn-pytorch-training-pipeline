@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # Model configurations
     IMAGE_WIDTH = args['img_size']
     IMAGE_HEIGHT = args['img_size']
-    device = 'cuda:0'
+    
     train_dataset = create_train_dataset(
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
@@ -139,6 +139,7 @@ if __name__ == '__main__':
     # Train and validation loss lists to store loss values of all
     # iterations till ena and plot graphs for all iterations.
     train_loss_list = []
+    start_epochs = 0
 
     create_model = create_model[args['model']]
     model = create_model(num_classes=NUM_CLASSES)
@@ -146,8 +147,16 @@ if __name__ == '__main__':
     # Load pretrained weights if path is provided.
     if args['weights'] is not None:
         print('Loading trained weights...')
-        checkpoint = torch.load(args['weights'])
-        model.load_state_dict(checkpoint['model_state_dict'])
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)
+        print(checkpoint)        
+        model.load_state_dict(checkpoint['model_state_dict'])        
+        if checkpoint['epoch']:
+            start_epochs = checkpoint['epoch']
+            print(f"Resuming from epoch {start_epochs}...")
+        if checkpoint['train_loss_list']:
+            train_loss_list = checkpoint['train_loss_list']
+        
+
 
     print(model)
     model = model.to(DEVICE)
@@ -176,7 +185,7 @@ if __name__ == '__main__':
     else:
         scheduler = None
 
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
 
         _, batch_loss_list = train_one_epoch(
@@ -206,7 +215,7 @@ if __name__ == '__main__':
         # Save the current epoch model state. This can be used 
         # to resume training. It saves model state dict, number of
         # epochs trained for, optimizer state dict, and loss function.
-        save_model_state(epoch, model, optimizer, OUT_DIR)
+        save_model_state(epoch, model, optimizer, train_loss_list, OUT_DIR)
 
         # Save loss plot.
         save_train_loss_plot(OUT_DIR, train_loss_list)
