@@ -54,6 +54,11 @@ if __name__ == '__main__':
         '-mpl', '--mpl-show', dest='mpl_show', action='store_true',
         help='visualize using matplotlib, helpful in notebooks'
     )
+    parser.add_argument(
+        '-d', '--device', 
+        default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
+        help='computation/training device, default is GPU if GPU present'
+    )
     args = vars(parser.parse_args())
 
     # For same annotation colors each time.
@@ -66,7 +71,7 @@ if __name__ == '__main__':
     # Inference settings and constants.
     NUM_CLASSES = data_configs['NC']
     CLASSES = data_configs['CLASSES']
-    DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    DEVICE = args['device']
     COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
     OUT_DIR = set_infer_dir()
     VIDEO_PATH = None
