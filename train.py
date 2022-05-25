@@ -7,7 +7,6 @@ Training on ResNet50 FPN with custom project folder name and visualizing transfo
 python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
 """
 
-from tabnanny import check
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )

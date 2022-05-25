@@ -1,0 +1,19 @@
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: '../input/Aquarium Combined.v2-raw-1024.voc/train'
+TRAIN_DIR_LABELS: '../input/Aquarium Combined.v2-raw-1024.voc/train'
+VALID_DIR_IMAGES: '../input/Aquarium Combined.v2-raw-1024.voc/valid'
+VALID_DIR_LABELS: '../input/Aquarium Combined.v2-raw-1024.voc/valid'
+
+# Class names.
+CLASSES: [
+    '__background__',
+    'fish', 'jellyfish', 'penguin',
+    'shark', 'puffin', 'stingray',
+    'starfish'
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 8
+
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True
