@@ -169,7 +169,7 @@ class CustomDataset(Dataset):
         s = h // 2
     
         xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
-        indexes = [index] + [random.randint(0, len(self.images_path) - 1) for _ in range(3)]
+        indexes = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
         
         # Create empty image with the above resized image.
         result_image = np.full((h, w, 3), 1, dtype=np.float32)
