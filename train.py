@@ -18,11 +18,13 @@ from models.create_fasterrcnn_model import create_model
 from utils.general import (
     set_training_dir, Averager, 
     save_model_state, save_train_loss_plot,
-    show_tranformed_image
+    show_tranformed_image,
+    save_mAP
 )
 from utils.logging import (
     log, set_log, coco_log,
-    set_summary_writer, tensorboard_log
+    set_summary_writer, tensorboard_loss_log, 
+    tensorboard_map_log
 )
 
 import torch
@@ -142,6 +144,8 @@ if __name__ == '__main__':
     # Train and validation loss lists to store loss values of all
     # iterations till ena and plot graphs for all iterations.
     train_loss_list = []
+    val_map_05 = []
+    val_map = []
     start_epochs = 0
 
     create_model = create_model[args['model']]
@@ -214,6 +218,8 @@ if __name__ == '__main__':
 
         # Add the current epoch's batch-wise lossed to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
+        val_map_05.append(stats[1])
+        val_map.append(stats[0])
 
         # Save the current epoch model state. This can be used 
         # to resume training. It saves model state dict, number of
@@ -222,12 +228,15 @@ if __name__ == '__main__':
 
         # Save loss plot.
         save_train_loss_plot(OUT_DIR, train_loss_list)
+        # Save mAP plots.
+        save_mAP(OUT_DIR, val_map_05, val_map)
         # Save train loss plot using TensorBoard.
-        tensorboard_log('Train loss', np.array(train_loss_list), writer)
-        # writer.add_scalar(
-        #     'Train loss',
-        #     np.array(train_loss_list)[-1], 
-        #     len(train_loss_list)
-        # )
+        tensorboard_loss_log('Train loss', np.array(train_loss_list), writer)
+        tensorboard_map_log(
+            name='mAP', 
+            val_map_05=np.array(val_map_05), 
+            val_map=np.array(val_map),
+            writer=writer
+        )
 
         coco_log(OUT_DIR, stats)

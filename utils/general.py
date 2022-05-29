@@ -1,5 +1,4 @@
 import cv2
-from cv2 import line
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -136,6 +135,29 @@ def save_train_loss_plot(OUT_DIR, train_loss_list):
     figure_1.savefig(f"{OUT_DIR}/train_loss.png")
     print('SAVING PLOTS COMPLETE...')
     plt.close('all')
+
+def save_mAP(OUT_DIR, map_05, map):
+    """
+    Saves the mAP@0.5 and mAP@0.5:0.95 per epoch.
+
+    :param OUT_DIR: Path to save the graphs.
+    :param map_05: List containing mAP values at 0.5 IoU.
+    :param map: List containing mAP values at 0.5:0.95 IoU.
+    """
+    figure = plt.figure(figsize=(10, 7), num=1, clear=True)
+    ax = figure.add_subplot()
+    ax.plot(
+        map_05, color='tab:orange', linestyle='-', 
+        label='mAP@0.5'
+    )
+    ax.plot(
+        map, color='tab:red', linestyle='-', 
+        label='mAP@0.5:0.95'
+    )
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('mAP')
+    ax.legend()
+    figure.savefig(f"{OUT_DIR}/map.png")
 
 def visualize_mosaic_images(boxes, labels, image_resized, classes):
     print(boxes)
