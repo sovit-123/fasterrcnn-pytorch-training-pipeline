@@ -1,8 +1,8 @@
 """
 USAGE
 
-Training on custom ResNet:
-python train.py --model fasterrcnn_custom_resnet --epochs 2 --config data_configs/voc.yaml  --no-mosaic --batch-size 16
+Training on custom ResNet without mosaic augmentations:
+python train.py --model fasterrcnn_custom_resnet --epochs 2 --config data_configs/voc.yaml --no-mosaic --batch-size 16
 Training on ResNet50 FPN with custom project folder name and visualizing transformed images before training begins:
 python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
 """
@@ -20,7 +20,10 @@ from utils.general import (
     save_model_state, save_train_loss_plot,
     show_tranformed_image
 )
-from utils.logging import log, set_log, coco_log
+from utils.logging import (
+    log, set_log, coco_log,
+    set_summary_writer, tensorboard_log
+)
 
 import torch
 import argparse
@@ -110,6 +113,7 @@ if __name__ == '__main__':
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
     # Set logging file.
     set_log(OUT_DIR)
+    writer = set_summary_writer(OUT_DIR)
 
     # Model configurations
     IMAGE_WIDTH = args['img_size']
@@ -218,5 +222,12 @@ if __name__ == '__main__':
 
         # Save loss plot.
         save_train_loss_plot(OUT_DIR, train_loss_list)
+        # Save train loss plot using TensorBoard.
+        tensorboard_log('Train loss', np.array(train_loss_list), writer)
+        # writer.add_scalar(
+        #     'Train loss',
+        #     np.array(train_loss_list)[-1], 
+        #     len(train_loss_list)
+        # )
 
         coco_log(OUT_DIR, stats)
