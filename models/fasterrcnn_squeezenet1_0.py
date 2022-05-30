@@ -9,9 +9,9 @@ import torchvision
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
-def create_model(num_classes):
+def create_model(num_classes, pretrained, coco_model):
     # Load the pretrained SqueezeNet1_0 backbone.
-    backbone = torchvision.models.squeezenet1_0(pretrained=True).features
+    backbone = torchvision.models.squeezenet1_0(pretrained=pretrained).features
 
     # We need the output channels of the last convolutional layers from
     # the features for the Faster RCNN model.

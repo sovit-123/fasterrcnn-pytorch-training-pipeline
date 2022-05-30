@@ -30,3 +30,6 @@
   * `video_3.mp4`: https://pixabay.com/videos/chess-chess-pieces-chess-board-19598/
   * `video_4.mp4`: https://www.youtube.com/watch?v=vnqkraiSiTI
   * `video_5.mp4`: https://www.youtube.com/watch?v=yOlYNps3Lq8
+  * `video_6.mp4`: Video by Magda Ehlers: https://www.pexels.com/video/marine-life-of-fishes-and-corals-underwater-3765078/.
+    * https://www.pexels.com/video/marine-life-of-fishes-and-corals-underwater-3765078/.
+  * 

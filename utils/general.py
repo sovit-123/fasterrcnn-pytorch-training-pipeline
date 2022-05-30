@@ -177,19 +177,36 @@ def visualize_mosaic_images(boxes, labels, image_resized, classes):
     cv2.imshow('Mosaic', image_resized)
     cv2.waitKey(0)
 
-def save_model_state(epoch, model, optimizer, train_loss_list, OUT_DIR):
+def save_model(epoch, model, optimizer, train_loss_list, OUT_DIR):
     """
     Function to save the trained model till current epoch, or whenever called.
+    Saves many other dictionaries and parameters as well helpful to resume training.
+    May be larger in size.
+
     :param epoch: The epoch number.
     :param model: The neural network model.
     :param optimizer: The optimizer.
     :param optimizer: The train loss history.
+    :param OUT_DIR: Output directory to save the model.
     """
     torch.save({
                 'epoch': epoch+1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'train_loss_list': train_loss_list,
+                }, f'{OUT_DIR}/last_model.pth')
+
+def save_model_state(model, OUT_DIR):
+    """
+    Saves the model state dictionary only. Has a smaller size compared 
+    to the the saved model with all other parameters and dictionaries.
+    Preferable for inference and sharing.
+
+    :param model: The neural network model.
+    :param OUT_DIR: Output directory to save the model.
+    """
+    torch.save({
+                'model_state_dict': model.state_dict(),
                 }, f'{OUT_DIR}/last_model_state.pth')
 
 def save_train_loss_plot(OUT_DIR, train_loss_list):

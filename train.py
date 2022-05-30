@@ -17,9 +17,9 @@ from datasets import (
 from models.create_fasterrcnn_model import create_model
 from utils.general import (
     set_training_dir, Averager, 
-    save_model_state, save_train_loss_plot,
+    save_model, save_train_loss_plot,
     show_tranformed_image,
-    save_mAP
+    save_mAP, save_model_state
 )
 from utils.logging import (
     log, set_log, coco_log,
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         help='number of epochs to train for'
     )
     parser.add_argument(
-        '-w', '--workers', default=4, type=int,
+        '-j', '--workers', default=4, type=int,
         help='number of workers for data processing/transforms/augmentations'
     )
     parser.add_argument(
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         help='training result dir name in outputs/training/, (default res_#)'
     )
     parser.add_argument(
-        '-vt', '--viz-transformed', dest='vis_transformed', action='store_true',
+        '-vt', '--vis-transformed', dest='vis_transformed', action='store_true',
         help='visualize transformed images fed to the network'
     )
     parser.add_argument(
@@ -89,7 +89,7 @@ if __name__ == '__main__':
         help='use cosine annealing warm restarts'
     )
     parser.add_argument(
-        '-mw', '--weights', default=None, type=str,
+        '-w', '--weights', default=None, type=str,
         help='path to model weights if resuming training'
     )
     args = vars(parser.parse_args())
@@ -224,7 +224,9 @@ if __name__ == '__main__':
         # Save the current epoch model state. This can be used 
         # to resume training. It saves model state dict, number of
         # epochs trained for, optimizer state dict, and loss function.
-        save_model_state(epoch, model, optimizer, train_loss_list, OUT_DIR)
+        save_model(epoch, model, optimizer, train_loss_list, OUT_DIR)
+        # Save the model dictionary only.
+        save_model_state(model, OUT_DIR)
 
         # Save loss plot.
         save_train_loss_plot(OUT_DIR, train_loss_list)
