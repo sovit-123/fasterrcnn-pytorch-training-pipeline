@@ -7,5 +7,6 @@ __all__ = [
     'fasterrcnn_darknet',
     'fasterrcnn_mobilenetv3_large_320_fpn',
     'fasterrcnn_squeezenet1_0',
-    'fasterrcnn_squeezenet1_1'
+    'fasterrcnn_squeezenet1_1',
+    'fasterrcnn_mini_darknet'
 ]

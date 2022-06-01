@@ -60,7 +60,7 @@ if __name__ == '__main__':
         help='number of workers for data processing/transforms/augmentations'
     )
     parser.add_argument(
-        '-b', '--batch-size', dest='batch_size', default=8, type=int, 
+        '-b', '--batch-size', dest='batch_size', default=4, type=int, 
         help='batch size to load the data'
     )
     parser.add_argument(
