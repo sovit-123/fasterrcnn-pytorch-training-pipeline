@@ -209,7 +209,13 @@ def save_model_state(model, OUT_DIR):
                 'model_state_dict': model.state_dict(),
                 }, f'{OUT_DIR}/last_model_state.pth')
 
-def save_train_loss_plot(OUT_DIR, train_loss_list):
+def save_train_loss_plot(
+    OUT_DIR, 
+    train_loss_list, 
+    x_label='iterations',
+    y_label='train loss',
+    save_name='train_loss_iter'
+):
     """
     Function to save both train loss graph.
     
@@ -218,9 +224,9 @@ def save_train_loss_plot(OUT_DIR, train_loss_list):
     """
     figure_1, train_ax = plt.subplots()
     train_ax.plot(train_loss_list, color='tab:blue')
-    train_ax.set_xlabel('iterations')
-    train_ax.set_ylabel('train loss')
-    figure_1.savefig(f"{OUT_DIR}/train_loss.png")
+    train_ax.set_xlabel(x_label)
+    train_ax.set_ylabel(y_label)
+    figure_1.savefig(f"{OUT_DIR}/{save_name}.png")
     print('SAVING PLOTS COMPLETE...')
     plt.close('all')
 

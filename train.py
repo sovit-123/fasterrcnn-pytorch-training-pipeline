@@ -144,6 +144,7 @@ if __name__ == '__main__':
     # Train and validation loss lists to store loss values of all
     # iterations till ena and plot graphs for all iterations.
     train_loss_list = []
+    train_loss_list_epoch = []
     val_map_05 = []
     val_map = []
     start_epochs = 0
@@ -218,6 +219,7 @@ if __name__ == '__main__':
 
         # Add the current epoch's batch-wise lossed to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
+        train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
         val_map.append(stats[0])
 
@@ -228,12 +230,24 @@ if __name__ == '__main__':
         # Save the model dictionary only.
         save_model_state(model, OUT_DIR)
 
-        # Save loss plot.
+        # Save loss plot for batch-wise list.
         save_train_loss_plot(OUT_DIR, train_loss_list)
+        # Save loss plot for epoch-wise list.
+        save_train_loss_plot(
+            OUT_DIR, 
+            train_loss_list_epoch,
+            'epochs',
+            'train loss',
+            save_name='train_loss_epoch' 
+        )
+
         # Save mAP plots.
         save_mAP(OUT_DIR, val_map_05, val_map)
-        # Save train loss plot using TensorBoard.
-        tensorboard_loss_log('Train loss', np.array(train_loss_list), writer)
+        # Save batch-wise train loss plot using TensorBoard.
+        # tensorboard_loss_log('Train loss', np.array(train_loss_list), writer)
+        # Save epoch-wise train loss plot using TensorBoard.
+        tensorboard_loss_log('Train loss', np.array(train_loss_list_epoch), writer)
+        # Save mAP plot using TensorBoard.
         tensorboard_map_log(
             name='mAP', 
             val_map_05=np.array(val_map_05), 
