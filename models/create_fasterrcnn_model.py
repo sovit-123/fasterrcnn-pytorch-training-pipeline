@@ -80,6 +80,14 @@ def return_fasterrcnn_mini_darknet(
     )
     return model
 
+def return_fasterrcnn_mini_darknet_mini_head(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_mini_darknet_mini_head.create_model(
+        num_classes, pretrained, coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -90,5 +98,6 @@ create_model = {
     'fasterrcnn_darknet': return_fasterrcnn_darknet,
     'fasterrcnn_squeezenet1_0': return_fasterrcnn_squeezenet1_0,
     'fasterrcnn_squeezenet1_1': return_fasterrcnn_squeezenet1_1,
-    'fasterrcnn_mini_darknet': return_fasterrcnn_mini_darknet
+    'fasterrcnn_mini_darknet': return_fasterrcnn_mini_darknet,
+    'fasterrcnn_mini_darknet_mini_head': return_fasterrcnn_mini_darknet_mini_head
 }
