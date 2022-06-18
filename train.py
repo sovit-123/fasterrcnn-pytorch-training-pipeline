@@ -35,7 +35,7 @@ import numpy as np
 # For same annotation colors each time.
 np.random.seed(42)
 
-def parser_opt():
+def parse_opt():
     # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -258,5 +258,5 @@ def main(args):
         coco_log(OUT_DIR, stats)
 
 if __name__ == '__main__':
-    args = parser_opt()
+    args = parse_opt()
     main(args)
