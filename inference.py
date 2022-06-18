@@ -31,7 +31,7 @@ def collect_all_images(dir_test):
         test_images.append(dir_test)
     return test_images    
 
-if __name__ == "__main__":
+def parse_opt():
     # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -69,7 +69,9 @@ if __name__ == "__main__":
         help='computation/training device, default is GPU if GPU present'
     )
     args = vars(parser.parse_args())
+    return args
 
+def main(args):
     # For same annotation colors each time.
     np.random.seed(42)
 
@@ -92,12 +94,12 @@ if __name__ == "__main__":
     print(f"Test instances: {len(test_images)}")
 
     # Load the pretrained model
-    create_model = create_model[args['model']]
+    build_model = create_model[args['model']]
     if args['weights'] is None:
-        model = create_model(num_classes=NUM_CLASSES, coco_model=True)
+        model = build_model(num_classes=NUM_CLASSES, coco_model=True)
     # Load weights if path provided.
     if args['weights'] is not None:
-        model = create_model(num_classes=NUM_CLASSES, coco_model=False)
+        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
         checkpoint = torch.load(args['weights'], map_location=DEVICE)
         model.load_state_dict(checkpoint['model_state_dict'])
     model.to(DEVICE).eval()
@@ -155,3 +157,7 @@ if __name__ == "__main__":
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
+
+if __name__ == '__main__':
+    args = parse_opt()
+    main(args)

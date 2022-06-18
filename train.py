@@ -35,7 +35,7 @@ import numpy as np
 # For same annotation colors each time.
 np.random.seed(42)
 
-if __name__ == '__main__':
+def parser_opt():
     # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -93,7 +93,9 @@ if __name__ == '__main__':
         help='path to model weights if resuming training'
     )
     args = vars(parser.parse_args())
+    return args
 
+def main(args):
     # Load the data configurations
     with open(args['config']) as file:
         data_configs = yaml.safe_load(file)
@@ -149,8 +151,8 @@ if __name__ == '__main__':
     val_map = []
     start_epochs = 0
 
-    create_model = create_model[args['model']]
-    model = create_model(num_classes=NUM_CLASSES)
+    build_model = create_model[args['model']]
+    model = build_model(num_classes=NUM_CLASSES)
 
     # Load pretrained weights if path is provided.
     if args['weights'] is not None:
@@ -254,3 +256,7 @@ if __name__ == '__main__':
         )
 
         coco_log(OUT_DIR, stats)
+
+if __name__ == '__main__':
+    args = parser_opt()
+    main(args)

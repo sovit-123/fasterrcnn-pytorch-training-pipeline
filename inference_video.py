@@ -22,8 +22,8 @@ def read_return_video_data(video_path):
     assert (frame_width != 0 and frame_height !=0), 'Please check video path...'
     return cap, frame_width, frame_height
 
-if __name__ == '__main__':
-    # Construct the argument parser.
+def parse_opt():
+        # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-i', '--input', 
@@ -60,7 +60,9 @@ if __name__ == '__main__':
         help='computation/training device, default is GPU if GPU present'
     )
     args = vars(parser.parse_args())
+    return args
 
+def main(args):
     # For same annotation colors each time.
     np.random.seed(42)
 
@@ -82,12 +84,12 @@ if __name__ == '__main__':
     assert VIDEO_PATH is not None, 'Please provide path to an input video...'
 
     # Load the pretrained model
-    create_model = create_model[args['model']]
+    build_model = create_model[args['model']]
     if args['weights'] is None:
-        model = create_model(num_classes=NUM_CLASSES, coco_model=True)
+        model = build_model(num_classes=NUM_CLASSES, coco_model=True)
     # Load weights if path provided.
     if args['weights'] is not None:
-        model = create_model(num_classes=NUM_CLASSES, coco_model=False)
+        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
         checkpoint = torch.load(args['weights'])
         model.load_state_dict(checkpoint['model_state_dict'])
     model.to(DEVICE).eval()
@@ -172,3 +174,7 @@ if __name__ == '__main__':
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
+
+if __name__ == '__main__':
+    args = parse_opt()
+    main(args)
