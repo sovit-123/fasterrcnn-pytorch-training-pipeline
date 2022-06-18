@@ -163,8 +163,6 @@ if __name__ == '__main__':
             print(f"Resuming from epoch {start_epochs}...")
         if checkpoint['train_loss_list']:
             train_loss_list = checkpoint['train_loss_list']
-        
-
 
     print(model)
     model = model.to(DEVICE)
@@ -177,8 +175,8 @@ if __name__ == '__main__':
     # Get the model parameters.
     params = [p for p in model.parameters() if p.requires_grad]
     # Define the optimizer.
-    # optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
-    optimizer = torch.optim.AdamW(params, lr=0.0001, weight_decay=0.0005)
+    optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, weight_decay=0.0005)
+    # optimizer = torch.optim.AdamW(params, lr=0.0001, weight_decay=0.0005)
 
     if args['cosine_annealing']:
         # LR will be zero as we approach `steps` number of epochs each time.

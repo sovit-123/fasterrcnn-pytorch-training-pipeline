@@ -1,3 +1,8 @@
+"""
+Custom Faster RCNN model with a smaller DarkNet backbone and smaller detection
+head as well.
+"""
+
 import torchvision
 import torch.nn.functional as F
 import torch
