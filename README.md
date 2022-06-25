@@ -28,7 +28,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
    1. **Method 1**: If you have CUDA and cuDNN set up already, do this in your environment of choice.
 
       ```
-      pip install -r requirments.txt
+      pip install -r requirements.txt
       ```
 
    2. **Method 2**: If you want to install PyTorch with CUDA Toolkit in your environment of choice.
