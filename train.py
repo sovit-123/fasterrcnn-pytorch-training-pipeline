@@ -7,6 +7,7 @@ Training on ResNet50 FPN with custom project folder name and visualizing transfo
 python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
 """
 
+import csv
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
@@ -24,7 +25,8 @@ from utils.general import (
 from utils.logging import (
     log, set_log, coco_log,
     set_summary_writer, tensorboard_loss_log, 
-    tensorboard_map_log
+    tensorboard_map_log,
+    csv_log
 )
 
 import torch
@@ -256,6 +258,7 @@ def main(args):
         )
 
         coco_log(OUT_DIR, stats)
+        csv_log(OUT_DIR, stats, epoch)
 
 if __name__ == '__main__':
     args = parse_opt()

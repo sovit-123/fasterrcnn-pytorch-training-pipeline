@@ -1,4 +1,6 @@
 import logging
+import os
+import pandas as pd
 
 from torch.utils.tensorboard.writer import SummaryWriter
 
@@ -72,3 +74,26 @@ def tensorboard_map_log(name, val_map_05, val_map, writer):
             },
             i
         )
+
+def create_log_csv(log_dir):
+    cols = ['epoch', 'map', 'map_05']
+    results_csv = pd.DataFrame(columns=cols)
+    results_csv.to_csv(os.path.join(log_dir, 'results.csv'), index=False)
+
+def csv_log(log_dir, stats, epoch):
+    if epoch+1 == 1:
+        create_log_csv(log_dir) 
+    
+    df = pd.DataFrame(
+        {
+            'epoch': int(epoch+1),
+            'map_05': [float(stats[0])],
+            'map': [float(stats[1])],
+        }
+    )
+    df.to_csv(
+        os.path.join(log_dir, 'results.csv'), 
+        mode='a', 
+        index=False, 
+        header=False
+    )

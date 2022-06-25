@@ -13,3 +13,4 @@ torchvision>=0.11.2
 numpy
 tensorboard
 protobuf<=3.20.1
+pandas
