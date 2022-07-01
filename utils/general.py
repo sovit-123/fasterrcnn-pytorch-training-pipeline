@@ -231,12 +231,10 @@ def save_train_loss_plot(
     plt.close('all')
 
 def denormalize(x, mean=None, std=None):
-    # 3, H, W, B
-    # print(x.shape)
-    # ten = x.clone().permute(1, 2, 3, 0)
+    # Shape of x here should be [B, 3, H, W].
     for t, m, s in zip(x, mean, std):
         t.mul_(s).add_(m)
-    # B, 3, H, W
+    # Returns tensor of shape [B, 3, H, W].
     return torch.clamp(x, 0, 1)
 
 def save_validation_results(images, detections, counter, out_dir, classes, colors):
