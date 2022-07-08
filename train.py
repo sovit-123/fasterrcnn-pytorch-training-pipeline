@@ -153,20 +153,32 @@ def main(args):
     val_map = []
     start_epochs = 0
 
-    build_model = create_model[args['model']]
-    model = build_model(num_classes=NUM_CLASSES)
+    if args['weights'] == None:
+        print('Building model from scratch...')
+        build_model = create_model[args['model']]
+        model = build_model(num_classes=NUM_CLASSES)
 
     # Load pretrained weights if path is provided.
     if args['weights'] is not None:
-        print('Loading trained weights...')
-        checkpoint = torch.load(args['weights'], map_location=DEVICE)
-        print(checkpoint)        
-        model.load_state_dict(checkpoint['model_state_dict'])        
-        if checkpoint['epoch']:
-            start_epochs = checkpoint['epoch']
-            print(f"Resuming from epoch {start_epochs}...")
-        if checkpoint['train_loss_list']:
-            train_loss_list = checkpoint['train_loss_list']
+        print('Loading pretrained weights...')
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)    
+        num_pretrained_classes = len(checkpoint['model_state_dict']['roi_heads.box_predictor.cls_score.weight'])
+        num_final_bbox_preds = len(checkpoint['model_state_dict']['roi_heads.box_predictor.bbox_pred.weight'])
+        build_model = create_model[args['model']]
+        # First load the model with number of classes as in the pretrained checkpoint.
+        model = build_model(num_classes=num_pretrained_classes)
+        model.load_state_dict(checkpoint['model_state_dict'])  
+        # Change the number of classes to the current dataset classes.
+        model.roi_heads.box_predictor.cls_score.out_features = NUM_CLASSES
+        # Change bbox prediction head output to NUM_CLASSES * 4.
+        model.roi_heads.box_predictor.bbox_pred.out_features = NUM_CLASSES * 4
+        # THIS SHOULD GO INTO RESUME TRAINING NOT LOAD CHECKPONT.
+        # LOAD CHECKPOINT CAN ALSO BE FROM A COCO TRAINED MODEL.      
+        # if checkpoint['epoch']:
+        #     start_epochs = checkpoint['epoch']
+        #     print(f"Resuming from epoch {start_epochs}...")
+        # if checkpoint['train_loss_list']:
+        #     train_loss_list = checkpoint['train_loss_list']
 
     print(model)
     model = model.to(DEVICE)
