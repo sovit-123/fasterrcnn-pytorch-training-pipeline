@@ -32,4 +32,8 @@
   * `video_5.mp4`: https://www.youtube.com/watch?v=yOlYNps3Lq8
   * `video_6.mp4`: Video by Magda Ehlers: https://www.pexels.com/video/marine-life-of-fishes-and-corals-underwater-3765078/.
     * https://www.pexels.com/video/marine-life-of-fishes-and-corals-underwater-3765078/.
+  * `video_7.mp4`: Video by Taryn Elliott: https://www.pexels.com/video/tropical-fish-tank-5548128/.
+    * https://www.pexels.com/video/tropical-fish-tank-5548128/
+  * `video_8.mp4`: Video by Magda Ehlers: https://www.pexels.com/video/a-school-of-fish-swimming-in-an-aquarium-2556513/.
+    * https://www.pexels.com/video/a-school-of-fish-swimming-in-an-aquarium-2556513/
   * 

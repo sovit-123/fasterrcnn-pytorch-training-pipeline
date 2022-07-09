@@ -7,7 +7,7 @@ Training on ResNet50 FPN with custom project folder name and visualizing transfo
 python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
 """
 
-import csv
+from tabnanny import check
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
@@ -28,11 +28,13 @@ from utils.logging import (
     tensorboard_map_log,
     csv_log
 )
+from collections import OrderedDict
 
 import torch
 import argparse
 import yaml
 import numpy as np
+import sys
 
 # For same annotation colors each time.
 np.random.seed(42)
@@ -161,17 +163,23 @@ def main(args):
     # Load pretrained weights if path is provided.
     if args['weights'] is not None:
         print('Loading pretrained weights...')
-        checkpoint = torch.load(args['weights'], map_location=DEVICE)    
-        num_pretrained_classes = len(checkpoint['model_state_dict']['roi_heads.box_predictor.cls_score.weight'])
-        num_final_bbox_preds = len(checkpoint['model_state_dict']['roi_heads.box_predictor.bbox_pred.weight'])
         build_model = create_model[args['model']]
-        # First load the model with number of classes as in the pretrained checkpoint.
-        model = build_model(num_classes=num_pretrained_classes)
-        model.load_state_dict(checkpoint['model_state_dict'])  
-        # Change the number of classes to the current dataset classes.
-        model.roi_heads.box_predictor.cls_score.out_features = NUM_CLASSES
-        # Change bbox prediction head output to NUM_CLASSES * 4.
-        model.roi_heads.box_predictor.bbox_pred.out_features = NUM_CLASSES * 4
+        model = build_model(num_classes=NUM_CLASSES)
+
+        checkpoint = torch.load(args['weights'], map_location=DEVICE) 
+        keys = list(checkpoint['model_state_dict'].keys())
+        # for i in range(len(keys) - 14):
+        #     print(i)
+        #     print(keys[i])   
+        #     print(checkpoint['model_state_dict'][keys[i]].weight)
+       
+        counter = 0
+        with torch.no_grad():
+            for i in range(len(model.backbone)):
+                if hasattr(model.backbone[i], 'weight'):
+                    model.backbone[i].weight.copy_(checkpoint['model_state_dict'][keys[2*counter]])
+                    model.backbone[i].bias.copy_(checkpoint['model_state_dict'][keys[2*counter+1]])
+                    counter += 1
         # THIS SHOULD GO INTO RESUME TRAINING NOT LOAD CHECKPONT.
         # LOAD CHECKPOINT CAN ALSO BE FROM A COCO TRAINED MODEL.      
         # if checkpoint['epoch']:
@@ -179,7 +187,7 @@ def main(args):
         #     print(f"Resuming from epoch {start_epochs}...")
         # if checkpoint['train_loss_list']:
         #     train_loss_list = checkpoint['train_loss_list']
-
+        
     print(model)
     model = model.to(DEVICE)
     # Total parameters and trainable parameters.
