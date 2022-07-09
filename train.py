@@ -7,7 +7,6 @@ Training on ResNet50 FPN with custom project folder name and visualizing transfo
 python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
 """
 
-from tabnanny import check
 from torch_utils.engine import (
     train_one_epoch, evaluate
 )
@@ -28,13 +27,14 @@ from utils.logging import (
     tensorboard_map_log,
     csv_log
 )
-from collections import OrderedDict
 
 import torch
 import argparse
 import yaml
 import numpy as np
 import sys
+
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 # For same annotation colors each time.
 np.random.seed(42)
