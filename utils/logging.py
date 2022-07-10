@@ -70,7 +70,7 @@ def tensorboard_map_log(name, val_map_05, val_map, writer):
             name,
             {
                 'mAP@0.5': val_map_05[i], 
-                'mAP@0.5:0.95': val_map[i]
+                'mAP@0.5_0.95': val_map[i]
             },
             i
         )
