@@ -35,8 +35,8 @@ class CustomDataset(Dataset):
         
         # get all the image paths in sorted order
         for file_type in self.image_file_types:
-            self.all_image_paths.extend(glob.glob(f"{self.images_path}/{file_type}"))
-        self.all_annot_paths = glob.glob(f"{self.labels_path}/*.xml")
+            self.all_image_paths.extend(glob.glob(os.path.join(self.images_path, file_type)))
+        self.all_annot_paths = glob.glob(os.path.join(self.labels_path, '*.xml'))
         self.all_images = [image_path.split(os.path.sep)[-1] for image_path in self.all_image_paths]
         self.all_images = sorted(self.all_images)
         # Remove all annotations and images when no object is present.
@@ -55,7 +55,8 @@ class CustomDataset(Dataset):
             if object_present == False:
                 image_name = annot_path.split(os.path.sep)[-1].split('.xml')[0]
                 image_root = self.all_image_paths[0].split(os.path.sep)[:-1]
-                remove_image = f"{'/'.join(image_root)}/{image_name}.jpg"
+                # remove_image = f"{'/'.join(image_root)}/{image_name}.jpg"
+                remove_image = os.path.join(os.sep.join(image_root), image_name+'.jpg')
                 print(f"Removing {annot_path} and corresponding {remove_image}")
                 self.all_annot_paths.remove(annot_path)
                 self.all_image_paths.remove(remove_image)
@@ -63,7 +64,7 @@ class CustomDataset(Dataset):
         # Discard any image file when no annotation file 
         # is not found for the image. 
         for image_name in self.all_images:
-            possible_xml_name = f"{self.labels_path}/{image_name.split('.jpg')[0]}.xml"
+            possible_xml_name = os.path.join(self.labels_path, image_name.split('.jpg')[0]+'.xml')
             if possible_xml_name not in self.all_annot_paths:
                 print(f"{possible_xml_name} not found...")
                 print(f"Removing {image_name} image")
