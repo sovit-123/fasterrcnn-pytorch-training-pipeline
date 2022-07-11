@@ -1,5 +1,6 @@
 """
-Faster RCNN model with the ResNet50 backbone from Torchvision.
+Faster RCNN model with the ResNet50 backbone from Torchvision 
+classification models.
 Torchvision link: https://pytorch.org/vision/stable/models.html#id10
 ResNet paper: https://arxiv.org/pdf/1512.03385.pdf
 """

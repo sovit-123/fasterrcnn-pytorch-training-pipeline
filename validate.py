@@ -86,4 +86,4 @@ if __name__ == '__main__':
             valid_loader, 
             device=DEVICE,
             classes=CLASSES,
-        )
+    )

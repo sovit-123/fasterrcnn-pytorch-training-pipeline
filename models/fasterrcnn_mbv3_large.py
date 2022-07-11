@@ -1,5 +1,6 @@
 """
-Faster RCNN model with the MobileNetV3 backbone.
+Faster RCNN model with the MobileNetV3 backbone from 
+Torchvision classification models.
 
 Reference: https://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
 """

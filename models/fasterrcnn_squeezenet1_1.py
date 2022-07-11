@@ -9,7 +9,7 @@ import torchvision
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
-def create_model(num_classes, pretrained, coco_model):
+def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained SqueezeNet1_1 backbone.
     backbone = torchvision.models.squeezenet1_1(pretrained=pretrained).features
 
@@ -43,3 +43,13 @@ def create_model(num_classes, pretrained, coco_model):
         box_roi_pool=roi_pooler
     )
     return model
+
+if __name__ == '__main__':
+    model = create_model(81, pretrained=True)
+    print(model)
+    # Total parameters and trainable parameters.
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"{total_params:,} total parameters.")
+    total_trainable_params = sum(
+        p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"{total_trainable_params:,} training parameters.")
