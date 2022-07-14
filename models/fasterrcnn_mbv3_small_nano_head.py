@@ -1,9 +1,13 @@
 """
-Backbone: SqueezeNet1_1
-Torchvision link: https://pytorch.org/vision/stable/models.html#id15
-SqueezeNet repo: https://github.com/forresti/SqueezeNet/tree/master/SqueezeNet_v1.1
+Faster RCNN model with the MobileNetV3 Small backbone from 
+Torchvision classification models.
 
-Detection Head: Custom Mini Faster RCNN Head. 
+Reference: https://pytorch.org/tutorials/intermediate/torchvision_tutorial.html
+
+The final output features of the MobileNetV3 Small model has been
+reduced to 128.
+The representation size of the Faster RCNN head has been
+reduced to 128.
 """
 
 import torchvision
@@ -64,14 +68,25 @@ class FastRCNNPredictor(nn.Module):
 
         return scores, bbox_deltas
 
-def create_model(num_classes=81, pretrained=True, coco_model=False):
-    # Load the pretrained SqueezeNet1_1 backbone.
-    backbone = torchvision.models.squeezenet1_1(pretrained=pretrained).features
+def create_model(num_classes=81, pretrained=True, coco_model=True):
+    # Load the pretrained MobileNetV3 Small features.
+    backbone = torchvision.models.mobilenet_v3_small(pretrained=True).features
+
+    # Change the features of block 16 in 
+    # the backbone to reduce size.
+    backbone[12 ][0] = nn.Conv2d(
+        in_channels=96, 
+        out_channels=128, 
+        kernel_size=(1, 1), 
+        stride=(1, 1), 
+        bias=False
+    )
+    backbone[12][1] = nn.BatchNorm2d(num_features=128)
 
     # We need the output channels of the last convolutional layers from
     # the features for the Faster RCNN model.
-    # It is 512 for SqueezeNet1_1.
-    backbone.out_channels = 512
+    # It is 128 for this custom MobileNetV3 Small.
+    backbone.out_channels = 128
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
     # Meaning, anchors with 5 different sizes and 3 different aspect 
@@ -90,7 +105,7 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
         sampling_ratio=2
     )
 
-    representation_size = 512
+    representation_size = 128
 
     # Box head.
     box_head = TwoMLPHead(
