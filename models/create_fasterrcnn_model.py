@@ -120,6 +120,22 @@ def return_fasterrcnn_mbv3_small_nano_head(
     )
     return model
 
+def return_fasterrcnn_mini_darknet_nano_head(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_mini_darknet_nano_head.create_model(
+        num_classes, pretrained, coco_model
+    )
+    return model
+
+def return_fasterrcnn_mini_darknet_tiny_head(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_mini_darknet_tiny_head.create_model(
+        num_classes, pretrained, coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -135,5 +151,7 @@ create_model = {
     'fasterrcnn_squeezenet1_1_mini_head': return_fasterrcnn_squeezenet1_1_mini_head,
     'fasterrcnn_mini_squeezenet1_1_mini_head': return_fasterrcnn_mini_squeezenet1_1_mini_head,
     'fasterrcnn_mini_squeezenet1_1_tiny_head': return_fasterrcnn_mini_squeezenet1_1_tiny_head,
-    'fasterrcnn_mbv3_small_nano_head': return_fasterrcnn_mbv3_small_nano_head
+    'fasterrcnn_mbv3_small_nano_head': return_fasterrcnn_mbv3_small_nano_head,
+    'fasterrcnn_mini_darknet_nano_head': return_fasterrcnn_mini_darknet_nano_head,
+    'fasterrcnn_mini_darknet_tiny_head': return_fasterrcnn_mini_darknet_tiny_head
 }

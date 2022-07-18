@@ -6,6 +6,8 @@ __all__ = [
     'fasterrcnn_mbv3_small_nano_head',
     'fasterrcnn_mbv3_large',
     'fasterrcnn_mini_darknet_mini_head',
+    'fasterrcnn_mini_darknet_nano_head',
+    'fasterrcnn_mini_darknet_tiny_head',
     'fasterrcnn_mini_darknet',
     'fasterrcnn_mini_squeezenet1_1_mini_head',
     'fasterrcnn_mini_squeezenet1_1_tiny_head',
