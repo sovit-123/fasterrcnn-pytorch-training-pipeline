@@ -168,10 +168,6 @@ def main(args):
 
         checkpoint = torch.load(args['weights'], map_location=DEVICE) 
         keys = list(checkpoint['model_state_dict'].keys())
-        # for i in range(len(keys) - 14):
-        #     print(i)
-        #     print(keys[i])   
-        #     print(checkpoint['model_state_dict'][keys[i]].weight)
        
         counter = 0
         with torch.no_grad():
@@ -239,7 +235,7 @@ def main(args):
             colors=COLORS
         )
 
-        # Add the current epoch's batch-wise lossed to the `train_loss_list`.
+        # Add the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
         train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
