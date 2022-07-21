@@ -134,7 +134,10 @@ def evaluate(
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
 
         if save_valid_preds and counter == 1:
-            save_validation_results(
+            # The validation prediction image which is saved to disk
+            # is returned here which is again returned at the end of the
+            # function for WandB logging.
+            val_saved_image = save_validation_results(
                 images, outputs, counter, out_dir, classes, colors
             )
 
@@ -147,4 +150,4 @@ def evaluate(
     coco_evaluator.accumulate()
     stats = coco_evaluator.summarize()
     torch.set_num_threads(n_threads)
-    return coco_evaluator, stats
+    return coco_evaluator, stats, val_saved_image

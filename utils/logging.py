@@ -1,8 +1,14 @@
 import logging
 import os
 import pandas as pd
+import wandb
+import cv2
+import time
 
 from torch.utils.tensorboard.writer import SummaryWriter
+
+# Initialize Weights and Biases.
+wandb.init()
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -97,3 +103,53 @@ def csv_log(log_dir, stats, epoch):
         index=False, 
         header=False
     )
+
+def wandb_log(
+    epoch_loss, 
+    loss_list_batch, 
+    val_map_05, 
+    val_map,
+    val_pred_image
+):
+    """
+    :param epoch_loss: Single loss value for the current epoch.
+    :param batch_loss_list: List containing loss values for the current 
+        epoch's loss value for each batch.
+    :param val_map_05: Current epochs validation mAP@0.5 IoU.
+    :param val_map: Current epochs validation mAP@0.5:0.95 IoU. 
+    """
+    # WandB logging.
+    for i in range(len(loss_list_batch)):
+        wandb.log(
+            {'train_loss_iter': loss_list_batch[i]},
+        )
+    wandb.log(
+        {'train_loss_epoch': epoch_loss},
+    )
+    wandb.log(
+        {'val_map_05_95': val_map}
+    )
+    wandb.log(
+        {'val_map_05': val_map_05}
+    )
+
+    # for i, image in enumerate(val_pred_image):
+        # wandb.log({'img'+str(i): [wandb.Image(image)]})
+
+    if len(val_pred_image) == 2:
+        log_image = cv2.hconcat([val_pred_image[0], val_pred_image[1]])
+        wandb.log({'predictions': [wandb.Image(log_image)]})
+
+    if len(val_pred_image) > 2 and len(val_pred_image) <= 8:
+        log_image = val_pred_image[0]
+        for i in range(len(val_pred_image)-1):
+            log_image = cv2.hconcat([log_image, val_pred_image[i+1]])
+        wandb.log({'predictions': [wandb.Image(log_image)]})
+    
+    if len(val_pred_image) > 8:
+        log_image = val_pred_image[0]
+        for i in range(len(val_pred_image)-1):
+            if i == 7:
+                break
+            log_image = cv2.hconcat([log_image, val_pred_image[i-1]])
+        wandb.log({'predictions': [wandb.Image(log_image)]})

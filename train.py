@@ -23,9 +23,11 @@ from utils.general import (
 )
 from utils.logging import (
     log, set_log, coco_log,
-    set_summary_writer, tensorboard_loss_log, 
+    set_summary_writer, 
+    tensorboard_loss_log, 
     tensorboard_map_log,
-    csv_log
+    csv_log,
+    wandb_log
 )
 
 import torch
@@ -94,7 +96,7 @@ def parse_opt():
     )
     parser.add_argument(
         '-w', '--weights', default=None, type=str,
-        help='path to model weights if resuming training'
+        help='path to model weights if using pretrained weights'
     )
     args = vars(parser.parse_args())
     return args
@@ -225,7 +227,7 @@ def main(args):
             scheduler=scheduler
         )
 
-        coco_evaluator, stats = evaluate(
+        coco_evaluator, stats, val_pred_image = evaluate(
             model, 
             valid_loader, 
             device=DEVICE,
@@ -235,8 +237,9 @@ def main(args):
             colors=COLORS
         )
 
-        # Add the current epoch's batch-wise losses to the `train_loss_list`.
+        # Append the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
+        # Append curent epoch's average loss to `train_loss_list_epoch`.
         train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
         val_map.append(stats[0])
@@ -261,10 +264,14 @@ def main(args):
 
         # Save mAP plots.
         save_mAP(OUT_DIR, val_map_05, val_map)
-        # Save batch-wise train loss plot using TensorBoard.
+
+        # Save batch-wise train loss plot using TensorBoard. Better not to use it
+        # as it increases the TensorBoard log sizes by a good extent (in 100s of MBs).
         # tensorboard_loss_log('Train loss', np.array(train_loss_list), writer)
+
         # Save epoch-wise train loss plot using TensorBoard.
         tensorboard_loss_log('Train loss', np.array(train_loss_list_epoch), writer)
+
         # Save mAP plot using TensorBoard.
         tensorboard_map_log(
             name='mAP', 
@@ -275,6 +282,15 @@ def main(args):
 
         coco_log(OUT_DIR, stats)
         csv_log(OUT_DIR, stats, epoch)
+
+        # WandB logging.
+        wandb_log(
+            train_loss_hist.value,
+            batch_loss_list,
+            stats[1],
+            stats[0], 
+            val_pred_image
+        )
 
 if __name__ == '__main__':
     args = parse_opt()

@@ -100,41 +100,27 @@ def save_model(epoch, model, optimizer):
                 'optimizer_state_dict': optimizer.state_dict(),
                 }, 'outputs/last_model.pth')
 
-def save_loss_plot(OUT_DIR, train_loss_list, val_loss_list):
-    """
-    Function to save both train and validation loss graphs.
-    
-    :param OUT_DIR: Path to save the graphs.
-    :param train_loss_list: List containing the training loss values.
-    :param val_loss_list: List containing the validation loss values.
-    """
-    figure_1, train_ax = plt.subplots()
-    figure_2, valid_ax = plt.subplots()
-    train_ax.plot(train_loss_list, color='tab:blue')
-    train_ax.set_xlabel('iterations')
-    train_ax.set_ylabel('train loss')
-    valid_ax.plot(val_loss_list, color='tab:red')
-    valid_ax.set_xlabel('iterations')
-    valid_ax.set_ylabel('validation loss')
-    figure_1.savefig(f"{OUT_DIR}/train_loss.png")
-    figure_2.savefig(f"{OUT_DIR}/valid_loss.png")
-    print('SAVING PLOTS COMPLETE...')
-    plt.close('all')
-
-def save_train_loss_plot(OUT_DIR, train_loss_list):
+def save_train_loss_plot(
+    OUT_DIR, 
+    train_loss_list, 
+    x_label='iterations',
+    y_label='train loss',
+    save_name='train_loss_iter'
+):
     """
     Function to save both train loss graph.
     
     :param OUT_DIR: Path to save the graphs.
     :param train_loss_list: List containing the training loss values.
     """
-    figure_1, train_ax = plt.subplots()
+    figure_1 = plt.figure(figsize=(10, 7), num=1, clear=True)
+    train_ax = figure_1.add_subplot()
     train_ax.plot(train_loss_list, color='tab:blue')
-    train_ax.set_xlabel('iterations')
-    train_ax.set_ylabel('train loss')
-    figure_1.savefig(f"{OUT_DIR}/train_loss.png")
+    train_ax.set_xlabel(x_label)
+    train_ax.set_ylabel(y_label)
+    figure_1.savefig(f"{OUT_DIR}/{save_name}.png")
     print('SAVING PLOTS COMPLETE...')
-    plt.close('all')
+    # plt.close('all')
 
 def save_mAP(OUT_DIR, map_05, map):
     """
@@ -158,6 +144,7 @@ def save_mAP(OUT_DIR, map_05, map):
     ax.set_ylabel('mAP')
     ax.legend()
     figure.savefig(f"{OUT_DIR}/map.png")
+    # plt.close('all')
 
 def visualize_mosaic_images(boxes, labels, image_resized, classes):
     print(boxes)
@@ -209,27 +196,6 @@ def save_model_state(model, OUT_DIR):
                 'model_state_dict': model.state_dict(),
                 }, f'{OUT_DIR}/last_model_state.pth')
 
-def save_train_loss_plot(
-    OUT_DIR, 
-    train_loss_list, 
-    x_label='iterations',
-    y_label='train loss',
-    save_name='train_loss_iter'
-):
-    """
-    Function to save both train loss graph.
-    
-    :param OUT_DIR: Path to save the graphs.
-    :param train_loss_list: List containing the training loss values.
-    """
-    figure_1, train_ax = plt.subplots()
-    train_ax.plot(train_loss_list, color='tab:blue')
-    train_ax.set_xlabel(x_label)
-    train_ax.set_ylabel(y_label)
-    figure_1.savefig(f"{OUT_DIR}/{save_name}.png")
-    print('SAVING PLOTS COMPLETE...')
-    plt.close('all')
-
 def denormalize(x, mean=None, std=None):
     # Shape of x here should be [B, 3, H, W].
     for t, m, s in zip(x, mean, std):
@@ -246,6 +212,7 @@ def save_validation_results(images, detections, counter, out_dir, classes, color
     """
     IMG_MEAN = [0.485, 0.456, 0.406]
     IMG_STD = [0.229, 0.224, 0.225]
+    image_list = [] # List to store predicted images to return.
     for i, detection in enumerate(detections):
         image_c = images[i].clone()
         # image_c = denormalize(image_c, IMG_MEAN, IMG_STD)
@@ -275,6 +242,8 @@ def save_validation_results(images, detections, counter, out_dir, classes, color
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 
                     2, lineType=cv2.LINE_AA)
         cv2.imwrite(f"{out_dir}/image_{i}_{counter}.jpg", image*255.)
+        image_list.append(image[:, :, ::-1])
+    return image_list
 
 def set_infer_dir():
     """
