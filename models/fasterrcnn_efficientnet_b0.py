@@ -9,10 +9,9 @@ import torchvision
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
-def create_model(num_classes):
+def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained EfficientNetB0 large features.
-    backbone = torchvision.models.efficientnet_b0(pretrained=True).features
-    print(backbone)
+    backbone = torchvision.models.efficientnet_b0(pretrained=pretrained).features
 
     # We need the output channels of the last convolutional layers from
     # the features for the Faster RCNN model.
@@ -44,3 +43,13 @@ def create_model(num_classes):
     )
 
     return model
+
+if __name__ == '__main__':
+    model = create_model(num_classes=81, pretrained=True, coco_model=True)
+    print(model)
+    # Total parameters and trainable parameters.
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"{total_params:,} total parameters.")
+    total_trainable_params = sum(
+        p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"{total_trainable_params:,} training parameters.")
