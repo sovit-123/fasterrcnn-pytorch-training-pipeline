@@ -1,8 +1,8 @@
 # Images and labels direcotry should be relative to train.py
-TRAIN_DIR_IMAGES: '../../xml_od_data/voc_07_12/voc_xml_dataset/train/images'
-TRAIN_DIR_LABELS: '../../xml_od_data/voc_07_12/voc_xml_dataset/train/labels'
-VALID_DIR_IMAGES: '../../xml_od_data/voc_07_12/voc_xml_dataset/valid/images'
-VALID_DIR_LABELS: '../../xml_od_data/voc_07_12/voc_xml_dataset/valid/labels'
+TRAIN_DIR_IMAGES: '../../input/voc_07_12/voc_xml_dataset/train/images'
+TRAIN_DIR_LABELS: '../../input/voc_07_12/voc_xml_dataset/train/labels'
+VALID_DIR_IMAGES: '../../input/voc_07_12/voc_xml_dataset/valid/images'
+VALID_DIR_LABELS: '../../input/voc_07_12/voc_xml_dataset/valid/labels'
 
 # Class names.
 CLASSES: [
