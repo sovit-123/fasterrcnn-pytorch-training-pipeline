@@ -12,7 +12,13 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 ​																								[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1oFxPpBeE8SzSQq7BTUv28IIqQeiHHLdj?usp=sharing) [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/code/sovitrath/custom-faster-rcnn-training-kaggle/notebook)
 
+## When Going Through the Custom Model Code
 
+***In general:***
+
+* **Mini head refers to 512 representation size in the Faster RCNN head and predictor.**
+* **Tiny head refers to 256 representation size in the Faster RCNN head and predictor.**
+* **Nano head refers to 128 representation size in the Faster RCNN head and predictor.**
 
 ## Go To
 
@@ -20,8 +26,6 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 * [Setup on Windows](#Setup-on-Windows)
 * [Train on Custom Dataset](#Train-on-Custom-Dataset)
 * [Inference](#Inference)
-
-
 
 ## Setup for Ubuntu
 
@@ -54,8 +58,6 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
       OR install the version with CUDA support as per your choice from **[here](https://pytorch.org/get-started/locally/)**.
 
       Then install the remaining **[requirements](https://github.com/sovit-123/pytorch-efficientdet-api/blob/main/requirements.txt)**.
-
-
 
 ## Setup on Windows
 
@@ -92,8 +94,6 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
    OR install the version with CUDA support as per your choice from **[here](https://pytorch.org/get-started/locally/)**.
 
    Then install the remaining **[requirements](https://github.com/sovit-123/pytorch-efficientdet-api/blob/main/requirements.txt)** except for `pycocotools`.
-
-
 
 ## Train on Custom Dataset
 
@@ -233,8 +233,6 @@ IoU metric: bbox
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.683
 SAVING PLOTS COMPLETE...
 ```
-
-
 
 ## Inference
 
