@@ -66,7 +66,7 @@ class FastRCNNPredictor(nn.Module):
 
         return scores, bbox_deltas
 
-def create_model(num_classes=81, pretrained=True, coco_model=False):
+def create_model(num_classes=81, pretrained=True, coco_model=True):
     # Load the pretrained SqueezeNet1_1 backbone.
     backbone = torchvision.models.squeezenet1_1(pretrained=pretrained).features
 

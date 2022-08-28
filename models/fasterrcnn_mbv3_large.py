@@ -10,7 +10,7 @@ import torchvision
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
-def create_model(num_classes=81, pretrained=True, coco_model=True):
+def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained MobileNetV3 large features.
     backbone = torchvision.models.mobilenet_v3_large(pretrained=True).features
 

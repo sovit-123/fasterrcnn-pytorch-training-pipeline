@@ -68,7 +68,7 @@ class FastRCNNPredictor(nn.Module):
 
         return scores, bbox_deltas
 
-def create_model(num_classes=81, pretrained=True, coco_model=True):
+def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained MobileNetV3 Small features.
     backbone = torchvision.models.mobilenet_v3_small(pretrained=True).features
 
