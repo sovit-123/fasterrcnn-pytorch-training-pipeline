@@ -31,27 +31,25 @@ class Averager:
 class SaveBestModel:
     """
     Class to save the best model while training. If the current epoch's 
-    validation loss is less than the previous least less, then save the
+    validation mAP @0.5:0.95 IoU higher than the previous highest, then save the
     model state.
     """
     def __init__(
-        self, best_valid_loss=float('inf')
+        self, best_valid_map=float(0)
     ):
-        self.best_valid_loss = best_valid_loss
+        self.best_valid_map = best_valid_map
         
     def __call__(
-        self, current_valid_loss, 
-        epoch, model, optimizer
+        self, model, current_valid_map, epoch, OUT_DIR
     ):
-        if current_valid_loss < self.best_valid_loss:
-            self.best_valid_loss = current_valid_loss
-            print(f"\nBest validation loss: {self.best_valid_loss}")
-            print(f"\nSaving best model for epoch: {epoch+1}\n")
+        if current_valid_map > self.best_valid_map:
+            self.best_valid_map = current_valid_map
+            print(f"\nBEST VALIDATION mAP: {self.best_valid_map}")
+            print(f"\nSAVING BEST MODEL FOR EPOCH: {epoch+1}\n")
             torch.save({
                 'epoch': epoch+1,
                 'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                }, 'outputs/best_model.pth')
+                }, f"{OUT_DIR}/best_model.pth")
 
 def show_tranformed_image(train_loader, device, classes, colors):
     """
@@ -195,7 +193,7 @@ def save_model_state(model, OUT_DIR):
     """
     torch.save({
                 'model_state_dict': model.state_dict(),
-                }, f'{OUT_DIR}/last_model_state.pth')
+                }, f"{OUT_DIR}/last_model_state.pth")
 
 def denormalize(x, mean=None, std=None):
     # Shape of x here should be [B, 3, H, W].

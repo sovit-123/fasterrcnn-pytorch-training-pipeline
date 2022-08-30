@@ -5,7 +5,7 @@
 ## Code Updates
 
 - [x] Proper resuming of training for plots, epochs, with loaded optimizer state dict of provided weights path etc.
-- [ ] Saving model to Weights&Biases.
+- [x] Saving model to Weights&Biases.
 - [ ] Adding plots to show class distribution.
 - [ ] Adding TensorFlow converted models.
 - [ ] Example notebooks for writing custom backbones.

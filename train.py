@@ -19,7 +19,7 @@ from utils.general import (
     set_training_dir, Averager, 
     save_model, save_train_loss_plot,
     show_tranformed_image,
-    save_mAP, save_model_state
+    save_mAP, save_model_state, SaveBestModel
 )
 from utils.logging import (
     log, set_log, coco_log,
@@ -245,6 +245,8 @@ def main(args):
     else:
         scheduler = None
 
+    save_best_model = SaveBestModel()
+
     for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
 
@@ -330,8 +332,11 @@ def main(args):
             val_map_05,
             OUT_DIR
         )
-        # Save the model dictionary only.
+        # Save the model dictionary only for the current epoch.
         save_model_state(model, OUT_DIR)
+        # Save best model if the current mAP @0.5:0.95 IoU is
+        # greater than the last hightest.
+        save_best_model(model, val_map[-1], epoch, OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()
