@@ -86,20 +86,6 @@ def show_tranformed_image(train_loader, device, classes, colors):
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
-def save_model(epoch, model, optimizer):
-    """
-    Function to save the trained model till current epoch, or whenever called.
-
-    :param epoch: The epoch number.
-    :param model: The neural network model.
-    :param optimizer: The optimizer.
-    """
-    torch.save({
-                'epoch': epoch+1,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                }, 'outputs/last_model.pth')
-
 def save_train_loss_plot(
     OUT_DIR, 
     train_loss_list, 
@@ -164,7 +150,16 @@ def visualize_mosaic_images(boxes, labels, image_resized, classes):
     cv2.imshow('Mosaic', image_resized)
     cv2.waitKey(0)
 
-def save_model(epoch, model, optimizer, train_loss_list, OUT_DIR):
+def save_model(
+    epoch, 
+    model, 
+    optimizer, 
+    train_loss_list,
+    train_loss_list_epoch, 
+    val_map,
+    val_map_05,
+    OUT_DIR
+):
     """
     Function to save the trained model till current epoch, or whenever called.
     Saves many other dictionaries and parameters as well helpful to resume training.
@@ -174,6 +169,9 @@ def save_model(epoch, model, optimizer, train_loss_list, OUT_DIR):
     :param model: The neural network model.
     :param optimizer: The optimizer.
     :param optimizer: The train loss history.
+    :param train_loss_list_epoch: List containing loss for each epoch.
+    :param val_map: mAP for IoU 0.5:0.95.
+    :param val_map_05: mAP for IoU 0.5.
     :param OUT_DIR: Output directory to save the model.
     """
     torch.save({
@@ -181,7 +179,10 @@ def save_model(epoch, model, optimizer, train_loss_list, OUT_DIR):
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'train_loss_list': train_loss_list,
-                }, f'{OUT_DIR}/last_model.pth')
+                'train_loss_list_epoch': train_loss_list_epoch,
+                'val_map': val_map,
+                'val_map_05': val_map_05,
+                }, f"{OUT_DIR}/last_model.pth")
 
 def save_model_state(model, OUT_DIR):
     """

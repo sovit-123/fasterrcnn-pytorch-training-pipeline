@@ -98,6 +98,12 @@ def parse_opt():
         '-w', '--weights', default=None, type=str,
         help='path to model weights if using pretrained weights'
     )
+    parser.add_argument(
+        '-r', '--resume-training', dest='resume_training', action='store_true',
+        help='whether to resume training, if true, \
+             loads previous training plots and epochs \
+             and also loads the otpimizer state dictionary'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -157,7 +163,7 @@ def main(args):
     val_map = []
     start_epochs = 0
 
-    if args['weights'] == None:
+    if args['weights'] is None:
         print('Building model from scratch...')
         build_model = create_model[args['model']]
         model = build_model(num_classes=NUM_CLASSES, pretrained=True)
@@ -180,7 +186,7 @@ def main(args):
         model.load_state_dict(ckpt_state_dict)
 
         # Change output features for class predictor and box predictor
-        # accoring to current dataset classes.
+        # according to current dataset classes.
         in_features = model.roi_heads.box_predictor.cls_score.in_features
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(
             in_features=in_features, out_features=NUM_CLASSES, bias=True
@@ -189,13 +195,24 @@ def main(args):
             in_features=in_features, out_features=NUM_CLASSES*4, bias=True
         )
 
-        # THIS SHOULD GO INTO RESUME TRAINING NOT LOAD CHECKPONT.
-        # LOAD CHECKPOINT CAN ALSO BE FROM A COCO TRAINED MODEL.      
-        # if checkpoint['epoch']:
-        #     start_epochs = checkpoint['epoch']
-        #     print(f"Resuming from epoch {start_epochs}...")
-        # if checkpoint['train_loss_list']:
-        #     train_loss_list = checkpoint['train_loss_list']
+        if args['resume_training']:
+            print('RESUMING TRAINING...')
+            # Update the starting epochs, the batch-wise loss list, 
+            # and the epoch-wise loss list.
+            if checkpoint['epoch']:
+                start_epochs = checkpoint['epoch']
+                print(f"Resuming from epoch {start_epochs}...")
+            if checkpoint['train_loss_list']:
+                print('Loading previous batch wise loss list...')
+                train_loss_list = checkpoint['train_loss_list']
+            if checkpoint['train_loss_list_epoch']:
+                print('Loading previous epoch wise loss list...')
+                train_loss_list_epoch = checkpoint['train_loss_list_epoch']
+            if checkpoint['val_map']:
+                print('Loading previous mAP list')
+                val_map = checkpoint['val_map']
+            if checkpoint['val_map_05']:
+                val_map_05 = checkpoint['val_map_05']
         
     print(model)
     model = model.to(DEVICE)
@@ -210,6 +227,10 @@ def main(args):
     # Define the optimizer.
     optimizer = torch.optim.SGD(params, lr=0.001, momentum=0.9, nesterov=True)
     # optimizer = torch.optim.AdamW(params, lr=0.0001, weight_decay=0.0005)
+    if args['resume_training']: 
+        # LOAD THE OPTIMIZER STATE DICTIONARY FROM THE CHECKPOINT.
+        print('Loading optimizer state dictionary...')
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     if args['cosine_annealing']:
         # LR will be zero as we approach `steps` number of epochs each time.
@@ -255,13 +276,6 @@ def main(args):
         val_map_05.append(stats[1])
         val_map.append(stats[0])
 
-        # Save the current epoch model state. This can be used 
-        # to resume training. It saves model state dict, number of
-        # epochs trained for, optimizer state dict, and loss function.
-        save_model(epoch, model, optimizer, train_loss_list, OUT_DIR)
-        # Save the model dictionary only.
-        save_model_state(model, OUT_DIR)
-
         # Save loss plot for batch-wise list.
         save_train_loss_plot(OUT_DIR, train_loss_list)
         # Save loss plot for epoch-wise list.
@@ -302,6 +316,22 @@ def main(args):
             stats[0], 
             val_pred_image
         )
+
+        # Save the current epoch model state. This can be used 
+        # to resume training. It saves model state dict, number of
+        # epochs trained for, optimizer state dict, and loss function.
+        save_model(
+            epoch, 
+            model, 
+            optimizer, 
+            train_loss_list, 
+            train_loss_list_epoch,
+            val_map,
+            val_map_05,
+            OUT_DIR
+        )
+        # Save the model dictionary only.
+        save_model_state(model, OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()
