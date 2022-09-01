@@ -1,0 +1,21 @@
+# Link => https://www.kaggle.com/datasets/sovitrath/underwater-trash-detection-icra
+
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: '../../input/trash_icra_xml/images/train'
+TRAIN_DIR_LABELS: '../../input/trash_icra_xml/labels/train'
+VALID_DIR_IMAGES: '../../input/trash_icra_xml/images/valid'
+VALID_DIR_LABELS: '../../input/trash_icra_xml/labels/valid'
+TEST_DIR_IMAGES: '../../input/trash_icra_xml/images/test'
+TEST_DIR_LABELS: '../../input/trash_icra_xml/labels/test'
+
+# Class names.
+CLASSES: [
+    '__background__',
+    'plastic', 'bio', 'rov'
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 4
+
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True
