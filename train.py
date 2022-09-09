@@ -70,7 +70,7 @@ def parse_opt():
         help='batch size to load the data'
     )
     parser.add_argument(
-        '-ims', '--img-size', dest='img_size', default=512, type=int, 
+        '-ims', '--img-size', dest='img_size', default=640, type=int, 
         help='image size to feed to the network'
     )
     parser.add_argument(
