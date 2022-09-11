@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import wandb
 import cv2
-import time
 
 from torch.utils.tensorboard.writer import SummaryWriter
 
@@ -153,3 +152,11 @@ def wandb_log(
                 break
             log_image = cv2.hconcat([log_image, val_pred_image[i-1]])
         wandb.log({'predictions': [wandb.Image(log_image)]})
+
+def wandb_save_model(model_dir):
+    """
+    Uploads the models to Weights&Biases.
+
+    :param model_dir: Local disk path where models are saved.
+    """
+    wandb.save(os.path.join(model_dir, '*.pth'))

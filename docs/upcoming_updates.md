@@ -6,9 +6,10 @@
 
 - [x] Proper resuming of training for plots, epochs, with loaded optimizer state dict of provided weights path etc.
 - [x] Saving logs to Weights&Biases.
-- [ ] Saving model to Weights&Biases.
+- [x] Saving model to Weights&Biases.
 - [ ] Adding plots to show class distribution.
-- [ ] Adding TensorFlow converted models.
+- [ ] Conversion to TensorFlow => TFLite, ...
+- [ ] Conversion to ONNX. 
 - [ ] Example notebooks for writing custom backbones.
 - [x] Default training size of 640x640.
 

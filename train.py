@@ -27,7 +27,8 @@ from utils.logging import (
     tensorboard_loss_log, 
     tensorboard_map_log,
     csv_log,
-    wandb_log
+    wandb_log, 
+    wandb_save_model
 )
 
 import torch
@@ -337,6 +338,9 @@ def main(args):
         # Save best model if the current mAP @0.5:0.95 IoU is
         # greater than the last hightest.
         save_best_model(model, val_map[-1], epoch, OUT_DIR)
+    
+    # Save models to Weights&Biases.
+    wandb_save_model(OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()
