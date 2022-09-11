@@ -261,10 +261,10 @@ python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input example_tes
 
 ### Image Inference in Custom Trained Model
 
-In this case model name, weights path, and data config (YAML) file path is mandatory.
+In this case you only need to give the weights file path and input file path. The config file and the model name will be automatically inferred from the weights file.
 
 ```
-python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input data/inference_data/image_1.jpg --config data_configs/smoke.yaml --weights outputs/training/smoke_training/last_model_state.pth
+python inference.py --input data/inference_data/image_1.jpg --weights outputs/training/smoke_training/last_model_state.pth
 ```
 
 ### Video Inference on COCO Pretrrained Model
@@ -276,6 +276,6 @@ python inference_video.py
 ### Video Inference in Custom Trained Model
 
 ```
-python inference_video.py --model fasterrcnn_mobilenetv3_large_fpn --input data/inference_data/video_1.mp4 --config data_configs/smoke.yaml --weights outputs/training/smoke_training/last_model_state.pth 
+python inference_video.py --input data/inference_data/video_1.mp4 --weights outputs/training/smoke_training/last_model_state.pth 
 ```
 

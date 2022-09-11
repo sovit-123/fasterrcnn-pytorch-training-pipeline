@@ -164,7 +164,9 @@ def save_model(
     train_loss_list_epoch, 
     val_map,
     val_map_05,
-    OUT_DIR
+    OUT_DIR,
+    config,
+    model_name
 ):
     """
     Function to save the trained model till current epoch, or whenever called.
@@ -188,9 +190,11 @@ def save_model(
                 'train_loss_list_epoch': train_loss_list_epoch,
                 'val_map': val_map,
                 'val_map_05': val_map_05,
+                'config': config,
+                'model_name': model_name
                 }, f"{OUT_DIR}/last_model.pth")
 
-def save_model_state(model, OUT_DIR):
+def save_model_state(model, OUT_DIR, config, model_name):
     """
     Saves the model state dictionary only. Has a smaller size compared 
     to the the saved model with all other parameters and dictionaries.
@@ -201,6 +205,8 @@ def save_model_state(model, OUT_DIR):
     """
     torch.save({
                 'model_state_dict': model.state_dict(),
+                'config': config,
+                'model_name': model_name
                 }, f"{OUT_DIR}/last_model_state.pth")
 
 def denormalize(x, mean=None, std=None):

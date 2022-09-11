@@ -36,4 +36,5 @@
     * https://www.pexels.com/video/tropical-fish-tank-5548128/
   * `video_8.mp4`: Video by Magda Ehlers: https://www.pexels.com/video/a-school-of-fish-swimming-in-an-aquarium-2556513/.
     * https://www.pexels.com/video/a-school-of-fish-swimming-in-an-aquarium-2556513/
-  * 
+  * `image_3.jpg`: Photo by Hung Tran: https://www.pexels.com/photo/school-of-fish-in-water-3699434/.
+    * https://www.pexels.com/photo/school-of-fish-in-water-3699434/

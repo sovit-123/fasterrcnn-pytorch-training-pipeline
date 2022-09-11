@@ -23,4 +23,5 @@
   - [ ] NuScenes/NuImages
   - [ ] IDD
   - [ ] Manga109
+- [ ] Saving FP16 and INT8 weights.
 

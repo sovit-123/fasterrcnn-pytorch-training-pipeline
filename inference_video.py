@@ -84,13 +84,17 @@ def main(args):
     assert VIDEO_PATH is not None, 'Please provide path to an input video...'
 
     # Load the pretrained model
-    build_model = create_model[args['model']]
     if args['weights'] is None:
+        build_model = create_model[args['model']]
         model = build_model(num_classes=NUM_CLASSES, coco_model=True)
     # Load weights if path provided.
     if args['weights'] is not None:
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)
+        NUM_CLASSES = checkpoint['config']['NC']
+        CLASSES = checkpoint['config']['CLASSES']
+        model_name = checkpoint['model_name']
+        build_model = create_model[str(model_name)]
         model = build_model(num_classes=NUM_CLASSES, coco_model=False)
-        checkpoint = torch.load(args['weights'])
         model.load_state_dict(checkpoint['model_state_dict'])
     model.to(DEVICE).eval()
 

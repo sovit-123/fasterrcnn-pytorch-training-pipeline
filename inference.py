@@ -94,13 +94,17 @@ def main(args):
     print(f"Test instances: {len(test_images)}")
 
     # Load the pretrained model
-    build_model = create_model[args['model']]
     if args['weights'] is None:
+        build_model = create_model[args['model']]
         model = build_model(num_classes=NUM_CLASSES, coco_model=True)
     # Load weights if path provided.
     if args['weights'] is not None:
-        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
         checkpoint = torch.load(args['weights'], map_location=DEVICE)
+        NUM_CLASSES = checkpoint['config']['NC']
+        CLASSES = checkpoint['config']['CLASSES']
+        model_name = checkpoint['model_name']
+        build_model = create_model[str(model_name)]
+        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
         model.load_state_dict(checkpoint['model_state_dict'])
     model.to(DEVICE).eval()
 

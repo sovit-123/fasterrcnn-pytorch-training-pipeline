@@ -331,10 +331,12 @@ def main(args):
             train_loss_list_epoch,
             val_map,
             val_map_05,
-            OUT_DIR
+            OUT_DIR,
+            data_configs,
+            args['model']
         )
         # Save the model dictionary only for the current epoch.
-        save_model_state(model, OUT_DIR)
+        save_model_state(model, OUT_DIR, data_configs, args['model'])
         # Save best model if the current mAP @0.5:0.95 IoU is
         # greater than the last hightest.
         save_best_model(
