@@ -337,7 +337,14 @@ def main(args):
         save_model_state(model, OUT_DIR)
         # Save best model if the current mAP @0.5:0.95 IoU is
         # greater than the last hightest.
-        save_best_model(model, val_map[-1], epoch, OUT_DIR)
+        save_best_model(
+            model, 
+            val_map[-1], 
+            epoch, 
+            OUT_DIR,
+            data_configs,
+            args['model']
+        )
     
     # Save models to Weights&Biases.
     wandb_save_model(OUT_DIR)

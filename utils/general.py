@@ -40,7 +40,13 @@ class SaveBestModel:
         self.best_valid_map = best_valid_map
         
     def __call__(
-        self, model, current_valid_map, epoch, OUT_DIR
+        self, 
+        model, 
+        current_valid_map, 
+        epoch, 
+        OUT_DIR,
+        config,
+        model_name
     ):
         if current_valid_map > self.best_valid_map:
             self.best_valid_map = current_valid_map
@@ -49,6 +55,8 @@ class SaveBestModel:
             torch.save({
                 'epoch': epoch+1,
                 'model_state_dict': model.state_dict(),
+                'config': config,
+                'model_name': model_name
                 }, f"{OUT_DIR}/best_model.pth")
 
 def show_tranformed_image(train_loader, device, classes, colors):
