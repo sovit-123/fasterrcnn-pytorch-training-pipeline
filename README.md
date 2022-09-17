@@ -261,7 +261,7 @@ python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input example_tes
 
 ### Image Inference in Custom Trained Model
 
-In this case you only need to give the weights file path and input file path. The config file and the model name will be automatically inferred from the weights file.
+In this case you only need to give the weights file path and input file path. The config file and the model name are optional. If not provided they will will be automatically inferred from the weights file.
 
 ```
 python inference.py --input data/inference_data/image_1.jpg --weights outputs/training/smoke_training/last_model_state.pth

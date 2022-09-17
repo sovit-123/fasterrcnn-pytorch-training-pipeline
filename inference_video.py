@@ -31,11 +31,11 @@ def parse_opt():
     )
     parser.add_argument(
         '-c', '--config', 
-        default='data_configs/test_video_config.yaml',
+        default=None,
         help='(optional) path to the data config file'
     )
     parser.add_argument(
-        '-m', '--model', default='fasterrcnn_resnet50_fpn',
+        '-m', '--model', default=None,
         help='name of the model'
     )
     parser.add_argument(
@@ -66,37 +66,55 @@ def main(args):
     # For same annotation colors each time.
     np.random.seed(42)
 
-    # Load the data configurations
-    with open(args['config']) as file:
-        data_configs = yaml.safe_load(file)
-
-    # Inference settings and constants.
-    NUM_CLASSES = data_configs['NC']
-    CLASSES = data_configs['CLASSES']
+    # Load the data configurations.
+    data_configs = None
+    if args['config'] is not None:
+        with open(args['config']) as file:
+            data_configs = yaml.safe_load(file)
+        NUM_CLASSES = data_configs['NC']
+        CLASSES = data_configs['CLASSES']
+        
     DEVICE = args['device']
-    COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
     OUT_DIR = set_infer_dir()
     VIDEO_PATH = None
+
+    # Load the pretrained model
+    if args['weights'] is None:
+        # If the config file is still None, 
+        # then load the default one for COCO.
+        if data_configs is None:
+            with open(os.path.join('data_configs', 'test_video_config.yaml')) as file:
+                data_configs = yaml.safe_load(file)
+            NUM_CLASSES = data_configs['NC']
+            CLASSES = data_configs['CLASSES']
+        try:
+            build_model = create_model[args['model']]
+        except:
+            build_model = create_model['fasterrcnn_resnet50_fpn']
+        model = build_model(num_classes=NUM_CLASSES, coco_model=True)
+    # Load weights if path provided.
+    if args['weights'] is not None:
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)
+        # If config file is not given, load from model dictionary.
+        if data_configs is None:
+            data_configs = True
+            NUM_CLASSES = checkpoint['config']['NC']
+            CLASSES = checkpoint['config']['CLASSES']
+        try:
+            print('Building from model name arguments...')
+            build_model = create_model[str(args['model'])]
+        except:
+            build_model = create_model[checkpoint['model_name']]
+        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
+        model.load_state_dict(checkpoint['model_state_dict'])
+    model.to(DEVICE).eval()
+
+    COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
     if args['input'] == None:
         VIDEO_PATH = data_configs['video_path']
     else:
         VIDEO_PATH = args['input']
     assert VIDEO_PATH is not None, 'Please provide path to an input video...'
-
-    # Load the pretrained model
-    if args['weights'] is None:
-        build_model = create_model[args['model']]
-        model = build_model(num_classes=NUM_CLASSES, coco_model=True)
-    # Load weights if path provided.
-    if args['weights'] is not None:
-        checkpoint = torch.load(args['weights'], map_location=DEVICE)
-        NUM_CLASSES = checkpoint['config']['NC']
-        CLASSES = checkpoint['config']['CLASSES']
-        model_name = checkpoint['model_name']
-        build_model = create_model[str(model_name)]
-        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
-        model.load_state_dict(checkpoint['model_state_dict'])
-    model.to(DEVICE).eval()
 
     # Define the detection threshold any detection having
     # score below this will be discarded.
