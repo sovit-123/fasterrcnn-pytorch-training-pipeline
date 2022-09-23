@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from models.create_fasterrcnn_model import create_model
 from utils.general import set_infer_dir
-from utils.annotations import inference_annotations
+from utils.annotations import inference_annotations, annotate_fps
 from utils.transforms import infer_transforms
 from torchvision import transforms as transforms
 
@@ -167,10 +167,7 @@ def main(args):
                     outputs, detection_threshold, CLASSES,
                     COLORS, frame
                 )
-            cv2.putText(frame, f"{fps:.1f} FPS", 
-                        (15, 25),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 
-                        2, lineType=cv2.LINE_AA)
+            frame = annotate_fps(frame, fps)
 
             final_end_time = time.time()
             forward_and_annot_time = final_end_time - start_time
