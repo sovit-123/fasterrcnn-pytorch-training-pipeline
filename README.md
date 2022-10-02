@@ -14,6 +14,10 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 ## Updates
 
+### 2022-10-02
+
+* Released a Mini Darknet Nano Head model pretrained on the Pascal VOC model for 600 epochs. [Find the release details here](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/releases/tag/Latest).
+
 ### 2022-09-09
 
 * Can load COCO/Pascal VOC pretrained weights for transfer learning/fine tuning using the `--weights` flag and providing the path to the weights file.
