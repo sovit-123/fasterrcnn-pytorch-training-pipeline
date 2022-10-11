@@ -13,6 +13,7 @@ __all__ = [
     'fasterrcnn_mini_squeezenet1_1_tiny_head',
     'fasterrcnn_mobilenetv3_large_320_fpn',
     'fasterrcnn_mobilenetv3_large_fpn',
+    'fasterrcnn_nano',
     'fasterrcnn_resnet18',
     'fasterrcnn_resnet50_fpn', 
     'fasterrcnn_resnet50', 

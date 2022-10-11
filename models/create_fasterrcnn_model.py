@@ -144,6 +144,14 @@ def return_fasterrcnn_efficientnet_b0(
     )
     return model
 
+def return_fasterrcnn_nano(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_nano.create_model(
+        num_classes, pretrained, coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -162,5 +170,6 @@ create_model = {
     'fasterrcnn_mbv3_small_nano_head': return_fasterrcnn_mbv3_small_nano_head,
     'fasterrcnn_mini_darknet_nano_head': return_fasterrcnn_mini_darknet_nano_head,
     'fasterrcnn_mini_darknet_tiny_head': return_fasterrcnn_mini_darknet_tiny_head,
-    'fasterrcnn_efficientnet_b0': return_fasterrcnn_efficientnet_b0
+    'fasterrcnn_efficientnet_b0': return_fasterrcnn_efficientnet_b0,
+    'fasterrcnn_nano': return_fasterrcnn_nano
 }
