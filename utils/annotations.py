@@ -37,13 +37,20 @@ def inference_annotations(
         )[0]  # text width, height
         outside = p1[1] - h >= 3
         p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-        cv2.rectangle(orig_image, p1, p2, color, -1, cv2.LINE_AA)  
+        cv2.rectangle(
+            orig_image, 
+            p1, 
+            p2, 
+            color=color, 
+            thickness=-1, 
+            lineType=cv2.LINE_AA
+        )  
         cv2.putText(
             orig_image, 
             class_name, 
             (p1[0], p1[1] - 5 if outside else p1[1] + h + 2),
             cv2.FONT_HERSHEY_SIMPLEX, 
-            fontScale=lw / 3, 
+            fontScale=lw / 3.8, 
             color=(255, 255, 255), 
             thickness=tf, 
             lineType=cv2.LINE_AA
