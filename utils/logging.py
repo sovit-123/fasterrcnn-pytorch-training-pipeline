@@ -105,7 +105,12 @@ def csv_log(log_dir, stats, epoch):
 
 def wandb_log(
     epoch_loss, 
-    loss_list_batch, 
+    # batch_losses,
+    loss_list_batch,
+    loss_cls_list,
+    loss_box_reg_list,
+    loss_objectness_list,
+    loss_rpn_list,
     val_map_05, 
     val_map,
     val_pred_image
@@ -120,7 +125,13 @@ def wandb_log(
     # WandB logging.
     for i in range(len(loss_list_batch)):
         wandb.log(
-            {'train_loss_iter': loss_list_batch[i]},
+            {
+                'train_loss_iter': loss_list_batch[i],
+                'train_loss_cls': loss_cls_list[i],
+                'train_loss_box_red': loss_box_reg_list[i],
+                'train_loss_obj': loss_objectness_list[i],
+                'train_loss_list': loss_rpn_list[i]
+            },
         )
     wandb.log(
         {'train_loss_epoch': epoch_loss},

@@ -92,7 +92,7 @@ def show_tranformed_image(train_loader, device, classes, colors):
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
-def save_train_loss_plot(
+def save_loss_plot(
     OUT_DIR, 
     train_loss_list, 
     x_label='iterations',

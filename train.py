@@ -17,7 +17,7 @@ from datasets import (
 from models.create_fasterrcnn_model import create_model
 from utils.general import (
     set_training_dir, Averager, 
-    save_model, save_train_loss_plot,
+    save_model, save_loss_plot,
     show_tranformed_image,
     save_mAP, save_model_state, SaveBestModel
 )
@@ -159,6 +159,10 @@ def main(args):
     # Train and validation loss lists to store loss values of all
     # iterations till ena and plot graphs for all iterations.
     train_loss_list = []
+    loss_cls_list = []
+    loss_box_reg_list = []
+    loss_objectness_list = []
+    loss_rpn_list = []
     train_loss_list_epoch = []
     val_map_05 = []
     val_map = []
@@ -251,7 +255,11 @@ def main(args):
     for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
 
-        _, batch_loss_list = train_one_epoch(
+        _, batch_loss_list, \
+             batch_loss_cls_list, \
+             batch_loss_box_reg_list, \
+             batch_loss_objectness_list, \
+             batch_loss_rpn_list = train_one_epoch(
             model, 
             optimizer, 
             train_loader, 
@@ -274,20 +282,52 @@ def main(args):
 
         # Append the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
+        loss_cls_list.extend(batch_loss_cls_list)
+        loss_box_reg_list.extend(batch_loss_box_reg_list)
+        loss_objectness_list.extend(batch_loss_objectness_list)
+        loss_rpn_list.extend(batch_loss_rpn_list)
         # Append curent epoch's average loss to `train_loss_list_epoch`.
         train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
         val_map.append(stats[0])
 
         # Save loss plot for batch-wise list.
-        save_train_loss_plot(OUT_DIR, train_loss_list)
+        save_loss_plot(OUT_DIR, train_loss_list)
         # Save loss plot for epoch-wise list.
-        save_train_loss_plot(
+        save_loss_plot(
             OUT_DIR, 
             train_loss_list_epoch,
             'epochs',
             'train loss',
             save_name='train_loss_epoch' 
+        )
+        save_loss_plot(
+            OUT_DIR, 
+            loss_cls_list, 
+            'iterations', 
+            'loss cls',
+            save_name='loss_cls'
+        )
+        save_loss_plot(
+            OUT_DIR, 
+            loss_box_reg_list, 
+            'iterations', 
+            'loss bbox reg',
+            save_name='loss_bbox_reg'
+        )
+        save_loss_plot(
+            OUT_DIR,
+            loss_objectness_list,
+            'iterations',
+            'loss obj',
+            save_name='loss_obj'
+        )
+        save_loss_plot(
+            OUT_DIR,
+            loss_rpn_list,
+            'iterations',
+            'loss rpn bbox',
+            save_name='loss_rpn_bbox'
         )
 
         # Save mAP plots.
@@ -315,6 +355,10 @@ def main(args):
         wandb_log(
             train_loss_hist.value,
             batch_loss_list,
+            batch_loss_cls_list,
+            batch_loss_box_reg_list,
+            batch_loss_objectness_list,
+            batch_loss_rpn_list,
             stats[1],
             stats[0], 
             val_pred_image
