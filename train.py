@@ -1,10 +1,14 @@
 """
 USAGE
 
-Training on custom ResNet without mosaic augmentations:
-python train.py --model fasterrcnn_custom_resnet --epochs 2 --config data_configs/voc.yaml --no-mosaic --batch-size 16
-Training on ResNet50 FPN with custom project folder name and visualizing transformed images before training begins:
-python train.py --model fasterrcnn_resnet5-_fpn --epochs 2 --config data_configs/voc.yaml -vt --project-name resnet50fpn_voc --no-mosaic --batch-size 16
+# Training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs/voc.yaml --no-mosaic --batch-size 4
+
+# Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default):
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
+
+# Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default) and added training augmentations:
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
 """
 
 from torch_utils.engine import (
@@ -28,7 +32,8 @@ from utils.logging import (
     tensorboard_map_log,
     csv_log,
     wandb_log, 
-    wandb_save_model
+    wandb_save_model,
+    wandb_init
 )
 
 import torch
@@ -109,6 +114,8 @@ def parse_opt():
     return args
 
 def main(args):
+    # Initialize W&B with project name.
+    wandb_init(name=args['project_name'])
     # Load the data configurations
     with open(args['config']) as file:
         data_configs = yaml.safe_load(file)

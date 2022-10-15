@@ -7,7 +7,8 @@ import cv2
 from torch.utils.tensorboard.writer import SummaryWriter
 
 # Initialize Weights and Biases.
-wandb.init()
+def wandb_init(name):
+    wandb.init(name=name)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -170,4 +171,4 @@ def wandb_save_model(model_dir):
 
     :param model_dir: Local disk path where models are saved.
     """
-    wandb.save(os.path.join(model_dir, '*.pth'))
+    wandb.save(os.path.join(model_dir, 'best_model.pth'))
