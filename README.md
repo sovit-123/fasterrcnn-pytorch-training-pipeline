@@ -29,7 +29,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 ***In general:***
 
-* **Mini head refers to 512 representation size in the Faster RCNN head and predictor.**
+* **Small head refers to 512 representation size in the Faster RCNN head and predictor.**
 * **Tiny head refers to 256 representation size in the Faster RCNN head and predictor.**
 * **Nano head refers to 128 representation size in the Faster RCNN head and predictor.**
 
