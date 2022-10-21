@@ -1,8 +1,8 @@
 """
-Faster RCNN model with the ResNet50 backbone from Torchvision 
-classification models.
-Torchvision link: https://pytorch.org/vision/stable/models.html#id10
-ResNet paper: https://arxiv.org/pdf/1512.03385.pdf
+Faster RCNN model with the ResNet152 backbone from
+Torchvision classification models.
+
+Reference: https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet152.html
 """
 
 import torchvision
@@ -11,8 +11,8 @@ import torch.nn as nn
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
-def create_model(num_classes, pretrained=True, coco_model=False):
-    model_backbone = torchvision.models.resnet50(weights='DEFAULT')
+def create_model(num_classes=81, pretrained=True, coco_model=False):
+    model_backbone = torchvision.models.resnet152(weights='DEFAULT')
 
     conv1 = model_backbone.conv1
     bn1 = model_backbone.bn1
@@ -27,10 +27,9 @@ def create_model(num_classes, pretrained=True, coco_model=False):
         conv1, bn1, relu, max_pool, 
         layer1, layer2, layer3, layer4
     )
-
     # We need the output channels of the last convolutional layers from
     # the features for the Faster RCNN model.
-    # It is 2048 for ResNet50.
+    # It is 960 for MobileNetV3.
     backbone.out_channels = 2048
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
@@ -57,6 +56,7 @@ def create_model(num_classes, pretrained=True, coco_model=False):
         rpn_anchor_generator=anchor_generator,
         box_roi_pool=roi_pooler
     )
+
     return model
 
 if __name__ == '__main__':
