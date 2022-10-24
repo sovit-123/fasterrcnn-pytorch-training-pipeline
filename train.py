@@ -262,7 +262,7 @@ def main(args):
     model = model.to(DEVICE)
     if args['distributed']:
         model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=args['gpu']
+            model, device_ids=[args['gpu']]
         )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
