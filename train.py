@@ -11,12 +11,10 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
 """
 
-from array import typecodes
-from sklearn.utils import shuffle
-from wandb import JoinedTable
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
 )
+from torch.utils.data import distributed
 from datasets import (
     create_train_dataset, create_valid_dataset, 
     create_train_loader, create_valid_loader
@@ -173,10 +171,10 @@ def main(args):
     )
     print('Creating data loaders')
     if args['distributed']:
-        train_sampler = torch.utils.data.distribited.DistributedSampler(
+        train_sampler = distributed.DistributedSampler(
             train_dataset
         )
-        valid_sampler = torch.utils.data.distributed.DistributedSampler(
+        valid_sampler = distributed.DistributedSampler(
             valid_dataset, shuffle=False
         )
     else:
