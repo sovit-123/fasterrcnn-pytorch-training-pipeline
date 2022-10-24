@@ -11,8 +11,11 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
 """
 
+from array import typecodes
+from sklearn.utils import shuffle
+from wandb import JoinedTable
 from torch_utils.engine import (
-    train_one_epoch, evaluate
+    train_one_epoch, evaluate, utils
 )
 from datasets import (
     create_train_dataset, create_valid_dataset, 
@@ -110,10 +113,25 @@ def parse_opt():
              loads previous training plots and epochs \
              and also loads the otpimizer state dictionary'
     )
+    parser.add_argument(
+        '--world-size', 
+        default=1, 
+        type=int, 
+        help='number of distributed processes'
+    )
+    parser.add_argument(
+        '--dist-url',
+        default='env://',
+        type=str,
+        help='url ysed to set up the distributed training'
+    )
     args = vars(parser.parse_args())
     return args
 
 def main(args):
+    # Initialize distributed mode.
+    utils.init_distributed_mode(args)
+
     # Initialize W&B with project name.
     wandb_init(name=args['project_name'])
     # Load the data configurations
@@ -153,8 +171,24 @@ def main(args):
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
     )
-    train_loader = create_train_loader(train_dataset, BATCH_SIZE, NUM_WORKERS)
-    valid_loader = create_valid_loader(valid_dataset, BATCH_SIZE, NUM_WORKERS)
+    print('Creating data loaders')
+    if args['distributed']:
+        train_sampler = torch.utils.data.distribited.DistributedSampler(
+            train_dataset
+        )
+        valid_sampler = torch.utils.data.distributed.DistributedSampler(
+            valid_dataset, shuffle=False
+        )
+    else:
+        train_sampler = torch.utils.data.RandomSampler(train_dataset)
+        valid_sampler = torch.utils.data.RandomSampler(valid_dataset)
+
+    train_loader = create_train_loader(
+        train_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=train_sampler
+    )
+    valid_loader = create_valid_loader(
+        valid_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=valid_sampler
+    )
     print(f"Number of training samples: {len(train_dataset)}")
     print(f"Number of validation samples: {len(valid_dataset)}\n")
 
@@ -228,6 +262,10 @@ def main(args):
         
     print(model)
     model = model.to(DEVICE)
+    if args['distributed']:
+        model = torch.nn.parallel.DistributedDataParallel(
+            model, device_ids=args['gpu']
+        )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
     print(f"{total_params:,} total parameters.")
