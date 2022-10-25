@@ -227,21 +227,19 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         # Capture the image name and the full image path.
         if not self.mosaic:
-            for id in idx:
-                image, image_resized, orig_boxes, boxes, \
-                    labels, area, iscrowd, dims = self.load_image_and_labels(
-                    index=id
-                )
+            image, image_resized, orig_boxes, boxes, \
+                labels, area, iscrowd, dims = self.load_image_and_labels(
+                index=idx
+            )
 
         if self.train and self.mosaic:
-            for id in idx:
-                while True:
-                    image, image_resized, boxes, labels, \
-                        area, iscrowd, dims = self.load_cutmix_image_and_boxes(
-                        id, resize_factor=(self.height, self.width)
-                    )
-                    if len(boxes) > 0:
-                        break
+            while True:
+                image, image_resized, boxes, labels, \
+                    area, iscrowd, dims = self.load_cutmix_image_and_boxes(
+                    idx, resize_factor=(self.height, self.width)
+                )
+                if len(boxes) > 0:
+                    break
         
         # visualize_mosaic_images(boxes, labels, image_resized, self.classes)
 
@@ -312,7 +310,7 @@ def create_train_loader(
 ):
     train_loader = DataLoader(
         train_dataset,
-        # batch_size=batch_size,
+        batch_size=batch_size,
         # shuffle=True,
         num_workers=num_workers,
         collate_fn=collate_fn,
