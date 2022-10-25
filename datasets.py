@@ -227,19 +227,21 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         # Capture the image name and the full image path.
         if not self.mosaic:
-            image, image_resized, orig_boxes, boxes, \
-                labels, area, iscrowd, dims = self.load_image_and_labels(
-                index=idx
-            )
+            for id in idx:
+                image, image_resized, orig_boxes, boxes, \
+                    labels, area, iscrowd, dims = self.load_image_and_labels(
+                    index=id
+                )
 
         if self.train and self.mosaic:
-            while True:
-                image, image_resized, boxes, labels, \
-                    area, iscrowd, dims = self.load_cutmix_image_and_boxes(
-                    idx, resize_factor=(self.height, self.width)
-                )
-                if len(boxes) > 0:
-                    break
+            for id in idx:
+                while True:
+                    image, image_resized, boxes, labels, \
+                        area, iscrowd, dims = self.load_cutmix_image_and_boxes(
+                        id, resize_factor=(self.height, self.width)
+                    )
+                    if len(boxes) > 0:
+                        break
         
         # visualize_mosaic_images(boxes, labels, image_resized, self.classes)
 
@@ -310,7 +312,7 @@ def create_train_loader(
 ):
     train_loader = DataLoader(
         train_dataset,
-        batch_size=batch_size,
+        # batch_size=batch_size,
         # shuffle=True,
         num_workers=num_workers,
         collate_fn=collate_fn,
@@ -318,11 +320,11 @@ def create_train_loader(
     )
     return train_loader
 def create_valid_loader(
-    valid_dataset, batch_size, num_workers=0, batch_sampler=0
+    valid_dataset, batch_size, num_workers=0, batch_sampler=None
 ):
     valid_loader = DataLoader(
         valid_dataset,
-        batch_size=batch_size,
+        # batch_size=batch_size,
         # shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn,

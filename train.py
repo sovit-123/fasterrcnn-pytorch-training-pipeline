@@ -14,7 +14,7 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --con
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
 )
-from torch.utils.data import distributed
+from torch.utils.data import distributed, BatchSampler
 from datasets import (
     create_train_dataset, create_valid_dataset, 
     create_train_loader, create_valid_loader
@@ -181,11 +181,13 @@ def main(args):
         train_sampler = torch.utils.data.RandomSampler(train_dataset)
         valid_sampler = torch.utils.data.RandomSampler(valid_dataset)
 
+    train_batch_sampler = BatchSampler(train_sampler, BATCH_SIZE, drop_last=False)
+    valid_batch_sampler = BatchSampler(valid_sampler, BATCH_SIZE, drop_last=False)
     train_loader = create_train_loader(
-        train_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=train_sampler
+        train_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=train_batch_sampler
     )
     valid_loader = create_valid_loader(
-        valid_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=valid_sampler
+        valid_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=valid_batch_sampler
     )
     print(f"Number of training samples: {len(train_dataset)}")
     print(f"Number of validation samples: {len(valid_dataset)}\n")
