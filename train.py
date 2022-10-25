@@ -146,7 +146,7 @@ def main(args):
     CLASSES = data_configs['CLASSES']
     NUM_CLASSES = data_configs['NC']
     NUM_WORKERS = args['workers']
-    DEVICE = args['device']
+    DEVICE = torch.device(args['device'])
     NUM_EPOCHS = args['epochs']
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch_size']
