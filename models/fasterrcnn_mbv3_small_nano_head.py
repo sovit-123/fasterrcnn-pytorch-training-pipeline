@@ -119,7 +119,7 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Final Faster RCNN model.
     model = FasterRCNN(
         backbone=backbone,
-        num_classes=None, # Num classes shoule be None when `box_predictor` is provided.
+        num_classes=None, # Num classes should be None when `box_predictor` is provided.
         rpn_anchor_generator=anchor_generator,
         box_roi_pool=roi_pooler,
         box_head=box_head,
