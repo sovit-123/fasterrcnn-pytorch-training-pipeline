@@ -67,7 +67,7 @@ def show_tranformed_image(train_loader, device, classes, colors):
     
     """
     if len(train_loader) > 0:
-        for i in range(2):
+        for i in range(15):
             images, targets = next(iter(train_loader))
             images = list(image.to(device) for image in images)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]

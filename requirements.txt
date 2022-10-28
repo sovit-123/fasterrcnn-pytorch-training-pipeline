@@ -1,4 +1,4 @@
-# Base----------------------------------
+# Base-------------------------------------
 albumentations>=1.1.0
 matplotlib
 opencv-python>=4.1.1.26
@@ -18,6 +18,9 @@ pandas
 wandb
 tensorboard
 
-# Extras----------------------------------
+# Model summary----------------------------
+torchinfo
+
+# Extras-----------------------------------
 pycocotools>=2.0.2
 setuptools==59.5.0

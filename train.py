@@ -43,6 +43,7 @@ import torch
 import argparse
 import yaml
 import numpy as np
+import torchinfo
 import sys
 
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -54,11 +55,13 @@ def parse_opt():
     # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-m', '--model', default='fasterrcnn_resnet50_fpn',
+        '-m', '--model', 
+        default='fasterrcnn_resnet50_fpn',
         help='name of the model'
     )
     parser.add_argument(
-        '-c', '--config', default=None,
+        '-c', '--config', 
+        default=None,
         help='path to the data config file'
     )
     parser.add_argument(
@@ -67,51 +70,77 @@ def parse_opt():
         help='computation/training device, default is GPU if GPU present'
     )
     parser.add_argument(
-        '-e', '--epochs', default=5, type=int,
+        '-e', '--epochs', 
+        default=5,
+        type=int,
         help='number of epochs to train for'
     )
     parser.add_argument(
-        '-j', '--workers', default=4, type=int,
+        '-j', '--workers', 
+        default=4,
+        type=int,
         help='number of workers for data processing/transforms/augmentations'
     )
     parser.add_argument(
-        '-b', '--batch-size', dest='batch_size', default=4, type=int, 
+        '-b', '--batch-size', 
+        dest='batch_size', 
+        default=4, 
+        type=int, 
         help='batch size to load the data'
     )
     parser.add_argument(
-        '-ims', '--img-size', dest='img_size', default=640, type=int, 
+        '-ims', '--img-size',
+        dest='img_size', 
+        default=640, 
+        type=int, 
         help='image size to feed to the network'
     )
     parser.add_argument(
-        '-pn', '--project-name', default=None, type=str, dest='project_name',
+        '-pn', '--project-name', 
+        default=None, 
+        type=str, 
+        dest='project_name',
         help='training result dir name in outputs/training/, (default res_#)'
     )
     parser.add_argument(
-        '-vt', '--vis-transformed', dest='vis_transformed', action='store_true',
+        '-vt', '--vis-transformed', 
+        dest='vis_transformed', 
+        action='store_true',
         help='visualize transformed images fed to the network'
     )
     parser.add_argument(
-        '-nm', '--no-mosaic', dest='no_mosaic', action='store_false',
+        '-nm', '--no-mosaic', 
+        dest='no_mosaic', 
+        action='store_false',
         help='pass this to not to use mosaic augmentation'
     )
     parser.add_argument(
-        '-uta', '--use-train-aug', dest='use_train_aug', action='store_true',
-        help='whether to use train augmentation, uses some advanced augmentation \
-              that may make training difficult when used with mosaic'
+        '-uta', '--use-train-aug', 
+        dest='use_train_aug', 
+        action='store_true',
+        help='whether to use train augmentation, uses some advanced \
+            augmentation that may make training difficult when used \
+            with mosaic'
     )
     parser.add_argument(
-        '-ca', '--cosine-annealing', dest='cosine_annealing', action='store_true',
+        '-ca', '--cosine-annealing', 
+        dest='cosine_annealing', 
+        action='store_true',
         help='use cosine annealing warm restarts'
     )
     parser.add_argument(
-        '-w', '--weights', default=None, type=str,
+        '-w', '--weights', 
+        default=None, 
+        type=str,
         help='path to model weights if using pretrained weights'
     )
     parser.add_argument(
-        '-r', '--resume-training', dest='resume_training', action='store_true',
+        '-r', '--resume-training', 
+        dest='resume_training', 
+        action='store_true',
         help='whether to resume training, if true, \
-             loads previous training plots and epochs \
-             and also loads the otpimizer state dictionary'
+            loads previous training plots and epochs \
+            and also loads the otpimizer state dictionary'
     )
     parser.add_argument(
         '--world-size', 
@@ -262,12 +291,14 @@ def main(args):
             if checkpoint['val_map_05']:
                 val_map_05 = checkpoint['val_map_05']
         
-    print(model)
     model = model.to(DEVICE)
     if args['distributed']:
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[args['gpu']]
         )
+    torchinfo.summary(
+        model, input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
+    )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
     print(f"{total_params:,} total parameters.")
@@ -303,10 +334,10 @@ def main(args):
         train_loss_hist.reset()
 
         _, batch_loss_list, \
-             batch_loss_cls_list, \
-             batch_loss_box_reg_list, \
-             batch_loss_objectness_list, \
-             batch_loss_rpn_list = train_one_epoch(
+            batch_loss_cls_list, \
+            batch_loss_box_reg_list, \
+            batch_loss_objectness_list, \
+            batch_loss_rpn_list = train_one_epoch(
             model, 
             optimizer, 
             train_loader, 
