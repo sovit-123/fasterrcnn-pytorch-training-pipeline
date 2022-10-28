@@ -9,13 +9,13 @@ def get_train_aug():
         A.MotionBlur(blur_limit=3, p=0.1),
         A.Blur(blur_limit=3, p=0.1),
         A.RandomBrightnessContrast(
-            brightness_limit=0.2, p=0.5
+            brightness_limit=0.2, p=0.1
         ),
-        A.ColorJitter(p=0.5),
-        # A.Rotate(limit=10, p=0.2),
+        A.ColorJitter(p=0.1),
         A.RandomGamma(p=0.2),
         A.RandomFog(p=0.2),
         A.MedianBlur(blur_limit=3, p=0.1),
+        # A.Rotate(limit=10, p=0.2),
         # A.RandomSunFlare(p=0.1),
         # `RandomScale` for multi-res training,
         # `scale_factor` should not be too high, else may result in 
@@ -29,7 +29,6 @@ def get_train_aug():
     ], bbox_params={
         'format': 'pascal_voc',
         'label_fields': ['labels'],
-        # 'min_area': 10000
     })
 
 def get_train_transform():

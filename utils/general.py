@@ -67,7 +67,7 @@ def show_tranformed_image(train_loader, device, classes, colors):
     
     """
     if len(train_loader) > 0:
-        for i in range(15):
+        for i in range(2):
             images, targets = next(iter(train_loader))
             images = list(image.to(device) for image in images)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
@@ -77,17 +77,40 @@ def show_tranformed_image(train_loader, device, classes, colors):
             pred_classes = [classes[i] for i in targets[i]['labels'].cpu().numpy()]
             sample = images[i].permute(1, 2, 0).cpu().numpy()
             sample = cv2.cvtColor(sample, cv2.COLOR_RGB2BGR)
+
+            lw = max(round(sum(sample.shape) / 2 * 0.003), 2)  # Line width.
+            tf = max(lw - 1, 1) # Font thickness.
+
             for box_num, box in enumerate(boxes):
+                p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
                 class_name = pred_classes[box_num]
                 color = colors[classes.index(class_name)]
-                cv2.rectangle(sample,
-                            (box[0], box[1]),
-                            (box[2], box[3]),
-                            color, 2,
-                            cv2.LINE_AA)
-                cv2.putText(sample, classes[labels[box_num]], 
-                            (box[0], box[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 
-                            1.0, color, 2, cv2.LINE_AA)
+                cv2.rectangle(
+                    sample,
+                    p1,
+                    p2,
+                    color, 
+                    2,
+                    cv2.LINE_AA
+                )
+                w, h = cv2.getTextSize(
+                    class_name, 
+                    0, 
+                    fontScale=lw / 3, 
+                    thickness=tf
+                )[0]  # text width, height
+                outside = p1[1] - h >= 3
+                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+                cv2.putText(
+                    sample, 
+                    class_name,
+                    (p1[0], p1[1] - 5 if outside else p1[1] + h + 2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.8, 
+                    color, 
+                    2, 
+                    cv2.LINE_AA
+                )
             cv2.imshow('Transformed image', sample)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
