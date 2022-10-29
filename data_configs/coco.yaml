@@ -1,8 +1,8 @@
 # Images and labels direcotry should be relative to train.py
-TRAIN_DIR_IMAGES: '../../input/coco2017/train2017'
-TRAIN_DIR_LABELS: '../../input/coco2017/train_xml'
-VALID_DIR_IMAGES: '../../input/coco2017/val2017'
-VALID_DIR_LABELS: '../../input/coco2017/val_xml'
+TRAIN_DIR_IMAGES: '../input/coco2017/train2017'
+TRAIN_DIR_LABELS: '../input/coco2017/train_xml'
+VALID_DIR_IMAGES: '../input/coco2017/val2017'
+VALID_DIR_LABELS: '../input/coco2017/val_xml'
 
 # Class names.
 CLASSES: [
