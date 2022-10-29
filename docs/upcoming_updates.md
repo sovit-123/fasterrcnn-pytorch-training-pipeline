@@ -16,9 +16,11 @@
 ## Model / Weights Related
 
 - [ ] Releases for pretrained models with mosaic augmentations for
+  - [ ] FasterRCNN ResNet18.
   - [ ] Mini Darknet Mini Head, Squeezenet1_1 Mini Head.
   - [ ] Mini Squeezenet1_1 Mini Head
   - [ ] Mini Squeezenet1_1 Tiny Head
+  
 - [ ] Adding pretrained models for industrial dataset/real-world datasets (Do we need to pretrain on COCO first?)
   - [ ] NuScenes/NuImages
   - [ ] IDD
