@@ -26,7 +26,8 @@ from utils.general import (
     set_training_dir, Averager, 
     save_model, save_loss_plot,
     show_tranformed_image,
-    save_mAP, save_model_state, SaveBestModel
+    save_mAP, save_model_state, SaveBestModel,
+    yaml_save
 )
 from utils.logging import (
     log, set_log, coco_log,
@@ -44,7 +45,7 @@ import argparse
 import yaml
 import numpy as np
 import torchinfo
-import sys
+import os
 
 torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -66,7 +67,7 @@ def parse_opt():
     )
     parser.add_argument(
         '-d', '--device', 
-        default=torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
+        default='cuda',
         help='computation/training device, default is GPU if GPU present'
     )
     parser.add_argument(
@@ -185,6 +186,8 @@ def main(args):
     # Set logging file.
     set_log(OUT_DIR)
     writer = set_summary_writer(OUT_DIR)
+
+    yaml_save(file_path=os.path.join(OUT_DIR, 'opt.yaml'), data=args)
 
     # Model configurations
     IMAGE_WIDTH = args['img_size']

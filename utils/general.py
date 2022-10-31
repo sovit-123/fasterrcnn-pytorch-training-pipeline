@@ -3,6 +3,9 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import os
+import yaml
+
+from pathlib import Path
 
 plt.style.use('ggplot')
 
@@ -313,3 +316,7 @@ def set_training_dir(dir_name=None):
         new_dir_name = f"outputs/training/res_{next_dir_num}"
         os.makedirs(new_dir_name, exist_ok=True)
         return new_dir_name
+
+def yaml_save(file_path=None, data={}):
+    with open(file_path, 'w') as f:
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
