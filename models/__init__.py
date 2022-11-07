@@ -1,4 +1,6 @@
 __all__ = [
+    'fasterrcnn_convnext_small',
+    'fasterrcnn_convnext_tiny',
     'fasterrcnn_custom_resnet', 
     'fasterrcnn_darknet',
     'fasterrcnn_efficientnet_b0',
