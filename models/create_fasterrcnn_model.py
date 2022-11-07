@@ -144,6 +144,22 @@ def return_fasterrcnn_resnet50_fpn_v2(
     )
     return model
 
+def return_fasterrcnn_convnext_small(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_convnext_small.create_model(
+        num_classes, pretrained=pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_convnext_tiny(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_convnext_tiny.create_model(
+        num_classes, pretrained=pretrained, coco_model=coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -162,5 +178,7 @@ create_model = {
     'fasterrcnn_efficientnet_b0': return_fasterrcnn_efficientnet_b0,
     'fasterrcnn_nano': return_fasterrcnn_nano,
     'fasterrcnn_resnet152': return_fasterrcnn_resnet152,
-    'fasterrcnn_resnet50_fpn_v2': return_fasterrcnn_resnet50_fpn_v2
+    'fasterrcnn_resnet50_fpn_v2': return_fasterrcnn_resnet50_fpn_v2,
+    'fasterrcnn_convnext_small': return_fasterrcnn_convnext_small, 
+    'fasterrcnn_convnext_tiny': return_fasterrcnn_convnext_tiny,
 }
