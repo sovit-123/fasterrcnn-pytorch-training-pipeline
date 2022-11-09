@@ -3,8 +3,9 @@ import cv2
 
 def inference_annotations(
     outputs, detection_threshold, classes,
-    colors, orig_image
+    colors, orig_image, image
 ):
+    height, width, _ = orig_image.shape
     boxes = outputs[0]['boxes'].data.numpy()
     scores = outputs[0]['scores'].data.numpy()
     # Filter out boxes according to `detection_threshold`.
@@ -18,7 +19,8 @@ def inference_annotations(
     
     # Draw the bounding boxes and write the class name on top of it.
     for j, box in enumerate(draw_boxes):
-        p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+        p1 = (int(box[0]/image.shape[1]*width), int(box[1]/image.shape[0]*height))
+        p2 = (int(box[2]/image.shape[1]*width), int(box[3]/image.shape[0]*height))
         class_name = pred_classes[j]
         color = colors[classes.index(class_name)]
         cv2.rectangle(

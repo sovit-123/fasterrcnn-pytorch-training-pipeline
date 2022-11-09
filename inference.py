@@ -68,6 +68,13 @@ def parse_opt():
         default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
         help='computation/training device, default is GPU if GPU present'
     )
+    parser.add_argument(
+        '-ims', '--img-size', 
+        default=None,
+        dest='img_size',
+        type=int,
+        help='resize image to, by default use the original frame/image size'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -137,10 +144,17 @@ def main(args):
     for i in range(len(test_images)):
         # Get the image file name for saving output later on.
         image_name = test_images[i].split(os.path.sep)[-1].split('.')[0]
-        image = cv2.imread(test_images[i])
-        orig_image = image.copy()
+        orig_image = cv2.imread(test_images[i])
+        frame_height, frame_width, _ = orig_image.shape
+        if args['img_size'] != None:
+            RESIZE_TO = (args['img_size'], args['img_size'])
+        else:
+            RESIZE_TO = (frame_width, frame_height)
+        # orig_image = image.copy()
+        image_resized = cv2.resize(orig_image, RESIZE_TO)
+        image = image_resized.copy()
         # BGR to RGB
-        image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = infer_transforms(image)
         # Add batch dimension.
         image = torch.unsqueeze(image, 0)
@@ -161,7 +175,7 @@ def main(args):
         if len(outputs[0]['boxes']) != 0:
             orig_image = inference_annotations(
                 outputs, detection_threshold, CLASSES,
-                COLORS, orig_image
+                COLORS, orig_image, image_resized
             )
             if args['show_image']:
                 cv2.imshow('Prediction', orig_image)

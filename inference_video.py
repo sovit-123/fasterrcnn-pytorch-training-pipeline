@@ -59,6 +59,13 @@ def parse_opt():
         default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
         help='computation/training device, default is GPU if GPU present'
     )
+    parser.add_argument(
+        '-ims', '--img-size', 
+        default=None,
+        dest='img_size',
+        type=int,
+        help='resize image to, by default use the original frame/image size'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -127,7 +134,10 @@ def main(args):
     out = cv2.VideoWriter(f"{OUT_DIR}/{save_name}.mp4", 
                         cv2.VideoWriter_fourcc(*'mp4v'), 30, 
                         (frame_width, frame_height))
-    RESIZE_TO = (frame_width, frame_height)
+    if args['img_size'] != None:
+        RESIZE_TO = (args['img_size'], args['img_size'])
+    else:
+        RESIZE_TO = (frame_width, frame_height)
 
     frame_count = 0 # To count total frames.
     total_fps = 0 # To get the final frames per second.
@@ -137,6 +147,7 @@ def main(args):
         # capture each frame of the video
         ret, frame = cap.read()
         if ret:
+            orig_frame = frame.copy()
             frame = cv2.resize(frame, RESIZE_TO)
             image = frame.copy()
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -165,7 +176,7 @@ def main(args):
             if len(outputs[0]['boxes']) != 0:
                 frame = inference_annotations(
                     outputs, detection_threshold, CLASSES,
-                    COLORS, frame
+                    COLORS, orig_frame, frame
                 )
             frame = annotate_fps(frame, fps)
 
