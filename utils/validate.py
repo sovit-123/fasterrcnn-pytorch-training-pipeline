@@ -1,3 +1,7 @@
+"""
+Run evaluation using pycocotools.
+"""
+
 from torch_utils.engine import evaluate
 from datasets import (
     create_valid_dataset, create_valid_loader
