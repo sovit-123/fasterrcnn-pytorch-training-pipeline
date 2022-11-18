@@ -144,9 +144,6 @@ def wandb_log(
         {'val_map_05': val_map_05}
     )
 
-    # for i, image in enumerate(val_pred_image):
-        # wandb.log({'img'+str(i): [wandb.Image(image)]})
-
     if len(val_pred_image) == 2:
         log_image = cv2.hconcat([val_pred_image[0], val_pred_image[1]])
         wandb.log({'predictions': [wandb.Image(log_image)]})

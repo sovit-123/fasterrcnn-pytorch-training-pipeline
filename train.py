@@ -382,33 +382,34 @@ def main(args):
             'train loss',
             save_name='train_loss_epoch' 
         )
+        # Save all the training loss plots.
         save_loss_plot(
             OUT_DIR, 
             loss_cls_list, 
             'iterations', 
             'loss cls',
-            save_name='loss_cls'
+            save_name='train_loss_cls'
         )
         save_loss_plot(
             OUT_DIR, 
             loss_box_reg_list, 
             'iterations', 
             'loss bbox reg',
-            save_name='loss_bbox_reg'
+            save_name='train_loss_bbox_reg'
         )
         save_loss_plot(
             OUT_DIR,
             loss_objectness_list,
             'iterations',
             'loss obj',
-            save_name='loss_obj'
+            save_name='train_loss_obj'
         )
         save_loss_plot(
             OUT_DIR,
             loss_rpn_list,
             'iterations',
             'loss rpn bbox',
-            save_name='loss_rpn_bbox'
+            save_name='train_loss_rpn_bbox'
         )
 
         # Save mAP plots.
