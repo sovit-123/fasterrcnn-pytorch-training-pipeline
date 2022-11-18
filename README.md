@@ -59,7 +59,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
       OR install the version with CUDA support as per your choice from **[here](https://pytorch.org/get-started/locally/)**.
 
-      Then install the remaining **[requirements](https://github.com/sovit-123/pytorch-efficientdet-api/blob/main/requirements.txt)**.
+      Then install the remaining **[requirements](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/blob/main/requirements.txt)**.
 
 ## Setup on Windows
 

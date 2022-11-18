@@ -431,7 +431,16 @@ def main(args):
         )
 
         coco_log(OUT_DIR, stats)
-        csv_log(OUT_DIR, stats, epoch)
+        csv_log(
+            OUT_DIR, 
+            stats, 
+            epoch,
+            train_loss_list,
+            loss_cls_list,
+            loss_box_reg_list,
+            loss_objectness_list,
+            loss_rpn_list
+        )
 
         # WandB logging.
         wandb_log(

@@ -82,11 +82,29 @@ def tensorboard_map_log(name, val_map_05, val_map, writer):
         )
 
 def create_log_csv(log_dir):
-    cols = ['epoch', 'map', 'map_05']
+    cols = [
+        'epoch', 
+        'map', 
+        'map_05',
+        'train loss',
+        'train cls loss',
+        'train box reg loss',
+        'train obj loss',
+        'train rpn loss'
+    ]
     results_csv = pd.DataFrame(columns=cols)
     results_csv.to_csv(os.path.join(log_dir, 'results.csv'), index=False)
 
-def csv_log(log_dir, stats, epoch):
+def csv_log(
+    log_dir, 
+    stats, 
+    epoch,
+    train_loss_list,
+    loss_cls_list,
+    loss_box_reg_list,
+    loss_objectness_list,
+    loss_rpn_list
+):
     if epoch+1 == 1:
         create_log_csv(log_dir) 
     
@@ -95,6 +113,11 @@ def csv_log(log_dir, stats, epoch):
             'epoch': int(epoch+1),
             'map_05': [float(stats[0])],
             'map': [float(stats[1])],
+            'train loss': train_loss_list[-1],
+            'train cls loss': loss_cls_list[-1],
+            'train box reg loss': loss_box_reg_list[-1],
+            'train obj loss': loss_objectness_list[-1],
+            'train rpn loss': loss_rpn_list[-1]
         }
     )
     df.to_csv(
