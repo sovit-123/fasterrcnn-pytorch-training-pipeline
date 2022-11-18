@@ -446,10 +446,10 @@ def main(args):
         wandb_log(
             train_loss_hist.value,
             batch_loss_list,
-            batch_loss_cls_list,
-            batch_loss_box_reg_list,
-            batch_loss_objectness_list,
-            batch_loss_rpn_list,
+            loss_cls_list,
+            loss_box_reg_list,
+            loss_objectness_list,
+            loss_rpn_list,
             stats[1],
             stats[0], 
             val_pred_image
