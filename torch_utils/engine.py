@@ -86,7 +86,14 @@ def train_one_epoch(
         if scheduler is not None:
             scheduler.step(epoch + (step_counter/len(data_loader)))
 
-    return metric_logger, batch_loss_list, batch_loss_cls_list, batch_loss_box_reg_list, batch_loss_objectness_list, batch_loss_rpn_list
+    return (
+        metric_logger, 
+        batch_loss_list, 
+        batch_loss_cls_list, 
+        batch_loss_box_reg_list, 
+        batch_loss_objectness_list, 
+        batch_loss_rpn_list
+    )
 
 
 def _get_iou_types(model):

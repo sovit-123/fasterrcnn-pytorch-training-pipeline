@@ -363,10 +363,10 @@ def main(args):
 
         # Append the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
-        loss_cls_list.extend(batch_loss_cls_list)
-        loss_box_reg_list.extend(batch_loss_box_reg_list)
-        loss_objectness_list.extend(batch_loss_objectness_list)
-        loss_rpn_list.extend(batch_loss_rpn_list)
+        loss_cls_list.append(np.mean(np.array(batch_loss_cls_list)))
+        loss_box_reg_list.append(np.mean(np.array(batch_loss_box_reg_list)))
+        loss_objectness_list.append(np.mean(np.array(batch_loss_objectness_list)))
+        loss_rpn_list.append(np.mean(np.array(batch_loss_rpn_list)))
         # Append curent epoch's average loss to `train_loss_list_epoch`.
         train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
@@ -386,28 +386,28 @@ def main(args):
         save_loss_plot(
             OUT_DIR, 
             loss_cls_list, 
-            'iterations', 
+            'epochs', 
             'loss cls',
             save_name='train_loss_cls'
         )
         save_loss_plot(
             OUT_DIR, 
             loss_box_reg_list, 
-            'iterations', 
+            'epochs', 
             'loss bbox reg',
             save_name='train_loss_bbox_reg'
         )
         save_loss_plot(
             OUT_DIR,
             loss_objectness_list,
-            'iterations',
+            'epochs',
             'loss obj',
             save_name='train_loss_obj'
         )
         save_loss_plot(
             OUT_DIR,
             loss_rpn_list,
-            'iterations',
+            'epochs',
             'loss rpn bbox',
             save_name='train_loss_rpn_bbox'
         )
