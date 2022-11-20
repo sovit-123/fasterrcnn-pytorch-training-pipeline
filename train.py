@@ -57,7 +57,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-m', '--model', 
-        default='fasterrcnn_resnet50_fpn',
+        default='fasterrcnn_resnet50_fpn_v2',
         help='name of the model'
     )
     parser.add_argument(
