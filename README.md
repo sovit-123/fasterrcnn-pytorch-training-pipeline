@@ -22,14 +22,16 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 * **Tiny head refers to 256 representation size in the Faster RCNN head and predictor.**
 * **Nano head refers to 128 representation size in the Faster RCNN head and predictor.**
 
+## [Check All Available Model Flags](#A-List-of-All-Model-Flags-to-Use-with-train.py)
+
 ## Go To
 
-* [Setup for Ubuntu](#Setup-for-Ubuntu)
+* [Setup on Ubuntu](#Setup-for-Ubuntu)
 * [Setup on Windows](#Setup-on-Windows)
 * [Train on Custom Dataset](#Train-on-Custom-Dataset)
 * [Inference](#Inference)
 
-## Setup for Ubuntu
+## Setup on Ubuntu
 
 1. Clone the repository.
 
@@ -270,5 +272,39 @@ python inference_video.py
 
 ```
 python inference_video.py --input data/inference_data/video_1.mp4 --weights outputs/training/smoke_training/last_model_state.pth 
+```
+
+## A List of All Model Flags to Use with train.py
+
+```
+# Usage 
+python train.py --model fasterrcnn_resnet50_fpn_v2
+```
+
+**OR USE ANY ONE OF THE FOLLOWING**
+
+```
+['fasterrcnn_convnext_small',
+ 'fasterrcnn_convnext_tiny',
+ 'fasterrcnn_custom_resnet',
+ 'fasterrcnn_darknet',
+ 'fasterrcnn_efficientnet_b0',
+ 'fasterrcnn_efficientnet_b4',
+ 'fasterrcnn_mbv3_small_nano_head',
+ 'fasterrcnn_mbv3_large',
+ 'fasterrcnn_mini_darknet_nano_head',
+ 'fasterrcnn_mini_darknet',
+ 'fasterrcnn_mini_squeezenet1_1_small_head',
+ 'fasterrcnn_mini_squeezenet1_1_tiny_head',
+ 'fasterrcnn_mobilenetv3_large_320_fpn',
+ 'fasterrcnn_mobilenetv3_large_fpn',
+ 'fasterrcnn_nano',
+ 'fasterrcnn_resnet18',
+ 'fasterrcnn_resnet50_fpn_v2',
+ 'fasterrcnn_resnet50_fpn',
+ 'fasterrcnn_resnet152',
+ 'fasterrcnn_squeezenet1_0',
+ 'fasterrcnn_squeezenet1_1_small_head',
+ 'fasterrcnn_squeezenet1_1']
 ```
 
