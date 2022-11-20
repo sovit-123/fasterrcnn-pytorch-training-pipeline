@@ -22,7 +22,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 * **Tiny head refers to 256 representation size in the Faster RCNN head and predictor.**
 * **Nano head refers to 128 representation size in the Faster RCNN head and predictor.**
 
-## [Check All Available Model Flags](#A-List-of-All-Model-Flags-to-Use-with-train.py)
+## [Check All Available Model Flags](#A-List-of-All-Model-Flags-to-Use-With-the-Training-Script)
 
 ## Go To
 
@@ -274,7 +274,7 @@ python inference_video.py
 python inference_video.py --input data/inference_data/video_1.mp4 --weights outputs/training/smoke_training/last_model_state.pth 
 ```
 
-## A List of All Model Flags to Use with train.py
+## A List of All Model Flags to Use With the Training Script
 
 ```
 # Usage 
