@@ -7,3 +7,6 @@ test.sh
 
 # Weights and Biases
 wandb/*
+
+# IPython checkpoints
+.ipynb_checkpoints

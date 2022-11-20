@@ -16,7 +16,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 ## Custom Model Naming Conventions
 
-***In general:***
+***For this repository:***
 
 * **Small head refers to 512 representation size in the Faster RCNN head and predictor.**
 * **Tiny head refers to 256 representation size in the Faster RCNN head and predictor.**
