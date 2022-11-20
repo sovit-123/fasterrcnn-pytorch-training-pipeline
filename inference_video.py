@@ -178,6 +178,8 @@ def main(args):
                     outputs, detection_threshold, CLASSES,
                     COLORS, orig_frame, frame
                 )
+            else:
+                frame = orig_frame
             frame = annotate_fps(frame, fps)
 
             final_end_time = time.time()
