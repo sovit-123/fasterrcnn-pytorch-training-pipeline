@@ -122,18 +122,20 @@ if __name__ == '__main__':
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             model_time = time.time()
-            outputs = model(images)
+            with torch.no_grad():
+                outputs = model(images)
 
             #####################################
-            true_dict = dict()
-            preds_dict = dict()
-            true_dict['boxes'] = targets[0]['boxes'].detach().cpu()
-            true_dict['labels'] = targets[0]['labels'].detach().cpu()
-            preds_dict['boxes'] = outputs[0]['boxes'].detach().cpu()
-            preds_dict['scores'] = outputs[0]['scores'].detach().cpu()
-            preds_dict['labels'] = outputs[0]['labels'].detach().cpu()
-            preds.append(preds_dict)
-            target.append(true_dict)
+            for i in range(len(images)):
+                true_dict = dict()
+                preds_dict = dict()
+                true_dict['boxes'] = targets[i]['boxes'].detach().cpu()
+                true_dict['labels'] = targets[i]['labels'].detach().cpu()
+                preds_dict['boxes'] = outputs[i]['boxes'].detach().cpu()
+                preds_dict['scores'] = outputs[i]['scores'].detach().cpu()
+                preds_dict['labels'] = outputs[i]['labels'].detach().cpu()
+                preds.append(preds_dict)
+                target.append(true_dict)
             #####################################
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]

@@ -322,7 +322,7 @@ def create_valid_loader(
 ):
     valid_loader = DataLoader(
         valid_dataset,
-        # batch_size=batch_size,
+        batch_size=batch_size,
         # shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn,
