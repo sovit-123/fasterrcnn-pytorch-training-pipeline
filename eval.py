@@ -161,7 +161,11 @@ if __name__ == '__main__':
     pprint(f"Classes: {CLASSES}")
     print('\n')
     print('AP per class')
+    empty_string = ''
+    print('-'*40)
+    print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
+    print('-'*40)
     for i in range(0, len(stats['map_per_class']), 1):
-        print(f"{CLASSES[i+1]}: {np.array(stats['map_per_class'][i-1])}")
-    print('-'*75)
-    print(f"mAP: {np.array(stats['map'])}")
+        print(f"|{CLASSES[i+1]:<15} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
+    print('-'*40)
+    print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")
