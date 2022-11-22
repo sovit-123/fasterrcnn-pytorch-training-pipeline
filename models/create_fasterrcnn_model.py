@@ -137,7 +137,7 @@ def return_fasterrcnn_resnet152(
     return model
 
 def return_fasterrcnn_resnet50_fpn_v2(
-    num_classes, pretrained=True, coco_model=False
+    num_classes, pretrained=True, coco_model=True
 ):
     model = fasterrcnn_resnet50_fpn_v2.create_model(
         num_classes, pretrained=pretrained, coco_model=coco_model

@@ -213,7 +213,7 @@ def main(args):
         )
     else:
         train_sampler = RandomSampler(train_dataset)
-        valid_sampler = RandomSampler(valid_dataset)
+        valid_sampler = SequentialSampler(valid_dataset)
 
     # train_batch_sampler = BatchSampler(train_sampler, BATCH_SIZE, drop_last=False)
     # valid_batch_sampler = BatchSampler(valid_sampler, BATCH_SIZE, drop_last=False)

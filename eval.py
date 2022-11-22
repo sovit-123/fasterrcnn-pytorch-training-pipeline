@@ -165,10 +165,12 @@ if __name__ == '__main__':
     print('-'*40)
     print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
     print('-'*40)
-    try: 
+    if len(CLASSES) > 2: 
+        class_counter = 1
         for i in range(0, len(stats['map_per_class']), 1):
-            print(f"|{CLASSES[i+1]:<15} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
-    except:
+            print(f"|{CLASSES[class_counter]:<15} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
+            class_counter += 1
+    else:
         print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}|")
     print('-'*40)
     print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")

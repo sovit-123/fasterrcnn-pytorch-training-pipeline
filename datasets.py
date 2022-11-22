@@ -30,7 +30,7 @@ class CustomDataset(Dataset):
         self.classes = classes
         self.train = train
         self.mosaic = mosaic
-        self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm']
+        self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
         # get all the image paths in sorted order
@@ -323,7 +323,7 @@ def create_valid_loader(
     valid_loader = DataLoader(
         valid_dataset,
         batch_size=batch_size,
-        # shuffle=False,
+        shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn,
         sampler=batch_sampler
