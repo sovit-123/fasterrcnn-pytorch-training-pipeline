@@ -162,15 +162,22 @@ if __name__ == '__main__':
     print('\n')
     print('AP per class')
     empty_string = ''
-    print('-'*40)
-    print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
-    print('-'*40)
     if len(CLASSES) > 2: 
-        class_counter = 1
+        print(len(stats['map_per_class']))
+        num_hyphens = 51
+        print('-'*num_hyphens)
+        print(f"|     Class{empty_string:<16} | AP{empty_string:<18}|")
+        print('-'*num_hyphens)
+        class_counter = 0
         for i in range(0, len(stats['map_per_class']), 1):
-            print(f"|{CLASSES[class_counter]:<15} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
             class_counter += 1
+            print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
+        print('-'*num_hyphens)
+        print(f"|mAP{empty_string:<23} | {np.array(stats['map']):.3f}{empty_string:<15}|")
     else:
+        print('-'*40)
+        print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
+        print('-'*40)
         print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}|")
-    print('-'*40)
-    print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")
+        print('-'*40)
+        print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")
