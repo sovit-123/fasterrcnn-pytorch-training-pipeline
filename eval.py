@@ -169,7 +169,7 @@ if __name__ == '__main__':
         print(f"|     Class{empty_string:<16} | AP{empty_string:<18}|")
         print('-'*num_hyphens)
         class_counter = 0
-        for i in range(0, len(stats['map_per_class']), 1):
+        for i in range(0, len(CLASSES)-1, 1):
             class_counter += 1
             print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
         print('-'*num_hyphens)
