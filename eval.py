@@ -73,26 +73,36 @@ if __name__ == '__main__':
     NUM_WORKERS = args['workers']
     DEVICE = args['device']
     BATCH_SIZE = args['batch_size']
+
+    # Model configurations
+    IMAGE_WIDTH = args['img_size']
+    IMAGE_HEIGHT = args['img_size']
+
     # Load the pretrained model
     create_model = create_model[args['model']]
     if args['weights'] is None:
-        model = create_model(num_classes=NUM_CLASSES, coco_model=True)
+        try:
+            model, coco_model = create_model(num_classes=NUM_CLASSES, coco_model=True)
+        except:
+            model = create_model(num_classes=NUM_CLASSES, coco_model=True)
+        if coco_model:
+            COCO_91_CLASSES = data_configs['COCO_91_CLASSES']
+            valid_dataset = create_valid_dataset(
+                VALID_DIR_IMAGES, VALID_DIR_LABELS, 
+                IMAGE_WIDTH, IMAGE_HEIGHT, COCO_91_CLASSES
+            )
 
     # Load weights.
     if args['weights'] is not None:
         model = create_model(num_classes=NUM_CLASSES, coco_model=False)
         checkpoint = torch.load(args['weights'], map_location=DEVICE)
         model.load_state_dict(checkpoint['model_state_dict'])
+        valid_dataset = create_valid_dataset(
+            VALID_DIR_IMAGES, VALID_DIR_LABELS, 
+            IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
+        )
     model.to(DEVICE).eval()
-
-    # Model configurations
-    IMAGE_WIDTH = args['img_size']
-    IMAGE_HEIGHT = args['img_size']
     
-    valid_dataset = create_valid_dataset(
-        VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
-    )
     valid_loader = create_valid_loader(valid_dataset, BATCH_SIZE, NUM_WORKERS)
 
     @torch.inference_mode()

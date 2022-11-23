@@ -11,7 +11,7 @@ def create_model(num_classes, pretrained=True, coco_model=False):
     )
 
     if coco_model: # Return the COCO pretrained model for COCO classes.
-        return model
+        return model, coco_model
 
     # get the number of input features 
     in_features = model.roi_heads.box_predictor.cls_score.in_features
