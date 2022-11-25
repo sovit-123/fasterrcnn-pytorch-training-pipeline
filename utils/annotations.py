@@ -2,8 +2,13 @@ import numpy as np
 import cv2
 
 def inference_annotations(
-    outputs, detection_threshold, classes,
-    colors, orig_image, image
+    outputs, 
+    detection_threshold, 
+    classes,
+    colors, 
+    orig_image, 
+    image, 
+    args
 ):
     height, width, _ = orig_image.shape
     boxes = outputs[0]['boxes'].data.numpy()
@@ -30,33 +35,36 @@ def inference_annotations(
             thickness=lw,
             lineType=cv2.LINE_AA
         )
-        # For filled rectangle.
-        w, h = cv2.getTextSize(
-            class_name, 
-            0, 
-            fontScale=lw / 3, 
-            thickness=tf
-        )[0]  # text width, height
-        outside = p1[1] - h >= 3
-        p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-        cv2.rectangle(
-            orig_image, 
-            p1, 
-            p2, 
-            color=color, 
-            thickness=-1, 
-            lineType=cv2.LINE_AA
-        )  
-        cv2.putText(
-            orig_image, 
-            class_name, 
-            (p1[0], p1[1] - 5 if outside else p1[1] + h + 2),
-            cv2.FONT_HERSHEY_SIMPLEX, 
-            fontScale=lw / 3.8, 
-            color=(255, 255, 255), 
-            thickness=tf, 
-            lineType=cv2.LINE_AA
-        )
+        if not args['no_labels']:
+            # For filled rectangle.
+            final_label = class_name + ' ' + str(round(scores[j], 2))
+            w, h = cv2.getTextSize(
+                final_label, 
+                cv2.FONT_HERSHEY_SIMPLEX, 
+                fontScale=lw / 3, 
+                thickness=tf
+            )[0]  # text width, height
+            w = int(w - (0.20 * w))
+            outside = p1[1] - h >= 3
+            p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+            cv2.rectangle(
+                orig_image, 
+                p1, 
+                p2, 
+                color=color, 
+                thickness=-1, 
+                lineType=cv2.LINE_AA
+            )  
+            cv2.putText(
+                orig_image, 
+                final_label, 
+                (p1[0], p1[1] - 5 if outside else p1[1] + h + 2),
+                cv2.FONT_HERSHEY_SIMPLEX, 
+                fontScale=lw / 3.8, 
+                color=(255, 255, 255), 
+                thickness=tf, 
+                lineType=cv2.LINE_AA
+            )
     return orig_image
 
 def draw_text(
