@@ -66,6 +66,12 @@ def parse_opt():
         type=int,
         help='resize image to, by default use the original frame/image size'
     )
+    parser.add_argument(
+        '-nlb', '--no-labels',
+        dest='no_labels',
+        action='store_true',
+        help='do not show labels during on top of bounding boxes'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -176,8 +182,13 @@ def main(args):
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
                 frame = inference_annotations(
-                    outputs, detection_threshold, CLASSES,
-                    COLORS, orig_frame, frame
+                    outputs, 
+                    detection_threshold, 
+                    CLASSES, 
+                    COLORS, 
+                    orig_frame, 
+                    frame,
+                    args
                 )
             else:
                 frame = orig_frame
