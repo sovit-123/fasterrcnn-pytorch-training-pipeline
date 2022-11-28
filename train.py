@@ -217,12 +217,12 @@ def main(args):
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
         use_train_aug=args['use_train_aug'],
         mosaic=args['no_mosaic'],
-        cache_size=CACHE_SIZE
+        cache_size=CACHE_SIZE # added
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
-        cache_size=CACHE_SIZE
+        cache_size=CACHE_SIZE # added
     )
     print('Creating data loaders')
     if args['distributed']:

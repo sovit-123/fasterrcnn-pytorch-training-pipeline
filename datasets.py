@@ -162,9 +162,7 @@ class CustomDataset(Dataset):
         
         # Bounding box to tensor.
         boxes_length = len(boxes)
-        # TODO remove if not needed anymore
-        #if boxes_length == 0:
-        #    print("No object annotation", annot_file_path)
+
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
 
         # Area of the bounding boxes.
