@@ -1,17 +1,22 @@
+from functools import lru_cache
+
 import torch
 import cv2
 import numpy as np
 import os
 import glob as glob
 import random
+from copy import copy
 
 from xml.etree import ElementTree as et
 from torch.utils.data import Dataset, DataLoader
-from utils.general import visualize_mosaic_images
 from utils.transforms import (
     get_train_transform, get_valid_transform,
     get_train_aug
 )
+
+cache=600
+
 
 # the dataset class
 class CustomDataset(Dataset):
@@ -41,7 +46,22 @@ class CustomDataset(Dataset):
         self.all_images = sorted(self.all_images)
         # Remove all annotations and images when no object is present.
         self.read_and_clean()
-        
+
+        # these cannot be pickled, thus I added set and get state methods to handle them
+        self._load_and_transform = lru_cache(maxsize=cache)(self.__load_and_transform)
+        self._initial_load_settings = lru_cache(maxsize=cache)(self.__initial_load_settings)
+
+    def __getstate__(self):
+        result = copy(self.__dict__)
+        result["_load_and_transform"] = None
+        result["_initial_load_settings"] = None
+        return result
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self._load_and_transform = lru_cache(maxsize=cache)(self.__load_and_transform)
+        self._initial_load_settings = lru_cache(maxsize=cache)(self.__initial_load_settings)
+
     def read_and_clean(self):
         # Discard any images and labels when the XML 
         # file does not contain any object.
@@ -56,15 +76,20 @@ class CustomDataset(Dataset):
                 image_name = annot_path.split(os.path.sep)[-1].split('.xml')[0]
                 image_root = self.all_image_paths[0].split(os.path.sep)[:-1]
                 # remove_image = f"{'/'.join(image_root)}/{image_name}.jpg"
-                remove_image = os.path.join(os.sep.join(image_root), image_name+'.jpg')
-                print(f"Removing {annot_path} and corresponding {remove_image}")
-                self.all_annot_paths.remove(annot_path)
-                self.all_image_paths.remove(remove_image)
+
+                # TODO Is this code necessary?
+                # for img_type in self.image_file_types:
+                #     remove_image = os.path.join(os.sep.join(image_root), image_name+img_type.replace("*",""))
+                #     if remove_image in self.all_image_paths:
+                #         print(f"Removing {annot_path} and corresponding {remove_image}")
+                #         self.all_annot_paths.remove(annot_path)
+                #         self.all_image_paths.remove(remove_image)
+                #         break
 
         # Discard any image file when no annotation file 
         # is not found for the image. 
         for image_name in self.all_images:
-            possible_xml_name = os.path.join(self.labels_path, image_name.split('.jpg')[0]+'.xml')
+            possible_xml_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
             if possible_xml_name not in self.all_annot_paths:
                 print(f"{possible_xml_name} not found...")
                 print(f"Removing {image_name} image")
@@ -92,9 +117,9 @@ class CustomDataset(Dataset):
         image_resized /= 255.0
         
         # Capture the corresponding XML file for getting the annotations.
-        annot_filename = image_name[:-4] + '.xml'
+        annot_filename = os.path.splitext(image_name)[0] + '.xml'
         annot_file_path = os.path.join(self.labels_path, annot_filename)
-        
+
         boxes = []
         orig_boxes = []
         labels = []
@@ -136,11 +161,17 @@ class CustomDataset(Dataset):
             boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
         
         # Bounding box to tensor.
+        boxes_length = len(boxes)
+        # TODO remove if not needed anymore
+        #if boxes_length == 0:
+        #    print("No object annotation", annot_file_path)
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
+
         # Area of the bounding boxes.
-        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0]) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
         # No crowd instances.
-        iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64)
+        iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
         # Labels to tensor.
         labels = torch.as_tensor(labels, dtype=torch.int64)
         return image, image_resized, orig_boxes, \
@@ -162,67 +193,77 @@ class CustomDataset(Dataset):
         """ 
         Adapted from: https://www.kaggle.com/shonenkov/oof-evaluation-mixup-efficientdet
         """
+        result_boxes = []
+        result_classes = []
+        indexes = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
+
+        for i, index in enumerate(indexes):
+            area, dims, iscrowd, labels, result_image, s, result_boxes0 = self._load_and_transform(i, index, resize_factor,)
+
+            result_boxes += result_boxes0
+            result_classes += labels
+
+
+        final_classes = []
+        if len(result_boxes) > 0:
+            result_boxes = np.concatenate(result_boxes, 0)
+            np.clip(result_boxes[:, 0:], 0, 2 * s, out=result_boxes[:, 0:])
+            result_boxes = result_boxes.astype(np.int32)
+            for idx in range(len(result_boxes)):
+                if ((result_boxes[idx,2]-result_boxes[idx,0])*(result_boxes[idx,3]-result_boxes[idx,1])) > 0:
+                    final_classes.append(result_classes[idx])
+            result_boxes = result_boxes[
+                np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)
+            ]
+        return result_image/255., torch.tensor(result_boxes), \
+            torch.tensor(np.array(final_classes)), area, iscrowd, dims
+
+    def __load_and_transform(self, i, index, resize_factor):
+        result_boxes = []
+        h, result_image, s, w, xc, yc = self._initial_load_settings(index, resize_factor)
+        image, image_resized, orig_boxes, boxes, \
+        labels, area, iscrowd, dims = self.load_image_and_labels(
+            index=index
+        )
+        # Resize the current image according to the above resize,
+        # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
+        # will give error when image sizes are different.
+        image = cv2.resize(image, resize_factor)
+        if i == 0:
+            x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
+            x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
+        elif i == 1:  # top right
+            x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
+            x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+        elif i == 2:  # bottom left
+            x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
+            x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, max(xc, w), min(y2a - y1a, h)
+        elif i == 3:  # bottom right
+            x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
+            x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+        result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
+        padw = x1a - x1b
+        padh = y1a - y1b
+        if len(orig_boxes) > 0:
+            boxes[:, 0] += padw
+            boxes[:, 1] += padh
+            boxes[:, 2] += padw
+            boxes[:, 3] += padh
+
+            result_boxes.append(boxes)
+        return area, dims, iscrowd, labels, result_image, s, result_boxes
+
+    def __initial_load_settings(self, index, resize_factor):
         image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
         orig_image = image.copy()
         # Resize the image according to the `confg.py` resize.
         image = cv2.resize(image, resize_factor)
         h, w, c = image.shape
         s = h // 2
-    
         xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
-        indexes = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
-        
         # Create empty image with the above resized image.
         result_image = np.full((h, w, 3), 1, dtype=np.float32)
-        result_boxes = []
-        result_classes = []
-
-        for i, index in enumerate(indexes):
-            image, image_resized, orig_boxes, boxes, \
-            labels, area, iscrowd, dims = self.load_image_and_labels(
-            index=index
-            )
-            # Resize the current image according to the above resize,
-            # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
-            # will give error when image sizes are different.
-            image = cv2.resize(image, resize_factor)
-            if i == 0:
-                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
-                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
-            elif i == 1:  # top right
-                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
-                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
-            elif i == 2:  # bottom left
-                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
-                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, max(xc, w), min(y2a - y1a, h)
-            elif i == 3:  # bottom right
-                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
-                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
-            result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
-            padw = x1a - x1b
-            padh = y1a - y1b
-
-            boxes[:, 0] += padw
-            boxes[:, 1] += padh
-            boxes[:, 2] += padw
-            boxes[:, 3] += padh
-            
-            result_boxes.append(boxes)
-            for class_name in labels:
-                result_classes.append(class_name)
-
-        final_classes = []
-        result_boxes = np.concatenate(result_boxes, 0)
-        np.clip(result_boxes[:, 0:], 0, 2 * s, out=result_boxes[:, 0:])
-        result_boxes = result_boxes.astype(np.int32)
-        for idx in range(len(result_boxes)):
-            if ((result_boxes[idx,2]-result_boxes[idx,0])*(result_boxes[idx,3]-result_boxes[idx,1])) > 0:
-                final_classes.append(result_classes[idx])
-        result_boxes = result_boxes[
-            np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)
-        ]
-        return orig_image, result_image/255., torch.tensor(result_boxes), \
-            torch.tensor(np.array(final_classes)), area, iscrowd, dims
+        return h, result_image, s, w, xc, yc
 
     def __getitem__(self, idx):
         # Capture the image name and the full image path.
@@ -234,7 +275,7 @@ class CustomDataset(Dataset):
 
         if self.train and self.mosaic:
             while True:
-                image, image_resized, boxes, labels, \
+                image_resized, boxes, labels, \
                     area, iscrowd, dims = self.load_cutmix_image_and_boxes(
                     idx, resize_factor=(self.height, self.width)
                 )
@@ -314,7 +355,10 @@ def create_train_loader(
         # shuffle=True,
         num_workers=num_workers,
         collate_fn=collate_fn,
-        sampler=batch_sampler
+        sampler=batch_sampler,
+        persistent_workers=True,
+        prefetch_factor=8,
+        #pin_memory=True
     )
     return train_loader
 def create_valid_loader(
@@ -326,6 +370,9 @@ def create_valid_loader(
         shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn,
-        sampler=batch_sampler
+        sampler=batch_sampler,
+        persistent_workers=True,
+        prefetch_factor=8,
+        #pin_memory=True,
     )
     return valid_loader

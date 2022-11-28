@@ -10,7 +10,7 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default) and added training augmentations:
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
 """
-
+import datasets
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
 )
@@ -155,6 +155,14 @@ def parse_opt():
         type=str,
         help='url ysed to set up the distributed training'
     )
+
+    parser.add_argument(
+        '--cache-size',
+        default=0,
+        type=int,
+        dest='cache_size',
+        help='number of cached images'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -183,6 +191,7 @@ def main(args):
     VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
     OUT_DIR = set_training_dir(args['project_name'])
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
+    datasets.cache = args['cache_size']
     # Set logging file.
     set_log(OUT_DIR)
     writer = set_summary_writer(OUT_DIR)
