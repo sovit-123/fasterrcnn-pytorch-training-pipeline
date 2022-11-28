@@ -203,7 +203,6 @@ def get_coco_api_from_dataset(dataset):
         return dataset.coco
     return convert_to_coco_api(dataset)
 
-
 class CocoDetection(torchvision.datasets.CocoDetection):
     def __init__(self, img_folder, ann_file, transforms):
         super().__init__(img_folder, ann_file)

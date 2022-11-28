@@ -507,6 +507,7 @@ def main(args):
     # Save models to Weights&Biases.
     wandb_save_model(OUT_DIR)
 
+
 if __name__ == '__main__':
     args = parse_opt()
     main(args)

@@ -162,7 +162,6 @@ class CustomDataset(Dataset):
         
         # Bounding box to tensor.
         boxes_length = len(boxes)
-
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
 
         # Area of the bounding boxes.
