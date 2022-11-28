@@ -347,7 +347,7 @@ def create_valid_dataset(
     return valid_dataset
 
 def create_train_loader(
-    train_dataset, batch_size, num_workers=0, batch_sampler=None
+    train_dataset, batch_size, num_workers=0, batch_sampler=None, prefetch_factor=2
 ):
     train_loader = DataLoader(
         train_dataset,
@@ -357,12 +357,12 @@ def create_train_loader(
         collate_fn=collate_fn,
         sampler=batch_sampler,
         persistent_workers=True,
-        prefetch_factor=8,
+        prefetch_factor=prefetchk_factor,
         #pin_memory=True
     )
     return train_loader
 def create_valid_loader(
-    valid_dataset, batch_size, num_workers=0, batch_sampler=None
+    valid_dataset, batch_size, num_workers=0, batch_sampler=None, prefetch_factor=2
 ):
     valid_loader = DataLoader(
         valid_dataset,
@@ -372,7 +372,7 @@ def create_valid_loader(
         collate_fn=collate_fn,
         sampler=batch_sampler,
         persistent_workers=True,
-        prefetch_factor=8,
+        prefetch_factor=prefetch_factor,
         #pin_memory=True,
     )
     return valid_loader
