@@ -201,7 +201,7 @@ def main(args):
     OUT_DIR = set_training_dir(args['project_name'])
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
     PREFETCH_SIZE = args['prefetch_size']
-    datasets.cache = args['cache_size']
+    CACHE_SIZE = args['cache_size']
     # Set logging file.
     set_log(OUT_DIR)
     writer = set_summary_writer(OUT_DIR)
@@ -216,11 +216,13 @@ def main(args):
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
         use_train_aug=args['use_train_aug'],
-        mosaic=args['no_mosaic']
+        mosaic=args['no_mosaic'],
+        cache_size=CACHE_SIZE
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
+        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+        cache_size=CACHE_SIZE
     )
     print('Creating data loaders')
     if args['distributed']:

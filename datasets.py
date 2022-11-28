@@ -15,7 +15,6 @@ from utils.transforms import (
     get_train_aug
 )
 
-cache=600
 
 
 # the dataset class
@@ -24,7 +23,7 @@ class CustomDataset(Dataset):
         self, images_path, labels_path, 
         width, height, classes, transforms=None, 
         use_train_aug=False,
-        train=False, mosaic=False
+        train=False, mosaic=False, cache_size=100
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -35,6 +34,7 @@ class CustomDataset(Dataset):
         self.classes = classes
         self.train = train
         self.mosaic = mosaic
+        self.cache_size = cache_size
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
@@ -48,8 +48,8 @@ class CustomDataset(Dataset):
         self.read_and_clean()
 
         # these cannot be pickled, thus I added set and get state methods to handle them
-        self._load_and_transform = lru_cache(maxsize=cache)(self.__load_and_transform)
-        self._initial_load_settings = lru_cache(maxsize=cache)(self.__initial_load_settings)
+        self._load_and_transform = lru_cache(maxsize=self.cache_size)(self.__load_and_transform)
+        self._initial_load_settings = lru_cache(maxsize=self.cache_size)(self.__initial_load_settings)
 
     def __getstate__(self):
         result = copy(self.__dict__)
@@ -59,8 +59,8 @@ class CustomDataset(Dataset):
 
     def __setstate__(self, state):
         self.__dict__ = state
-        self._load_and_transform = lru_cache(maxsize=cache)(self.__load_and_transform)
-        self._initial_load_settings = lru_cache(maxsize=cache)(self.__initial_load_settings)
+        self._load_and_transform = lru_cache(maxsize=self.cache_size)(self.__load_and_transform)
+        self._initial_load_settings = lru_cache(maxsize=self.cache_size)(self.__initial_load_settings)
 
     def read_and_clean(self):
         # Discard any images and labels when the XML 
@@ -324,25 +324,28 @@ def create_train_dataset(
     train_dir_images, train_dir_labels, 
     resize_width, resize_height, classes,
     use_train_aug=False,
-    mosaic=True
+    mosaic=True,
+    cache_size=0
 ):
     train_dataset = CustomDataset(
         train_dir_images, train_dir_labels,
         resize_width, resize_height, classes, 
         get_train_transform(),
         use_train_aug=use_train_aug,
-        train=True, mosaic=mosaic
+        train=True, mosaic=mosaic,
+        cache_size=cache_size
     )
     return train_dataset
 def create_valid_dataset(
     valid_dir_images, valid_dir_labels, 
-    resize_width, resize_height, classes
+    resize_width, resize_height, classes, cache_size=0
 ):
     valid_dataset = CustomDataset(
         valid_dir_images, valid_dir_labels, 
         resize_width, resize_height, classes, 
         get_valid_transform(),
-        train=False
+        train=False,
+        cache_size=cache_size
     )
     return valid_dataset
 
@@ -357,7 +360,7 @@ def create_train_loader(
         collate_fn=collate_fn,
         sampler=batch_sampler,
         persistent_workers=True,
-        prefetch_factor=prefetchk_factor,
+        prefetch_factor=prefetch_factor,
         #pin_memory=True
     )
     return train_loader
