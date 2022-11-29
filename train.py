@@ -1,7 +1,7 @@
 """
-USAGE
+usage
 
-# Training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
+# training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs/voc.yaml --no-mosaic --batch-size 4
 
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default):
@@ -194,6 +194,7 @@ def main(args):
     NUM_CLASSES = data_configs['NC']
     NUM_WORKERS = args['workers']
     DEVICE = torch.device(args['device'])
+    print("device",DEVICE)
     NUM_EPOCHS = args['epochs']
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch_size']
@@ -314,14 +315,14 @@ def main(args):
                 val_map = checkpoint['val_map']
             if checkpoint['val_map_05']:
                 val_map_05 = checkpoint['val_map_05']
-        
+
     model = model.to(DEVICE)
     if args['distributed']:
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[args['gpu']]
         )
     torchinfo.summary(
-        model, input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
+        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
     )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
@@ -384,10 +385,14 @@ def main(args):
 
         # Append the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
-        loss_cls_list.append(np.mean(np.array(batch_loss_cls_list)))
+        loss_cls_list.append(np.mean(np.array(batch_loss_cls_list,)))
+
         loss_box_reg_list.append(np.mean(np.array(batch_loss_box_reg_list)))
+
         loss_objectness_list.append(np.mean(np.array(batch_loss_objectness_list)))
+
         loss_rpn_list.append(np.mean(np.array(batch_loss_rpn_list)))
+
         # Append curent epoch's average loss to `train_loss_list_epoch`.
         train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
@@ -511,3 +516,4 @@ def main(args):
 if __name__ == '__main__':
     args = parse_opt()
     main(args)
+1558022
