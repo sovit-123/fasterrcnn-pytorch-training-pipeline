@@ -172,6 +172,14 @@ def parse_opt():
         help='number of prefetched images'
     )
 
+    parser.add_argument(
+        '-dw', '--disable-wandb',
+        dest="disable_wandb",
+        default=False,
+        type=bool,
+        help='whether to use the wandb'
+    )
+
     args = vars(parser.parse_args())
     return args
 
@@ -180,7 +188,8 @@ def main(args):
     utils.init_distributed_mode(args)
 
     # Initialize W&B with project name.
-    wandb_init(name=args['project_name'])
+    if not args['disable_wandb']:
+        wandb_init(name=args['project_name'])
     # Load the data configurations
     with open(args['config']) as file:
         data_configs = yaml.safe_load(file)
@@ -469,17 +478,18 @@ def main(args):
         )
 
         # WandB logging.
-        wandb_log(
-            train_loss_hist.value,
-            batch_loss_list,
-            loss_cls_list,
-            loss_box_reg_list,
-            loss_objectness_list,
-            loss_rpn_list,
-            stats[1],
-            stats[0], 
-            val_pred_image
-        )
+        if not args['disable_wandb']:
+            wandb_log(
+                train_loss_hist.value,
+                batch_loss_list,
+                loss_cls_list,
+                loss_box_reg_list,
+                loss_objectness_list,
+                loss_rpn_list,
+                stats[1],
+                stats[0],
+                val_pred_image
+            )
 
         # Save the current epoch model state. This can be used 
         # to resume training. It saves model state dict, number of
@@ -510,7 +520,8 @@ def main(args):
         )
     
     # Save models to Weights&Biases.
-    wandb_save_model(OUT_DIR)
+    if not args['disable_wandb']:
+        wandb_save_model(OUT_DIR)
 
 
 if __name__ == '__main__':
