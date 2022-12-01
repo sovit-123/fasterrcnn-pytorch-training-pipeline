@@ -374,11 +374,8 @@ def main(args):
         # Append the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
         loss_cls_list.append(np.mean(np.array(batch_loss_cls_list,)))
-
         loss_box_reg_list.append(np.mean(np.array(batch_loss_box_reg_list)))
-
         loss_objectness_list.append(np.mean(np.array(batch_loss_objectness_list)))
-
         loss_rpn_list.append(np.mean(np.array(batch_loss_rpn_list)))
 
         # Append curent epoch's average loss to `train_loss_list_epoch`.

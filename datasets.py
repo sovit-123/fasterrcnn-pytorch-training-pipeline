@@ -303,14 +303,14 @@ def create_train_dataset(
     train_dir_images, train_dir_labels, 
     resize_width, resize_height, classes,
     use_train_aug=False,
-    mosaic=True,
+    mosaic=True
 ):
     train_dataset = CustomDataset(
         train_dir_images, train_dir_labels,
         resize_width, resize_height, classes, 
         get_train_transform(),
         use_train_aug=use_train_aug,
-        train=True, mosaic=mosaic,
+        train=True, mosaic=mosaic
     )
     return train_dataset
 def create_valid_dataset(
@@ -334,7 +334,7 @@ def create_train_loader(
         # shuffle=True,
         num_workers=num_workers,
         collate_fn=collate_fn,
-        sampler=batch_sampler,
+        sampler=batch_sampler
     )
     return train_loader
 
@@ -347,6 +347,6 @@ def create_valid_loader(
         shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_fn,
-        sampler=batch_sampler,
+        sampler=batch_sampler
     )
     return valid_loader
