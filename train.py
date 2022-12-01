@@ -175,8 +175,7 @@ def parse_opt():
     parser.add_argument(
         '-dw', '--disable-wandb',
         dest="disable_wandb",
-        default=False,
-        type=bool,
+        action='store_true',
         help='whether to use the wandb'
     )
 
