@@ -8,7 +8,7 @@ from torch_utils import utils
 from torch_utils.coco_eval import CocoEvaluator
 from torch_utils.coco_utils import get_coco_api_from_dataset
 from utils.general import save_validation_results
-
+import numpy as np
 def train_one_epoch(
     model, 
     optimizer, 
@@ -45,7 +45,9 @@ def train_one_epoch(
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         step_counter += 1
         images = list(image.to(device) for image in images)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        targets = [{k: v.to(device).to(torch.int64) for k, v in t.items()} for t in targets]
+
+
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             loss_dict = model(images, targets)
             losses = sum(loss for loss in loss_dict.values())

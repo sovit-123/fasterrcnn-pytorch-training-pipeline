@@ -1,7 +1,7 @@
 """
-USAGE
+usage
 
-# Training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
+# training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs/voc.yaml --no-mosaic --batch-size 4
 
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default):
@@ -10,7 +10,7 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default) and added training augmentations:
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
 """
-
+import datasets
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
 )
@@ -155,6 +155,14 @@ def parse_opt():
         type=str,
         help='url ysed to set up the distributed training'
     )
+
+    parser.add_argument(
+        '-dw', '--disable-wandb',
+        dest="disable_wandb",
+        action='store_true',
+        help='whether to use the wandb'
+    )
+
     args = vars(parser.parse_args())
     return args
 
@@ -163,20 +171,22 @@ def main(args):
     utils.init_distributed_mode(args)
 
     # Initialize W&B with project name.
-    wandb_init(name=args['project_name'])
+    if not args['disable_wandb']:
+        wandb_init(name=args['project_name'])
     # Load the data configurations
     with open(args['config']) as file:
         data_configs = yaml.safe_load(file)
     
     # Settings/parameters/constants.
-    TRAIN_DIR_IMAGES = data_configs['TRAIN_DIR_IMAGES']
-    TRAIN_DIR_LABELS = data_configs['TRAIN_DIR_LABELS']
-    VALID_DIR_IMAGES = data_configs['VALID_DIR_IMAGES']
-    VALID_DIR_LABELS = data_configs['VALID_DIR_LABELS']
+    TRAIN_DIR_IMAGES = os.path.normpath(data_configs['TRAIN_DIR_IMAGES'])
+    TRAIN_DIR_LABELS = os.path.normpath(data_configs['TRAIN_DIR_LABELS'])
+    VALID_DIR_IMAGES = os.path.normpath(data_configs['VALID_DIR_IMAGES'])
+    VALID_DIR_LABELS = os.path.normpath(data_configs['VALID_DIR_LABELS'])
     CLASSES = data_configs['CLASSES']
     NUM_CLASSES = data_configs['NC']
     NUM_WORKERS = args['workers']
     DEVICE = torch.device(args['device'])
+    print("device",DEVICE)
     NUM_EPOCHS = args['epochs']
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch_size']
@@ -197,11 +207,11 @@ def main(args):
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
         use_train_aug=args['use_train_aug'],
-        mosaic=args['no_mosaic']
+        mosaic=args['no_mosaic'],
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
+        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
     )
     print('Creating data loaders')
     if args['distributed']:
@@ -293,14 +303,14 @@ def main(args):
                 val_map = checkpoint['val_map']
             if checkpoint['val_map_05']:
                 val_map_05 = checkpoint['val_map_05']
-        
+
     model = model.to(DEVICE)
     if args['distributed']:
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[args['gpu']]
         )
     torchinfo.summary(
-        model, input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
+        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
     )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
@@ -363,10 +373,11 @@ def main(args):
 
         # Append the current epoch's batch-wise losses to the `train_loss_list`.
         train_loss_list.extend(batch_loss_list)
-        loss_cls_list.append(np.mean(np.array(batch_loss_cls_list)))
+        loss_cls_list.append(np.mean(np.array(batch_loss_cls_list,)))
         loss_box_reg_list.append(np.mean(np.array(batch_loss_box_reg_list)))
         loss_objectness_list.append(np.mean(np.array(batch_loss_objectness_list)))
         loss_rpn_list.append(np.mean(np.array(batch_loss_rpn_list)))
+
         # Append curent epoch's average loss to `train_loss_list_epoch`.
         train_loss_list_epoch.append(train_loss_hist.value)
         val_map_05.append(stats[1])
@@ -443,17 +454,18 @@ def main(args):
         )
 
         # WandB logging.
-        wandb_log(
-            train_loss_hist.value,
-            batch_loss_list,
-            loss_cls_list,
-            loss_box_reg_list,
-            loss_objectness_list,
-            loss_rpn_list,
-            stats[1],
-            stats[0], 
-            val_pred_image
-        )
+        if not args['disable_wandb']:
+            wandb_log(
+                train_loss_hist.value,
+                batch_loss_list,
+                loss_cls_list,
+                loss_box_reg_list,
+                loss_objectness_list,
+                loss_rpn_list,
+                stats[1],
+                stats[0],
+                val_pred_image
+            )
 
         # Save the current epoch model state. This can be used 
         # to resume training. It saves model state dict, number of
@@ -484,8 +496,11 @@ def main(args):
         )
     
     # Save models to Weights&Biases.
-    wandb_save_model(OUT_DIR)
+    if not args['disable_wandb']:
+        wandb_save_model(OUT_DIR)
+
 
 if __name__ == '__main__':
     args = parse_opt()
     main(args)
+

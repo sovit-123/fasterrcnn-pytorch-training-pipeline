@@ -157,7 +157,8 @@ def convert_to_coco_api(ds):
         img_dict["width"] = img.shape[-1]
         dataset["images"].append(img_dict)
         bboxes = targets["boxes"]
-        bboxes[:, 2:] -= bboxes[:, :2]
+        if len(bboxes) > 0:
+            bboxes[:, 2:] -= bboxes[:, :2]
         bboxes = bboxes.tolist()
         labels = targets["labels"].tolist()
         areas = targets["area"].tolist()
@@ -201,7 +202,6 @@ def get_coco_api_from_dataset(dataset):
     if isinstance(dataset, torchvision.datasets.CocoDetection):
         return dataset.coco
     return convert_to_coco_api(dataset)
-
 
 class CocoDetection(torchvision.datasets.CocoDetection):
     def __init__(self, img_folder, ann_file, transforms):
