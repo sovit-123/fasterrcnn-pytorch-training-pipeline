@@ -157,22 +157,6 @@ def parse_opt():
     )
 
     parser.add_argument(
-        '--cache-size',
-        default=0,
-        type=int,
-        dest='cache_size',
-        help='number of cached images'
-    )
-
-    parser.add_argument(
-        '--prefetch-size',
-        default=2,
-        type=int,
-        dest='prefetch_size',
-        help='number of prefetched images'
-    )
-
-    parser.add_argument(
         '-dw', '--disable-wandb',
         dest="disable_wandb",
         action='store_true',
@@ -209,8 +193,6 @@ def main(args):
     VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
     OUT_DIR = set_training_dir(args['project_name'])
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
-    PREFETCH_SIZE = args['prefetch_size']
-    CACHE_SIZE = args['cache_size']
     # Set logging file.
     set_log(OUT_DIR)
     writer = set_summary_writer(OUT_DIR)
@@ -226,12 +208,10 @@ def main(args):
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
         use_train_aug=args['use_train_aug'],
         mosaic=args['no_mosaic'],
-        cache_size=CACHE_SIZE # added
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
-        cache_size=CACHE_SIZE # added
     )
     print('Creating data loaders')
     if args['distributed']:
@@ -248,10 +228,10 @@ def main(args):
     # train_batch_sampler = BatchSampler(train_sampler, BATCH_SIZE, drop_last=False)
     # valid_batch_sampler = BatchSampler(valid_sampler, BATCH_SIZE, drop_last=False)
     train_loader = create_train_loader(
-        train_dataset, BATCH_SIZE, NUM_WORKERS, prefetch_factor=PREFETCH_SIZE, batch_sampler=train_sampler
+        train_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=train_sampler
     )
     valid_loader = create_valid_loader(
-        valid_dataset, BATCH_SIZE, NUM_WORKERS, prefetch_factor=PREFETCH_SIZE, batch_sampler=valid_sampler
+        valid_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=valid_sampler
     )
     print(f"Number of training samples: {len(train_dataset)}")
     print(f"Number of validation samples: {len(valid_dataset)}\n")

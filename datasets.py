@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 import torch
 import cv2
 import numpy as np
@@ -23,7 +21,7 @@ class CustomDataset(Dataset):
         self, images_path, labels_path, 
         width, height, classes, transforms=None, 
         use_train_aug=False,
-        train=False, mosaic=False, cache_size=100
+        train=False, mosaic=False
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -34,7 +32,6 @@ class CustomDataset(Dataset):
         self.classes = classes
         self.train = train
         self.mosaic = mosaic
-        self.cache_size = cache_size
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
@@ -46,18 +43,6 @@ class CustomDataset(Dataset):
         self.all_images = sorted(self.all_images)
         # Remove all annotations and images when no object is present.
         self.read_and_clean()
-
-        # these cannot be pickled, thus I added set and get state methods to handle them
-        self.load_image_and_labels = lru_cache(maxsize=self.cache_size)(self._load_image_and_labels)
-
-    def __getstate__(self):
-        result = copy(self.__dict__)
-        result["load_image_and_labels"] = None
-        return result
-
-    def __setstate__(self, state):
-        self.__dict__ = state
-        self.load_image_and_labels = lru_cache(maxsize=self.cache_size)(self._load_image_and_labels)
 
     def read_and_clean(self):
         # Discard any images and labels when the XML 
@@ -102,7 +87,7 @@ class CustomDataset(Dataset):
         #         print(f"Removing {image_name} image")
         #         self.all_image_paths.remove(image_path)
 
-    def _load_image_and_labels(self, index):
+    def load_image_and_labels(self, index):
         image_name = self.all_images[index]
         image_path = os.path.join(self.images_path, image_name)
 
@@ -110,8 +95,7 @@ class CustomDataset(Dataset):
         image = cv2.imread(image_path)
         # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image_resized0 = cv2.resize(image, (self.width, self.height))
-        image_resized = copy(image_resized0)/255.0
+        image_resized = copy(image)/255.0
         
         # Capture the corresponding XML file for getting the annotations.
         annot_filename = os.path.splitext(image_name)[0] + '.xml'
@@ -168,7 +152,7 @@ class CustomDataset(Dataset):
         iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
         # Labels to tensor.
         labels = torch.as_tensor(labels, dtype=torch.int64)
-        return image_resized0, image_resized, orig_boxes, \
+        return image, image_resized, orig_boxes, \
             boxes, labels, area, iscrowd, (image_width, image_height)
 
     def check_image_and_annotation(self, xmax, ymax, width, height):
@@ -320,7 +304,6 @@ def create_train_dataset(
     resize_width, resize_height, classes,
     use_train_aug=False,
     mosaic=True,
-    cache_size=0
 ):
     train_dataset = CustomDataset(
         train_dir_images, train_dir_labels,
@@ -328,24 +311,22 @@ def create_train_dataset(
         get_train_transform(),
         use_train_aug=use_train_aug,
         train=True, mosaic=mosaic,
-        cache_size=cache_size
     )
     return train_dataset
 def create_valid_dataset(
     valid_dir_images, valid_dir_labels, 
-    resize_width, resize_height, classes, cache_size=0
+    resize_width, resize_height, classes
 ):
     valid_dataset = CustomDataset(
         valid_dir_images, valid_dir_labels, 
         resize_width, resize_height, classes, 
         get_valid_transform(),
         train=False,
-        cache_size=cache_size
     )
     return valid_dataset
 
 def create_train_loader(
-    train_dataset, batch_size, num_workers=0, batch_sampler=None, prefetch_factor=2
+    train_dataset, batch_size, num_workers=0, batch_sampler=None
 ):
     train_loader = DataLoader(
         train_dataset,
@@ -354,13 +335,11 @@ def create_train_loader(
         num_workers=num_workers,
         collate_fn=collate_fn,
         sampler=batch_sampler,
-        persistent_workers=True,
-        prefetch_factor=prefetch_factor,
-        #pin_memory=True
     )
     return train_loader
+
 def create_valid_loader(
-    valid_dataset, batch_size, num_workers=0, batch_sampler=None, prefetch_factor=2
+    valid_dataset, batch_size, num_workers=0, batch_sampler=None
 ):
     valid_loader = DataLoader(
         valid_dataset,
@@ -369,8 +348,5 @@ def create_valid_loader(
         num_workers=num_workers,
         collate_fn=collate_fn,
         sampler=batch_sampler,
-        persistent_workers=True,
-        prefetch_factor=prefetch_factor,
-        #pin_memory=True,
     )
     return valid_loader
