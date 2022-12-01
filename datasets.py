@@ -95,7 +95,8 @@ class CustomDataset(Dataset):
         image = cv2.imread(image_path)
         # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image_resized = copy(image)/255.0
+        image_resized = cv2.resize(image, (self.width, self.height))
+        image_resized /= 255.0
         
         # Capture the corresponding XML file for getting the annotations.
         annot_filename = os.path.splitext(image_name)[0] + '.xml'
