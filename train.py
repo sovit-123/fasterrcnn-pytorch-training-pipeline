@@ -186,10 +186,10 @@ def main(args):
         data_configs = yaml.safe_load(file)
     
     # Settings/parameters/constants.
-    TRAIN_DIR_IMAGES = data_configs['TRAIN_DIR_IMAGES']
-    TRAIN_DIR_LABELS = data_configs['TRAIN_DIR_LABELS']
-    VALID_DIR_IMAGES = data_configs['VALID_DIR_IMAGES']
-    VALID_DIR_LABELS = data_configs['VALID_DIR_LABELS']
+    TRAIN_DIR_IMAGES = os.path.normpath(data_configs['TRAIN_DIR_IMAGES'])
+    TRAIN_DIR_LABELS = os.path.normpath(data_configs['TRAIN_DIR_LABELS'])
+    VALID_DIR_IMAGES = os.path.normpath(data_configs['VALID_DIR_IMAGES'])
+    VALID_DIR_LABELS = os.path.normpath(data_configs['VALID_DIR_LABELS'])
     CLASSES = data_configs['CLASSES']
     NUM_CLASSES = data_configs['NC']
     NUM_WORKERS = args['workers']
