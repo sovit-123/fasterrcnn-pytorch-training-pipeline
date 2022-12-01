@@ -48,19 +48,16 @@ class CustomDataset(Dataset):
         self.read_and_clean()
 
         # these cannot be pickled, thus I added set and get state methods to handle them
-        self._load_and_transform = lru_cache(maxsize=self.cache_size)(self.__load_and_transform)
-        self._initial_load_settings = lru_cache(maxsize=self.cache_size)(self.__initial_load_settings)
+        self.load_image_and_labels = lru_cache(maxsize=self.cache_size)(self._load_image_and_labels)
 
     def __getstate__(self):
         result = copy(self.__dict__)
-        result["_load_and_transform"] = None
-        result["_initial_load_settings"] = None
+        result["load_image_and_labels"] = None
         return result
 
     def __setstate__(self, state):
         self.__dict__ = state
-        self._load_and_transform = lru_cache(maxsize=self.cache_size)(self.__load_and_transform)
-        self._initial_load_settings = lru_cache(maxsize=self.cache_size)(self.__initial_load_settings)
+        self.load_image_and_labels = lru_cache(maxsize=self.cache_size)(self._load_image_and_labels)
 
     def read_and_clean(self):
         # Discard any images and labels when the XML 
@@ -105,7 +102,7 @@ class CustomDataset(Dataset):
         #         print(f"Removing {image_name} image")
         #         self.all_image_paths.remove(image_path)
 
-    def load_image_and_labels(self, index):
+    def _load_image_and_labels(self, index):
         image_name = self.all_images[index]
         image_path = os.path.join(self.images_path, image_name)
 
@@ -113,8 +110,8 @@ class CustomDataset(Dataset):
         image = cv2.imread(image_path)
         # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image_resized = cv2.resize(image, (self.width, self.height))
-        image_resized /= 255.0
+        image_resized0 = cv2.resize(image, (self.width, self.height))
+        image_resized = copy(image_resized0)/255.0
         
         # Capture the corresponding XML file for getting the annotations.
         annot_filename = os.path.splitext(image_name)[0] + '.xml'
@@ -171,7 +168,7 @@ class CustomDataset(Dataset):
         iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
         # Labels to tensor.
         labels = torch.as_tensor(labels, dtype=torch.int64)
-        return image, image_resized, orig_boxes, \
+        return image_resized0, image_resized, orig_boxes, \
             boxes, labels, area, iscrowd, (image_width, image_height)
 
     def check_image_and_annotation(self, xmax, ymax, width, height):
@@ -190,16 +187,57 @@ class CustomDataset(Dataset):
         """ 
         Adapted from: https://www.kaggle.com/shonenkov/oof-evaluation-mixup-efficientdet
         """
-        result_boxes = []
-        result_classes = []
+        image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
+        #orig_image = image.copy()
+        # Resize the image according to the `confg.py` resize.
+        image = cv2.resize(image, resize_factor)
+        h, w, c = image.shape
+        s = h // 2
+
+        xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
         indexes = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
 
+        # Create empty image with the above resized image.
+        result_image = np.full((h, w, 3), 1, dtype=np.float32)
+        result_boxes = []
+        result_classes = []
+
         for i, index in enumerate(indexes):
-            area, dims, iscrowd, labels, result_image, s, result_boxes0 = self._load_and_transform(i, index, resize_factor,)
+            image, image_resized, orig_boxes, boxes, \
+            labels, area, iscrowd, dims = self.load_image_and_labels(
+                index=index
+            )
 
-            result_boxes += result_boxes0
-            result_classes += labels
+            # Resize the current image according to the above resize,
+            # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
+            # will give error when image sizes are different.
 
+            image = cv2.resize(image, resize_factor)
+
+            if i == 0:
+                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
+            elif i == 1:  # top right
+                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
+                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+            elif i == 2:  # bottom left
+                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, max(xc, w), min(y2a - y1a, h)
+            elif i == 3:  # bottom right
+                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+            result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
+            padw = x1a - x1b
+            padh = y1a - y1b
+
+            if len(orig_boxes) > 0:
+                boxes[:, 0] += padw
+                boxes[:, 1] += padh
+                boxes[:, 2] += padw
+                boxes[:, 3] += padh
+
+                result_boxes.append(boxes)
+                result_classes += labels
 
         final_classes = []
         if len(result_boxes) > 0:
@@ -207,60 +245,13 @@ class CustomDataset(Dataset):
             np.clip(result_boxes[:, 0:], 0, 2 * s, out=result_boxes[:, 0:])
             result_boxes = result_boxes.astype(np.int32)
             for idx in range(len(result_boxes)):
-                if ((result_boxes[idx,2]-result_boxes[idx,0])*(result_boxes[idx,3]-result_boxes[idx,1])) > 0:
+                if ((result_boxes[idx, 2] - result_boxes[idx, 0]) * (result_boxes[idx, 3] - result_boxes[idx, 1])) > 0:
                     final_classes.append(result_classes[idx])
             result_boxes = result_boxes[
-                np.where((result_boxes[:,2]-result_boxes[:,0])*(result_boxes[:,3]-result_boxes[:,1]) > 0)
+                np.where((result_boxes[:, 2] - result_boxes[:, 0]) * (result_boxes[:, 3] - result_boxes[:, 1]) > 0)
             ]
         return result_image/255., torch.tensor(result_boxes), \
             torch.tensor(np.array(final_classes)), area, iscrowd, dims
-
-    def __load_and_transform(self, i, index, resize_factor):
-        result_boxes = []
-        h, result_image, s, w, xc, yc = self._initial_load_settings(index, resize_factor)
-        image, image_resized, orig_boxes, boxes, \
-        labels, area, iscrowd, dims = self.load_image_and_labels(
-            index=index
-        )
-        # Resize the current image according to the above resize,
-        # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
-        # will give error when image sizes are different.
-        image = cv2.resize(image, resize_factor)
-        if i == 0:
-            x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
-            x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
-        elif i == 1:  # top right
-            x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
-            x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
-        elif i == 2:  # bottom left
-            x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
-            x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, max(xc, w), min(y2a - y1a, h)
-        elif i == 3:  # bottom right
-            x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
-            x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
-        result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
-        padw = x1a - x1b
-        padh = y1a - y1b
-        if len(orig_boxes) > 0:
-            boxes[:, 0] += padw
-            boxes[:, 1] += padh
-            boxes[:, 2] += padw
-            boxes[:, 3] += padh
-
-            result_boxes.append(boxes)
-        return area, dims, iscrowd, labels, result_image, s, result_boxes
-
-    def __initial_load_settings(self, index, resize_factor):
-        image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
-        orig_image = image.copy()
-        # Resize the image according to the `confg.py` resize.
-        image = cv2.resize(image, resize_factor)
-        h, w, c = image.shape
-        s = h // 2
-        xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
-        # Create empty image with the above resized image.
-        result_image = np.full((h, w, 3), 1, dtype=np.float32)
-        return h, result_image, s, w, xc, yc
 
     def __getitem__(self, idx):
         # Capture the image name and the full image path.
@@ -271,13 +262,14 @@ class CustomDataset(Dataset):
             )
 
         if self.train and self.mosaic:
-            while True:
-                image_resized, boxes, labels, \
-                    area, iscrowd, dims = self.load_cutmix_image_and_boxes(
-                    idx, resize_factor=(self.height, self.width)
-                )
-                if len(boxes) > 0:
-                    break
+            #while True:
+            image_resized, boxes, labels, \
+                area, iscrowd, dims = self.load_cutmix_image_and_boxes(
+                idx, resize_factor=(self.height, self.width)
+            )
+                # Only needed if we don't allow training without target bounding boxes
+               # if len(boxes) > 0:
+               #     break
         
         # visualize_mosaic_images(boxes, labels, image_resized, self.classes)
 
@@ -289,20 +281,26 @@ class CustomDataset(Dataset):
         target["iscrowd"] = iscrowd
         image_id = torch.tensor([idx])
         target["image_id"] = image_id
+
+
         if self.use_train_aug: # Use train augmentation if argument is passed.
             train_aug = get_train_aug()
             sample = train_aug(image=image_resized,
                                      bboxes=target['boxes'],
                                      labels=labels)
             image_resized = sample['image']
-            target['boxes'] = torch.Tensor(sample['bboxes'])
+            target['boxes'] = torch.Tensor(sample['bboxes']).to(torch.int64)
         else:
             sample = self.transforms(image=image_resized,
                                      bboxes=target['boxes'],
                                      labels=labels)
             image_resized = sample['image']
-            target['boxes'] = torch.Tensor(sample['bboxes'])
-        
+            target['boxes'] = torch.Tensor(sample['bboxes']).to(torch.int64)
+
+        # Fix to enable training without target bounding boxes,
+        # see https://discuss.pytorch.org/t/fasterrcnn-images-with-no-objects-present-cause-an-error/117974/4
+        if np.isnan((target['boxes']).numpy()).any() or target['boxes'].shape == torch.Size([0]):
+            target['boxes'] = torch.zeros((0, 4), dtype=torch.int64)
             
         return image_resized, target
 
