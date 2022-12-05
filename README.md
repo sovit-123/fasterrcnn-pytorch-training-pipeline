@@ -173,7 +173,7 @@ python train.py --config <path to the data config YAML file> --epochs 100 --mode
 **In this case, the exact command would be:**
 
 ```
-python train.py --config data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50 --project-name smoke_training --batch-size 16
+python train.py --config data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --project-name smoke_training --batch-size 16
 ```
 
 **The terimal output should be similar to the following:**
