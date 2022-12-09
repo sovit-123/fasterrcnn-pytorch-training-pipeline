@@ -55,6 +55,11 @@ if __name__ == '__main__':
         default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
         help='computation/training device, default is GPU if GPU present'
     )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='show class-wise mAP'
+    )
     args = vars(parser.parse_args())
 
     # Load the data configurations
@@ -153,7 +158,7 @@ if __name__ == '__main__':
         # gather the stats from all processes
         metric_logger.synchronize_between_processes()
         torch.set_num_threads(n_threads)
-        metric = MeanAveragePrecision(class_metrics=True)
+        metric = MeanAveragePrecision(class_metrics=args['verbose'])
         metric.update(preds, target)
         metric_summary = metric.compute()
         return metric_summary
@@ -167,27 +172,28 @@ if __name__ == '__main__':
 
     print('\n')
     pprint(stats)
-    print('\n')
-    pprint(f"Classes: {CLASSES}")
-    print('\n')
-    print('AP per class')
-    empty_string = ''
-    if len(CLASSES) > 2: 
-        print(len(stats['map_per_class']))
-        num_hyphens = 51
-        print('-'*num_hyphens)
-        print(f"|     Class{empty_string:<16} | AP{empty_string:<18}|")
-        print('-'*num_hyphens)
-        class_counter = 0
-        for i in range(0, len(CLASSES)-1, 1):
-            class_counter += 1
-            print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
-        print('-'*num_hyphens)
-        print(f"|mAP{empty_string:<23} | {np.array(stats['map']):.3f}{empty_string:<15}|")
-    else:
-        print('-'*40)
-        print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
-        print('-'*40)
-        print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}|")
-        print('-'*40)
-        print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")
+    if args['verbose']:
+        print('\n')
+        pprint(f"Classes: {CLASSES}")
+        print('\n')
+        print('AP per class')
+        empty_string = ''
+        if len(CLASSES) > 2: 
+            print(len(stats['map_per_class']))
+            num_hyphens = 51
+            print('-'*num_hyphens)
+            print(f"|     Class{empty_string:<16} | AP{empty_string:<18}|")
+            print('-'*num_hyphens)
+            class_counter = 0
+            for i in range(0, len(CLASSES)-1, 1):
+                class_counter += 1
+                print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
+            print('-'*num_hyphens)
+            print(f"|mAP{empty_string:<23} | {np.array(stats['map']):.3f}{empty_string:<15}|")
+        else:
+            print('-'*40)
+            print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
+            print('-'*40)
+            print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}|")
+            print('-'*40)
+            print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")
