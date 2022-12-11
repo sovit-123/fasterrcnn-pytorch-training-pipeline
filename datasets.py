@@ -21,7 +21,7 @@ class CustomDataset(Dataset):
         self, images_path, labels_path, 
         width, height, classes, transforms=None, 
         use_train_aug=False,
-        train=False, mosaic=False
+        train=False, no_mosaic=False
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -31,7 +31,7 @@ class CustomDataset(Dataset):
         self.width = width
         self.classes = classes
         self.train = train
-        self.mosaic = mosaic
+        self.no_mosaic = no_mosaic
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
@@ -240,13 +240,13 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         # Capture the image name and the full image path.
-        if not self.mosaic:
+        if self.no_mosaic:
             image, image_resized, orig_boxes, boxes, \
                 labels, area, iscrowd, dims = self.load_image_and_labels(
                 index=idx
             )
 
-        if self.train and self.mosaic:
+        if self.train and not self.no_mosaic:
             #while True:
             image_resized, boxes, labels, \
                 area, iscrowd, dims = self.load_cutmix_image_and_boxes(
@@ -304,14 +304,14 @@ def create_train_dataset(
     train_dir_images, train_dir_labels, 
     resize_width, resize_height, classes,
     use_train_aug=False,
-    mosaic=True
+    no_mosaic=False
 ):
     train_dataset = CustomDataset(
         train_dir_images, train_dir_labels,
         resize_width, resize_height, classes, 
         get_train_transform(),
         use_train_aug=use_train_aug,
-        train=True, mosaic=mosaic
+        train=True, no_mosaic=no_mosaic
     )
     return train_dataset
 def create_valid_dataset(

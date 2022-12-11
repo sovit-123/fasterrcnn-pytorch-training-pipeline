@@ -10,7 +10,6 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default) and added training augmentations:
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
 """
-import datasets
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
 )
@@ -112,7 +111,7 @@ def parse_opt():
     parser.add_argument(
         '-nm', '--no-mosaic', 
         dest='no_mosaic', 
-        action='store_false',
+        action='store_true',
         help='pass this to not to use mosaic augmentation'
     )
     parser.add_argument(
@@ -207,7 +206,7 @@ def main(args):
         TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
         IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
         use_train_aug=args['use_train_aug'],
-        mosaic=args['no_mosaic'],
+        no_mosaic=args['no_mosaic'],
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, VALID_DIR_LABELS, 
