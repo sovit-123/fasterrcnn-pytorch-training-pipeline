@@ -322,7 +322,7 @@ def create_valid_dataset(
         valid_dir_images, valid_dir_labels, 
         resize_width, resize_height, classes, 
         get_valid_transform(),
-        train=False,
+        train=False, no_mosaic=True
     )
     return valid_dataset
 
