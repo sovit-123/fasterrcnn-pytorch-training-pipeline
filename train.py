@@ -26,7 +26,7 @@ from utils.general import (
     save_model, save_loss_plot,
     show_tranformed_image,
     save_mAP, save_model_state, SaveBestModel,
-    yaml_save
+    yaml_save, init_seeds
 )
 from utils.logging import (
     log, set_log, coco_log,
@@ -47,6 +47,8 @@ import torchinfo
 import os
 
 torch.multiprocessing.set_sharing_strategy('file_system')
+
+RANK = int(os.getenv('RANK', -1))
 
 # For same annotation colors each time.
 np.random.seed(42)
@@ -161,6 +163,12 @@ def parse_opt():
         action='store_true',
         help='whether to use the wandb'
     )
+    parser.add_argument(
+        '--seed',
+        default=0,
+        type=int ,
+        help='golabl seed for training'
+    )
 
     args = vars(parser.parse_args())
     return args
@@ -175,6 +183,8 @@ def main(args):
     # Load the data configurations
     with open(args['config']) as file:
         data_configs = yaml.safe_load(file)
+
+    init_seeds(args['seed'] + 1 + RANK, deterministic=True)
     
     # Settings/parameters/constants.
     TRAIN_DIR_IMAGES = os.path.normpath(data_configs['TRAIN_DIR_IMAGES'])
