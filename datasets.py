@@ -87,6 +87,16 @@ class CustomDataset(Dataset):
         #         print(f"Removing {image_name} image")
         #         self.all_image_paths.remove(image_path)
 
+    def resize(self, im, square=False):
+        if square:
+            im = cv2.resize(im, (self.width, self.height))
+        else:
+            h0, w0 = im.shape[:2]  # orig hw
+            r = self.width / max(h0, w0)  # ratio
+            if r != 1:  # if sizes are not equal
+                im = cv2.resize(im, (int(w0 * r), int(h0 * r)))
+        return im
+
     def load_image_and_labels(self, index):
         image_name = self.all_images[index]
         image_path = os.path.join(self.images_path, image_name)
@@ -95,7 +105,8 @@ class CustomDataset(Dataset):
         image = cv2.imread(image_path)
         # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image_resized = cv2.resize(image, (self.width, self.height))
+        image_resized = self.resize(image)
+        # print(image_resized.shape)
         image_resized /= 255.0
         
         # Capture the corresponding XML file for getting the annotations.
@@ -135,10 +146,10 @@ class CustomDataset(Dataset):
             
             # Resize the bounding boxes according to the
             # desired `width`, `height`.
-            xmin_final = (xmin/image_width)*self.width
-            xmax_final = (xmax/image_width)*self.width
-            ymin_final = (ymin/image_height)*self.height
-            ymax_final = (ymax/image_height)*self.height
+            xmin_final = (xmin/image_width)*image_resized.shape[1]
+            xmax_final = (xmax/image_width)*image_resized.shape[1]
+            ymin_final = (ymin/image_height)*image_resized.shape[0]
+            ymax_final = (ymax/image_height)*image_resized.shape[0]
             
             boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
         
