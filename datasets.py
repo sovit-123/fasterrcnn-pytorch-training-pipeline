@@ -40,6 +40,7 @@ class CustomDataset(Dataset):
         self.train = train
         self.no_mosaic = no_mosaic
         self.square_training = square_training
+        self.mosaic_border = [-width // 2, -width // 2]
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
@@ -114,7 +115,6 @@ class CustomDataset(Dataset):
         # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
         image_resized = self.resize(image, square=self.square_training)
-        # print(image_resized.shape)
         image_resized /= 255.0
         
         # Capture the corresponding XML file for getting the annotations.
@@ -191,34 +191,39 @@ class CustomDataset(Dataset):
         """ 
         Adapted from: https://www.kaggle.com/shonenkov/oof-evaluation-mixup-efficientdet
         """
-        image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
+        # image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
         #orig_image = image.copy()
         # Resize the image according to the `confg.py` resize.
-        image = cv2.resize(image, resize_factor)
-        h, w, c = image.shape
-        s = h // 2
+        # image = cv2.resize(image, resize_factor)
+        # h, w, c = image.shape
+        s = self.width
 
-        xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
-        indexes = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
+        # xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
+        yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.mosaic_border)  # mosaic center x, y
+        indices = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
 
         # Create empty image with the above resized image.
-        result_image = np.full((h, w, 3), 1, dtype=np.float32)
+        # result_image = np.full((h, w, 3), 1, dtype=np.float32)
         result_boxes = []
         result_classes = []
 
-        for i, index in enumerate(indexes):
-            image, image_resized, orig_boxes, boxes, \
+        for i, index in enumerate(indices):
+            _, image_resized, orig_boxes, boxes, \
             labels, area, iscrowd, dims = self.load_image_and_labels(
                 index=index
             )
+
+            h, w = image_resized.shape[:2]
 
             # Resize the current image according to the above resize,
             # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
             # will give error when image sizes are different.
 
-            image = cv2.resize(image, resize_factor)
+            # image = cv2.resize(image, resize_factor)
 
             if i == 0:
+                # Create empty image with the above resized image.
+                result_image = np.full((s * 2, s * 2, image_resized.shape[2]), 114, dtype=np.float32)  # base image with 4 tiles
                 x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
                 x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
             elif i == 1:  # top right
@@ -230,7 +235,7 @@ class CustomDataset(Dataset):
             elif i == 3:  # bottom right
                 x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
                 x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
-            result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]
+            result_image[y1a:y2a, x1a:x2a] = image_resized[y1b:y2b, x1b:x2b]
             padw = x1a - x1b
             padh = y1a - y1b
 
