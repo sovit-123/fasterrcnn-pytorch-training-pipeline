@@ -145,6 +145,15 @@ def parse_opt():
             and also loads the otpimizer state dictionary'
     )
     parser.add_argument(
+        '-st', '--square-training',
+        dest='square_training',
+        action='store_true',
+        help='Resize images to square shape instead of aspect ratio resizing \
+              for single image training. For mosaic training, this resizes \
+              single images to square shape first then puts them on a \
+              square canvas.'
+    )
+    parser.add_argument(
         '--world-size', 
         default=1, 
         type=int, 
@@ -213,14 +222,22 @@ def main(args):
     IMAGE_HEIGHT = args['img_size']
     
     train_dataset = create_train_dataset(
-        TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+        TRAIN_DIR_IMAGES, 
+        TRAIN_DIR_LABELS,
+        IMAGE_WIDTH, 
+        IMAGE_HEIGHT, 
+        CLASSES,
         use_train_aug=args['use_train_aug'],
         no_mosaic=args['no_mosaic'],
+        square_training=args['square_training']
     )
     valid_dataset = create_valid_dataset(
-        VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+        VALID_DIR_IMAGES, 
+        VALID_DIR_LABELS, 
+        IMAGE_WIDTH, 
+        IMAGE_HEIGHT, 
+        CLASSES,
+        square_training=args['square_training']
     )
     print('Creating data loaders')
     if args['distributed']:

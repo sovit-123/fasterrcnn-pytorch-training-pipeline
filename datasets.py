@@ -18,10 +18,17 @@ from utils.transforms import (
 # the dataset class
 class CustomDataset(Dataset):
     def __init__(
-        self, images_path, labels_path, 
-        width, height, classes, transforms=None, 
+        self, 
+        images_path, 
+        labels_path, 
+        width, 
+        height, 
+        classes, 
+        transforms=None, 
         use_train_aug=False,
-        train=False, no_mosaic=False
+        train=False, 
+        no_mosaic=False,
+        square_training=False
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -32,6 +39,7 @@ class CustomDataset(Dataset):
         self.classes = classes
         self.train = train
         self.no_mosaic = no_mosaic
+        self.square_training = square_training
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
@@ -105,7 +113,7 @@ class CustomDataset(Dataset):
         image = cv2.imread(image_path)
         # Convert BGR to RGB color format.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB).astype(np.float32)
-        image_resized = self.resize(image)
+        image_resized = self.resize(image, square=self.square_training)
         # print(image_resized.shape)
         image_resized /= 255.0
         
@@ -312,28 +320,46 @@ def collate_fn(batch):
 
 # Prepare the final datasets and data loaders.
 def create_train_dataset(
-    train_dir_images, train_dir_labels, 
-    resize_width, resize_height, classes,
+    train_dir_images, 
+    train_dir_labels, 
+    resize_width, 
+    resize_height, 
+    classes,
     use_train_aug=False,
-    no_mosaic=False
+    no_mosaic=False,
+    square_training=False
 ):
     train_dataset = CustomDataset(
-        train_dir_images, train_dir_labels,
-        resize_width, resize_height, classes, 
+        train_dir_images, 
+        train_dir_labels,
+        resize_width, 
+        resize_height, 
+        classes, 
         get_train_transform(),
         use_train_aug=use_train_aug,
-        train=True, no_mosaic=no_mosaic
+        train=True, 
+        no_mosaic=no_mosaic,
+        square_training=square_training
     )
     return train_dataset
 def create_valid_dataset(
-    valid_dir_images, valid_dir_labels, 
-    resize_width, resize_height, classes
+    valid_dir_images, 
+    valid_dir_labels, 
+    resize_width, 
+    resize_height, 
+    classes,
+    square_training=False
 ):
     valid_dataset = CustomDataset(
-        valid_dir_images, valid_dir_labels, 
-        resize_width, resize_height, classes, 
+        valid_dir_images, 
+        valid_dir_labels, 
+        resize_width, 
+        resize_height, 
+        classes, 
         get_valid_transform(),
-        train=False, no_mosaic=True
+        train=False, 
+        no_mosaic=True,
+        square_training=square_training
     )
     return valid_dataset
 
