@@ -259,7 +259,7 @@ class CustomDataset(Dataset):
             result_boxes = result_boxes[
                 np.where((result_boxes[:, 2] - result_boxes[:, 0]) * (result_boxes[:, 3] - result_boxes[:, 1]) > 0)
             ]
-        return result_image/255., torch.tensor(result_boxes), \
+        return result_image, torch.tensor(result_boxes), \
             torch.tensor(np.array(final_classes)), area, iscrowd, dims
 
     def __getitem__(self, idx):
