@@ -21,8 +21,7 @@ class CustomDataset(Dataset):
         self, 
         images_path, 
         labels_path, 
-        width, 
-        height, 
+        img_size, 
         classes, 
         transforms=None, 
         use_train_aug=False,
@@ -34,13 +33,12 @@ class CustomDataset(Dataset):
         self.use_train_aug = use_train_aug
         self.images_path = images_path
         self.labels_path = labels_path
-        self.height = height
-        self.width = width
+        self.img_size = img_size
         self.classes = classes
         self.train = train
         self.no_mosaic = no_mosaic
         self.square_training = square_training
-        self.mosaic_border = [-width // 2, -width // 2]
+        self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         
@@ -98,10 +96,10 @@ class CustomDataset(Dataset):
 
     def resize(self, im, square=False):
         if square:
-            im = cv2.resize(im, (self.width, self.height))
+            im = cv2.resize(im, (self.img_size, self.img_size))
         else:
             h0, w0 = im.shape[:2]  # orig hw
-            r = self.width / max(h0, w0)  # ratio
+            r = self.img_size / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
                 im = cv2.resize(im, (int(w0 * r), int(h0 * r)))
         return im
@@ -196,7 +194,7 @@ class CustomDataset(Dataset):
         # Resize the image according to the `confg.py` resize.
         # image = cv2.resize(image, resize_factor)
         # h, w, c = image.shape
-        s = self.width
+        s = self.img_size
 
         # xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.mosaic_border)  # mosaic center x, y
@@ -274,7 +272,7 @@ class CustomDataset(Dataset):
             #while True:
             image_resized, boxes, labels, \
                 area, iscrowd, dims = self.load_cutmix_image_and_boxes(
-                idx, resize_factor=(self.height, self.width)
+                idx, resize_factor=(self.img_size, self.img_size)
             )
                 # Only needed if we don't allow training without target bounding boxes
                # if len(boxes) > 0:
@@ -327,8 +325,7 @@ def collate_fn(batch):
 def create_train_dataset(
     train_dir_images, 
     train_dir_labels, 
-    resize_width, 
-    resize_height, 
+    img_size, 
     classes,
     use_train_aug=False,
     no_mosaic=False,
@@ -337,8 +334,7 @@ def create_train_dataset(
     train_dataset = CustomDataset(
         train_dir_images, 
         train_dir_labels,
-        resize_width, 
-        resize_height, 
+        img_size, 
         classes, 
         get_train_transform(),
         use_train_aug=use_train_aug,
@@ -350,16 +346,14 @@ def create_train_dataset(
 def create_valid_dataset(
     valid_dir_images, 
     valid_dir_labels, 
-    resize_width, 
-    resize_height, 
+    img_size, 
     classes,
     square_training=False
 ):
     valid_dataset = CustomDataset(
         valid_dir_images, 
         valid_dir_labels, 
-        resize_width, 
-        resize_height, 
+        img_size, 
         classes, 
         get_valid_transform(),
         train=False, 

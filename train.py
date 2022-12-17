@@ -218,14 +218,12 @@ def main(args):
     yaml_save(file_path=os.path.join(OUT_DIR, 'opt.yaml'), data=args)
 
     # Model configurations
-    IMAGE_WIDTH = args['img_size']
-    IMAGE_HEIGHT = args['img_size']
+    IMAGE_SIZE = args['img_size']
     
     train_dataset = create_train_dataset(
         TRAIN_DIR_IMAGES, 
         TRAIN_DIR_LABELS,
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT, 
+        IMAGE_SIZE, 
         CLASSES,
         use_train_aug=args['use_train_aug'],
         no_mosaic=args['no_mosaic'],
@@ -234,8 +232,7 @@ def main(args):
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, 
         VALID_DIR_LABELS, 
-        IMAGE_WIDTH, 
-        IMAGE_HEIGHT, 
+        IMAGE_SIZE, 
         CLASSES,
         square_training=args['square_training']
     )
@@ -336,7 +333,7 @@ def main(args):
             model, device_ids=[args['gpu']]
         )
     torchinfo.summary(
-        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
+        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
     )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
