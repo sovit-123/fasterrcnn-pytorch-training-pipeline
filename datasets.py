@@ -9,10 +9,11 @@ from copy import copy
 from xml.etree import ElementTree as et
 from torch.utils.data import Dataset, DataLoader
 from utils.transforms import (
-    get_train_transform, get_valid_transform,
-    get_train_aug
+    get_train_transform, 
+    get_valid_transform,
+    get_train_aug,
+    transform_mosaic
 )
-
 
 
 # the dataset class
@@ -144,8 +145,8 @@ class CustomDataset(Dataset):
             # ymax = right corner y-coordinates
             ymax = int(member.find('bndbox').find('ymax').text)
 
-            ymax, xmax = self.check_image_and_annotation(
-                xmax, ymax, image_width, image_height
+            xmin, ymin, xmax, ymax = self.check_image_and_annotation(
+                xmin, ymin, xmax, ymax, image_width, image_height
             )
 
             orig_boxes.append([xmin, ymin, xmax, ymax])
@@ -173,7 +174,7 @@ class CustomDataset(Dataset):
         return image, image_resized, orig_boxes, \
             boxes, labels, area, iscrowd, (image_width, image_height)
 
-    def check_image_and_annotation(self, xmax, ymax, width, height):
+    def check_image_and_annotation(self, xmin, ymin, xmax, ymax, width, height):
         """
         Check that all x_max and y_max are not more than the image
         width or height.
@@ -182,7 +183,7 @@ class CustomDataset(Dataset):
             ymax = height
         if xmax > width:
             xmax = width
-        return ymax, xmax
+        return xmin, ymin, xmax, ymax
 
 
     def load_cutmix_image_and_boxes(self, index, resize_factor=512):
@@ -257,6 +258,10 @@ class CustomDataset(Dataset):
             result_boxes = result_boxes[
                 np.where((result_boxes[:, 2] - result_boxes[:, 0]) * (result_boxes[:, 3] - result_boxes[:, 1]) > 0)
             ]
+        # Resize the mosaic image to the desired shape and transform boxes.
+        result_image, result_boxes = transform_mosaic(
+            result_image, result_boxes, self.img_size
+        )
         return result_image, torch.tensor(result_boxes), \
             torch.tensor(np.array(final_classes)), area, iscrowd, dims
 
@@ -308,7 +313,6 @@ class CustomDataset(Dataset):
         # see https://discuss.pytorch.org/t/fasterrcnn-images-with-no-objects-present-cause-an-error/117974/4
         if np.isnan((target['boxes']).numpy()).any() or target['boxes'].shape == torch.Size([0]):
             target['boxes'] = torch.zeros((0, 4), dtype=torch.int64)
-            
         return image_resized, target
 
     def __len__(self):
