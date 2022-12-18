@@ -487,7 +487,8 @@ def main(args):
                 loss_rpn_list,
                 stats[1],
                 stats[0],
-                val_pred_image
+                val_pred_image,
+                IMAGE_SIZE
             )
 
         # Save the current epoch model state. This can be used 
