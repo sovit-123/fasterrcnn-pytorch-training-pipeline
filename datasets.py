@@ -190,14 +190,7 @@ class CustomDataset(Dataset):
         """ 
         Adapted from: https://www.kaggle.com/shonenkov/oof-evaluation-mixup-efficientdet
         """
-        # image, _, _, _, _, _, _, _ = self.load_image_and_labels(index=index)
-        #orig_image = image.copy()
-        # Resize the image according to the `confg.py` resize.
-        # image = cv2.resize(image, resize_factor)
-        # h, w, c = image.shape
         s = self.img_size
-
-        # xc, yc = [int(random.uniform(h * 0.25, w * 0.75)) for _ in range(2)]  # center x, y
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.mosaic_border)  # mosaic center x, y
         indices = [index] + [random.randint(0, len(self.all_images) - 1) for _ in range(3)]
 
@@ -213,12 +206,6 @@ class CustomDataset(Dataset):
             )
 
             h, w = image_resized.shape[:2]
-
-            # Resize the current image according to the above resize,
-            # else `result_image[y1a:y2a, x1a:x2a] = image[y1b:y2b, x1b:x2b]`
-            # will give error when image sizes are different.
-
-            # image = cv2.resize(image, resize_factor)
 
             if i == 0:
                 # Create empty image with the above resized image.
