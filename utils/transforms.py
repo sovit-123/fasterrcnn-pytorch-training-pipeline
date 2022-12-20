@@ -1,4 +1,5 @@
 import albumentations as A
+import numpy as np
 
 from albumentations.pytorch import ToTensorV2
 from torchvision import transforms as transforms
@@ -48,7 +49,7 @@ def transform_mosaic(mosaic, boxes, img_size=640):
     ])
     sample = aug(image=mosaic)
     resized_mosaic = sample['image']
-    transformed_boxes = (boxes / mosaic.shape[0]) * resized_mosaic.shape[1]
+    transformed_boxes = (np.array(boxes) / mosaic.shape[0]) * resized_mosaic.shape[1]
     for box in transformed_boxes:
         # Bind all boxes to correct values. This should work correctly most of
         # of the time. There will be edge cases thought where this code will
