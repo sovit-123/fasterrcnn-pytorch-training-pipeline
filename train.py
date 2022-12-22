@@ -145,6 +145,15 @@ def parse_opt():
             and also loads the otpimizer state dictionary'
     )
     parser.add_argument(
+        '-st', '--square-training',
+        dest='square_training',
+        action='store_true',
+        help='Resize images to square shape instead of aspect ratio resizing \
+              for single image training. For mosaic training, this resizes \
+              single images to square shape first then puts them on a \
+              square canvas.'
+    )
+    parser.add_argument(
         '--world-size', 
         default=1, 
         type=int, 
@@ -209,18 +218,23 @@ def main(args):
     yaml_save(file_path=os.path.join(OUT_DIR, 'opt.yaml'), data=args)
 
     # Model configurations
-    IMAGE_WIDTH = args['img_size']
-    IMAGE_HEIGHT = args['img_size']
+    IMAGE_SIZE = args['img_size']
     
     train_dataset = create_train_dataset(
-        TRAIN_DIR_IMAGES, TRAIN_DIR_LABELS,
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+        TRAIN_DIR_IMAGES, 
+        TRAIN_DIR_LABELS,
+        IMAGE_SIZE, 
+        CLASSES,
         use_train_aug=args['use_train_aug'],
         no_mosaic=args['no_mosaic'],
+        square_training=args['square_training']
     )
     valid_dataset = create_valid_dataset(
-        VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+        VALID_DIR_IMAGES, 
+        VALID_DIR_LABELS, 
+        IMAGE_SIZE, 
+        CLASSES,
+        square_training=args['square_training']
     )
     print('Creating data loaders')
     if args['distributed']:
@@ -319,7 +333,7 @@ def main(args):
             model, device_ids=[args['gpu']]
         )
     torchinfo.summary(
-        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_HEIGHT, IMAGE_WIDTH)
+        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
     )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
@@ -473,7 +487,8 @@ def main(args):
                 loss_rpn_list,
                 stats[1],
                 stats[0],
-                val_pred_image
+                val_pred_image,
+                IMAGE_SIZE
             )
 
         # Save the current epoch model state. This can be used 

@@ -82,7 +82,6 @@ def show_tranformed_image(train_loader, device, classes, colors):
     This function shows the transformed images from the `train_loader`.
     Helps to check whether the tranformed images along with the corresponding
     labels are correct or not.
-    
     """
     if len(train_loader) > 0:
         for i in range(2):

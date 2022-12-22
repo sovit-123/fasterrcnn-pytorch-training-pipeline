@@ -1,4 +1,5 @@
 import albumentations as A
+import numpy as np
 
 from albumentations.pytorch import ToTensorV2
 from torchvision import transforms as transforms
@@ -32,6 +33,37 @@ def get_train_transform():
         'format': 'pascal_voc',
         'label_fields': ['labels']
     })
+
+def transform_mosaic(mosaic, boxes, img_size=640):
+    """
+    Resizes the `mosaic` image to `img_size` which is the desired image size
+    for the neural network input. Also transforms the `boxes` according to the
+    `img_size`.
+
+    :param mosaic: The mosaic image, Numpy array.
+    :param boxes: Boxes Numpy.
+    :param img_resize: Desired resize.
+    """
+    aug = A.Compose(
+        [A.Resize(img_size, img_size, always_apply=True, p=1.0)
+    ])
+    sample = aug(image=mosaic)
+    resized_mosaic = sample['image']
+    transformed_boxes = (np.array(boxes) / mosaic.shape[0]) * resized_mosaic.shape[1]
+    for box in transformed_boxes:
+        # Bind all boxes to correct values. This should work correctly most of
+        # of the time. There will be edge cases thought where this code will
+        # mess things up. The best thing is to prepare the dataset as well as 
+        # as possible.
+        if box[2] - box[0] <= 1.0:
+            box[2] = box[2] + (1.0 - (box[2] - box[0]))
+            if box[2] >= float(resized_mosaic.shape[1]):
+                box[2] = float(resized_mosaic.shape[1])
+        if box[3] - box[1] <= 1.0:
+            box[3] = box[3] + (1.0 - (box[3] - box[1]))
+            if box[3] >= float(resized_mosaic.shape[0]):
+                box[3] = float(resized_mosaic.shape[0])
+    return resized_mosaic, transformed_boxes
 
 # Define the validation transforms
 def get_valid_transform():
