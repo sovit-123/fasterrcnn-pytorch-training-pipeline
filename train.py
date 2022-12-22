@@ -117,6 +117,12 @@ def parse_opt():
         help='pass this to not to use mosaic augmentation'
     )
     parser.add_argument(
+        '-dn', '--discard-negative', 
+        dest='discard_negative', 
+        action='store_true',
+        help='pass this to not to use mosaic augmentation'
+    )
+    parser.add_argument(
         '-uta', '--use-train-aug', 
         dest='use_train_aug', 
         action='store_true',
@@ -227,14 +233,16 @@ def main(args):
         CLASSES,
         use_train_aug=args['use_train_aug'],
         no_mosaic=args['no_mosaic'],
-        square_training=args['square_training']
+        square_training=args['square_training'],
+        discard_negative=args["discard_negative"]
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, 
         VALID_DIR_LABELS, 
         IMAGE_SIZE, 
         CLASSES,
-        square_training=args['square_training']
+        square_training=args['square_training'],
+        discard_negative=args["discard_negative"]
     )
     print('Creating data loaders')
     if args['distributed']:

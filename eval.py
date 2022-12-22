@@ -94,7 +94,8 @@ if __name__ == '__main__':
             COCO_91_CLASSES = data_configs['COCO_91_CLASSES']
             valid_dataset = create_valid_dataset(
                 VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-                IMAGE_WIDTH, IMAGE_HEIGHT, COCO_91_CLASSES
+                IMAGE_WIDTH, IMAGE_HEIGHT, COCO_91_CLASSES,
+                discard_negative=args["discard_negative"]
             )
 
     # Load weights.
@@ -104,7 +105,8 @@ if __name__ == '__main__':
         model.load_state_dict(checkpoint['model_state_dict'])
         valid_dataset = create_valid_dataset(
             VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-            IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
+            IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+            discard_negative=args["discard_negative"]
         )
     model.to(DEVICE).eval()
     

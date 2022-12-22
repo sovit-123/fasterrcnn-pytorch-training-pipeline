@@ -28,7 +28,8 @@ class CustomDataset(Dataset):
         use_train_aug=False,
         train=False, 
         no_mosaic=False,
-        square_training=False
+        square_training=False,
+        discard_negative_example = True
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -41,59 +42,42 @@ class CustomDataset(Dataset):
         self.square_training = square_training
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
-        self.all_image_paths = []
-        
-        # get all the image paths in sorted order
-        for file_type in self.image_file_types:
-            self.all_image_paths.extend(glob.glob(os.path.join(self.images_path, file_type)))
-        self.all_annot_paths = glob.glob(os.path.join(self.labels_path, '*.xml'))
-        self.all_images = [image_path.split(os.path.sep)[-1] for image_path in self.all_image_paths]
-        self.all_images = sorted(self.all_images)
-        # Remove all annotations and images when no object is present.
-        self.read_and_clean()
+        self.all_images = []
 
-    def read_and_clean(self):
+        self.all_annot_paths = glob.glob(os.path.join(self.labels_path, '*.xml'))
+
+        self.read_and_clean(discard_negative_example)
+        
+    def read_and_clean(self, discard_negative_example):
         # Discard any images and labels when the XML 
         # file does not contain any object.
-        for annot_path in self.all_annot_paths:
-            tree = et.parse(annot_path)
+        def check_path_and_save_image(path):
+            tree = et.parse(path)
             root = tree.getroot()
-            object_present = False
-            for member in root.findall('object'):
-                if member.find('bndbox'):
-                    object_present = True
-            if object_present == False:
-                image_name = annot_path.split(os.path.sep)[-1].split('.xml')[0]
-                image_root = self.all_image_paths[0].split(os.path.sep)[:-1]
-                # remove_image = f"{'/'.join(image_root)}/{image_name}.jpg"
+            image_name = root.findtext("filename")
+            image_path = os.path.join(self.images_path, image_name)
+            discard_path = False
+            if not os.path.exists(image_path):
+                print(f"Image {image_path} associated to {path} not found...")
+                print(f"Discarding {path}...")
+                discard_path = True
 
-                # TODO Is this code necessary?
-                # for img_type in self.image_file_types:
-                #     remove_image = os.path.join(os.sep.join(image_root), image_name+img_type.replace("*",""))
-                #     if remove_image in self.all_image_paths:
-                #         print(f"Removing {annot_path} and corresponding {remove_image}")
-                #         self.all_annot_paths.remove(annot_path)
-                #         self.all_image_paths.remove(remove_image)
-                #         break
+            if not discard_path and discard_negative_example: 
+                object_present = False
+                for member in root.findall('object'):
+                    if member.find('bndbox'):
+                        object_present = True
+                        break
+                if not object_present:
+                    print(f"File {path} contains no object. Discarding xml file and image...")
+                    discard_path = True
+            #Se non devo buttare xml allora salvo l'immagine
+            if not discard_path:
+                self.all_images.append(image_name)
+            return discard_path
 
-        # Discard any image file when no annotation file 
-        # is not found for the image. 
-        for image_name in self.all_images:
-            possible_xml_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
-            if possible_xml_name not in self.all_annot_paths:
-                print(f"{possible_xml_name} not found...")
-                print(f"Removing {image_name} image")
-                # items = [item for item in items if item != element]
-                self.all_images = [image_instance for image_instance in self.all_images if image_instance != image_name]
-                # self.all_images.remove(image_name)
-
-        # for image_path in self.all_image_paths:
-        #     image_name = image_path.split(os.path.sep)[-1].split('.jpg')[0]
-        #     possible_xml_name = f"{self.labels_path}/{image_name.split('.jpg')[0]}.xml"
-        #     if possible_xml_name not in self.all_annot_paths:
-        #         print(f"{possible_xml_name} not found...")
-        #         print(f"Removing {image_name} image")
-        #         self.all_image_paths.remove(image_path)
+        self.all_annot_paths = list(filter(check_path_and_save_image, self.all_annot_paths ))
+        
 
     def resize(self, im, square=False):
         if square:
@@ -159,7 +143,13 @@ class CustomDataset(Dataset):
             ymax_final = (ymax/image_height)*image_resized.shape[0]
             
             boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
-        
+
+        #If boxes are empty, we should tell the network using a special box
+        if len(labels) == 0:
+            labels.append(self.classes.index("__background__"))
+        if len(boxes) == 0:
+            boxes.append([0,0,1,1])
+
         # Bounding box to tensor.
         boxes_length = len(boxes)
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
@@ -320,7 +310,8 @@ def create_train_dataset(
     classes,
     use_train_aug=False,
     no_mosaic=False,
-    square_training=False
+    square_training=False,
+    discard_negative=True
 ):
     train_dataset = CustomDataset(
         train_dir_images, 
@@ -331,7 +322,8 @@ def create_train_dataset(
         use_train_aug=use_train_aug,
         train=True, 
         no_mosaic=no_mosaic,
-        square_training=square_training
+        square_training=square_training,
+        discard_negative_example=discard_negative
     )
     return train_dataset
 def create_valid_dataset(
@@ -339,7 +331,8 @@ def create_valid_dataset(
     valid_dir_labels, 
     img_size, 
     classes,
-    square_training=False
+    square_training=False,
+    discard_negative=True
 ):
     valid_dataset = CustomDataset(
         valid_dir_images, 
@@ -349,7 +342,8 @@ def create_valid_dataset(
         get_valid_transform(),
         train=False, 
         no_mosaic=True,
-        square_training=square_training
+        square_training=square_training,
+        discard_negative_example=discard_negative
     )
     return valid_dataset
 
