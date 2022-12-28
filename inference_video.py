@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from models.create_fasterrcnn_model import create_model
 from utils.general import set_infer_dir
 from utils.annotations import inference_annotations, annotate_fps
-from utils.transforms import infer_transforms
+from utils.transforms import infer_transforms, resize
 from torchvision import transforms as transforms
 
 def read_return_video_data(video_path):
@@ -142,9 +142,9 @@ def main(args):
                         cv2.VideoWriter_fourcc(*'mp4v'), 30, 
                         (frame_width, frame_height))
     if args['img_size'] != None:
-        RESIZE_TO = (args['img_size'], args['img_size'])
+        RESIZE_TO = args['img_size']
     else:
-        RESIZE_TO = (frame_width, frame_height)
+        RESIZE_TO = frame_width
 
     frame_count = 0 # To count total frames.
     total_fps = 0 # To get the final frames per second.
@@ -155,7 +155,7 @@ def main(args):
         ret, frame = cap.read()
         if ret:
             orig_frame = frame.copy()
-            frame = cv2.resize(frame, RESIZE_TO)
+            frame = resize(frame, RESIZE_TO)
             image = frame.copy()
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = infer_transforms(image)

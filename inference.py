@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from models.create_fasterrcnn_model import create_model
 from utils.annotations import inference_annotations
 from utils.general import set_infer_dir
-from utils.transforms import infer_transforms
+from utils.transforms import infer_transforms, resize
 
 def collect_all_images(dir_test):
     """
@@ -154,11 +154,11 @@ def main(args):
         orig_image = cv2.imread(test_images[i])
         frame_height, frame_width, _ = orig_image.shape
         if args['img_size'] != None:
-            RESIZE_TO = (args['img_size'], args['img_size'])
+            RESIZE_TO = args['img_size']
         else:
-            RESIZE_TO = (frame_width, frame_height)
+            RESIZE_TO = frame_width
         # orig_image = image.copy()
-        image_resized = cv2.resize(orig_image, RESIZE_TO)
+        image_resized = resize(orig_image, RESIZE_TO)
         image = image_resized.copy()
         # BGR to RGB
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
