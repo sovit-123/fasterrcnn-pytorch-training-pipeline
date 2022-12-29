@@ -13,7 +13,6 @@ import torch.nn.functional as F
 from torch import nn
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
-from models.model_summary import summary
 
 class TwoMLPHead(nn.Module):
     """
@@ -114,5 +113,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     return model
 
 if __name__ == '__main__':
+    from model_summary import summary
     model = create_model(num_classes=81, pretrained=True, coco_model=True)
     summary(model)

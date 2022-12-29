@@ -10,7 +10,6 @@ import torch.nn as nn
 
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
-from models.model_summary import summary
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     model_backbone = torchvision.models.resnet152(weights='DEFAULT')
@@ -61,5 +60,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     return model
 
 if __name__ == '__main__':
+    from model_summary import summary
     model = create_model(num_classes=81, pretrained=True, coco_model=True)
     summary(model)

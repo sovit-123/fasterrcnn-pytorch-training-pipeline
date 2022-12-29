@@ -333,7 +333,7 @@ def main(args):
             model, device_ids=[args['gpu']]
         )
     torchinfo.summary(
-        model, device=DEVICE,input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
+        model, device=DEVICE, input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
     )
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
