@@ -332,9 +332,12 @@ def main(args):
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[args['gpu']]
         )
-    torchinfo.summary(
-        model, device=DEVICE, input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
-    )
+    try:
+        torchinfo.summary(
+            model, device=DEVICE, input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
+        )
+    except:
+        print(model)
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
     print(f"{total_params:,} total parameters.")
