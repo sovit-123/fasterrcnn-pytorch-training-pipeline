@@ -5,9 +5,9 @@ from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 from vision_transformers.models import vit
 
-class Vit_B_p16_224(nn.Module):
+class Vit_B_P16_224(nn.Module):
     def __init__(self):
-        super(Vit_B_p16_224, self).__init__()
+        super(Vit_B_P16_224, self).__init__()
 
         self.backbone = vit.vit_b_p16_224(pretrained=True)
         self.layers = self.get_layers()
@@ -26,13 +26,7 @@ class Vit_B_p16_224(nn.Module):
         return x
 
 def create_model(num_classes, pretrained=True, coco_model=False):
-    backbone = Vit_B_p16_224()
-    # vit_backbone = vit.get_layers()
-
-    # backbone = nn.Sequential(
-    #     vit_backbone,
-    #     nn.Conv2d(768, 256, 3)
-    # )
+    backbone = Vit_B_P16_224()
 
     backbone.out_channels = 768
 

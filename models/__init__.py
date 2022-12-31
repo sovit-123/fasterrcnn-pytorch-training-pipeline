@@ -21,5 +21,6 @@ __all__ = [
     'fasterrcnn_squeezenet1_0',
     'fasterrcnn_squeezenet1_1_small_head',
     'fasterrcnn_squeezenet1_1',
-    'fasterrcnn_vit_b_16'
+    'fasterrcnn_vit_b_16',
+    'fasterrcnn_vit_ti_b_16'
 ]
