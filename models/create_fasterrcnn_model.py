@@ -168,10 +168,10 @@ def return_fasterrcnn_vit_b_16(
     )
     return model
 
-def return_fasterrcnn_vit_ti_b_16(
+def return_fasterrcnn_vit_ti_16(
     num_classes, pretrained=True, coco_model=False
 ):
-    model = fasterrcnn_vit_ti_b_16.create_model(
+    model = fasterrcnn_vit_ti_16.create_model(
         num_classes, pretrained=pretrained, coco_model=coco_model
     )
     return model
@@ -198,5 +198,5 @@ create_model = {
     'fasterrcnn_convnext_small': return_fasterrcnn_convnext_small, 
     'fasterrcnn_convnext_tiny': return_fasterrcnn_convnext_tiny,
     'fasterrcnn_vit_b_16': return_fasterrcnn_vit_b_16,
-    'fasterrcnn_vit_ti_b_16': return_fasterrcnn_vit_ti_b_16
+    'fasterrcnn_vit_ti_16': return_fasterrcnn_vit_ti_16
 }
