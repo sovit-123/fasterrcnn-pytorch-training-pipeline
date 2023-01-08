@@ -1,8 +1,8 @@
 """
-Faster RCNN model with the ResNet152 backbone from
+Faster RCNN model with the ResNet101 backbone from
 Torchvision classification models.
 
-Reference: https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet152.html
+Reference: https://pytorch.org/vision/stable/models/generated/torchvision.models.resnet101.html
 """
 
 import torchvision
@@ -12,7 +12,7 @@ from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
-    model_backbone = torchvision.models.resnet152(weights='DEFAULT')
+    model_backbone = torchvision.models.resnet101(weights='DEFAULT')
 
     conv1 = model_backbone.conv1
     bn1 = model_backbone.bn1
