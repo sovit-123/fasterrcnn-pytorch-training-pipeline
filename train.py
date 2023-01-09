@@ -120,7 +120,7 @@ def parse_opt():
         '-dn', '--discard-negative', 
         dest='discard_negative', 
         action='store_true',
-        help='pass this to not to use mosaic augmentation'
+        help='pass this if you want to discard images with no objects'
     )
     parser.add_argument(
         '-uta', '--use-train-aug', 
