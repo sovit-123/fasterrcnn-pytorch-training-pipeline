@@ -17,6 +17,7 @@ __all__ = [
     'fasterrcnn_resnet18',
     'fasterrcnn_resnet50_fpn_v2',
     'fasterrcnn_resnet50_fpn', 
+    'fasterrcnn_resnet101',
     'fasterrcnn_resnet152',
     'fasterrcnn_squeezenet1_0',
     'fasterrcnn_squeezenet1_1_small_head',

@@ -8,7 +8,6 @@ import torchvision
 
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
-from models.model_summary import summary
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained SqueezeNet1_1 backbone.
@@ -46,5 +45,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     return model
 
 if __name__ == '__main__':
+    from model_summary import summary
     model = create_model(81, pretrained=True)
     summary(model)

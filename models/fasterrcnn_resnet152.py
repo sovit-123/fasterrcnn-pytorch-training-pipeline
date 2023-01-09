@@ -10,7 +10,6 @@ import torch.nn as nn
 
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
-from models.model_summary import summary
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     model_backbone = torchvision.models.resnet152(weights='DEFAULT')
@@ -25,12 +24,15 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     layer4 = model_backbone.layer4
 
     backbone = nn.Sequential(
-        conv1, bn1, relu, max_pool, 
-        layer1, layer2, layer3, layer4
+        conv1, 
+        bn1, 
+        relu, 
+        max_pool, 
+        layer1, 
+        layer2, 
+        layer3, 
+        layer4
     )
-    # We need the output channels of the last convolutional layers from
-    # the features for the Faster RCNN model.
-    # It is 960 for MobileNetV3.
     backbone.out_channels = 2048
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
@@ -61,5 +63,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     return model
 
 if __name__ == '__main__':
+    from model_summary import summary
     model = create_model(num_classes=81, pretrained=True, coco_model=True)
     summary(model)

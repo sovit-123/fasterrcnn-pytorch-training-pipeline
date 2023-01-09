@@ -1,7 +1,6 @@
 import torchvision
 
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from models.model_summary import summary
 
 def create_model(num_classes, pretrained=True, coco_model=False):
     
@@ -21,5 +20,6 @@ def create_model(num_classes, pretrained=True, coco_model=False):
     return model
 
 if __name__ == '__main__':
+    from model_summary import summary
     model = create_model(num_classes=81, pretrained=True, coco_model=True)
     summary(model)

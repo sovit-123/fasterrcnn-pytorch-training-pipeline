@@ -9,7 +9,6 @@ import torchvision
 
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
-# from models.model_summary import summary
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained features.
@@ -52,12 +51,4 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
 if __name__ == '__main__':
     from model_summary import summary
     model = create_model(num_classes=81, pretrained=True, coco_model=True)
-    try:
-        summary(model)
-    except:
-        # Total parameters and trainable parameters.
-        total_params = sum(p.numel() for p in model.parameters())
-        print(f"{total_params:,} total parameters.")
-        total_trainable_params = sum(
-            p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"{total_trainable_params:,} training parameters.")
+    summary(model)

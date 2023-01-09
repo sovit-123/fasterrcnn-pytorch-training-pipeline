@@ -121,13 +121,13 @@ class CustomDataset(Dataset):
             labels.append(self.classes.index(member.find('name').text))
             
             # xmin = left corner x-coordinates
-            xmin = int(member.find('bndbox').find('xmin').text)
+            xmin = int(float(member.find('bndbox').find('xmin').text))
             # xmax = right corner x-coordinates
-            xmax = int(member.find('bndbox').find('xmax').text)
+            xmax = int(float(member.find('bndbox').find('xmax').text))
             # ymin = left corner y-coordinates
-            ymin = int(member.find('bndbox').find('ymin').text)
+            ymin = int(float(member.find('bndbox').find('ymin').text))
             # ymax = right corner y-coordinates
-            ymax = int(member.find('bndbox').find('ymax').text)
+            ymax = int(float(member.find('bndbox').find('ymax').text))
 
             xmin, ymin, xmax, ymax = self.check_image_and_annotation(
                 xmin, ymin, xmax, ymax, image_width, image_height

@@ -60,6 +60,15 @@ if __name__ == '__main__':
         action='store_true',
         help='show class-wise mAP'
     )
+    parser.add_argument(
+        '-st', '--square-training',
+        dest='square_training',
+        action='store_true',
+        help='Resize images to square shape instead of aspect ratio resizing \
+              for single image training. For mosaic training, this resizes \
+              single images to square shape first then puts them on a \
+              square canvas.'
+    )
     args = vars(parser.parse_args())
 
     # Load the data configurations
@@ -80,8 +89,7 @@ if __name__ == '__main__':
     BATCH_SIZE = args['batch_size']
 
     # Model configurations
-    IMAGE_WIDTH = args['img_size']
-    IMAGE_HEIGHT = args['img_size']
+    IMAGE_SIZE = args['img_size']
 
     # Load the pretrained model
     create_model = create_model[args['model']]
@@ -95,7 +103,13 @@ if __name__ == '__main__':
             valid_dataset = create_valid_dataset(
                 VALID_DIR_IMAGES, VALID_DIR_LABELS, 
                 IMAGE_WIDTH, IMAGE_HEIGHT, COCO_91_CLASSES,
+                VALID_DIR_IMAGES, 
+                VALID_DIR_LABELS, 
+                IMAGE_SIZE, 
+                COCO_91_CLASSES, 
+                square_training=args['square_training'],
                 discard_negative=args["discard_negative"]
+
             )
 
     # Load weights.
@@ -106,6 +120,12 @@ if __name__ == '__main__':
         valid_dataset = create_valid_dataset(
             VALID_DIR_IMAGES, VALID_DIR_LABELS, 
             IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES,
+            discard_negative=args["discard_negative"]
+            VALID_DIR_IMAGES, 
+            VALID_DIR_LABELS, 
+            IMAGE_SIZE, 
+            CLASSES,
+            square_training=args['square_training'],
             discard_negative=args["discard_negative"]
         )
     model.to(DEVICE).eval()
