@@ -50,7 +50,7 @@ class CustomDataset(Dataset):
         
     def read_and_clean(self, discard_negative_example):
         # Discard any images and labels when the XML 
-        # file does not contain any object.
+        # file does not contain any object, if negative example are not given
         def check_path_and_save_image(path):
             tree = et.parse(path)
             root = tree.getroot()
@@ -71,7 +71,7 @@ class CustomDataset(Dataset):
                 if not object_present:
                     print(f"File {path} contains no object. Discarding xml file and image...")
                     discard_path = True
-            #Se non devo buttare xml allora salvo l'immagine
+            #If i don't discard xml than save the image
             if not discard_path:
                 self.all_images.append(image_name)
             return discard_path
