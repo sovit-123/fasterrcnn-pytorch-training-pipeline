@@ -190,24 +190,24 @@ if __name__ == '__main__':
         print('\n')
         pprint(f"Classes: {CLASSES}")
         print('\n')
-        print('AP per class')
+        print('AP / AR per class')
         empty_string = ''
         if len(CLASSES) > 2: 
-            print(len(stats['map_per_class']))
-            num_hyphens = 51
+            num_hyphens = 73
             print('-'*num_hyphens)
-            print(f"|     Class{empty_string:<16} | AP{empty_string:<18}|")
+            print(f"|    | Class{empty_string:<16}| AP{empty_string:<18}| AR{empty_string:<18}|")
             print('-'*num_hyphens)
             class_counter = 0
             for i in range(0, len(CLASSES)-1, 1):
                 class_counter += 1
-                print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}|")
+                print(f"|{class_counter:<3} | {CLASSES[i+1]:<20} | {np.array(stats['map_per_class'][i]):.3f}{empty_string:<15}| {np.array(stats['mar_100_per_class'][i]):.3f}{empty_string:<15}|")
             print('-'*num_hyphens)
-            print(f"|mAP{empty_string:<23} | {np.array(stats['map']):.3f}{empty_string:<15}|")
+            print(f"|Avg{empty_string:<23} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
         else:
-            print('-'*40)
-            print(f"|Class{empty_string:<10} | AP{empty_string:<18}|")
-            print('-'*40)
-            print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}|")
-            print('-'*40)
-            print(f"|mAP{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}|")
+            num_hyphens = 62
+            print('-'*num_hyphens)
+            print(f"|Class{empty_string:<10} | AP{empty_string:<18}| AR{empty_string:<18}|")
+            print('-'*num_hyphens)
+            print(f"|{CLASSES[1]:<15} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
+            print('-'*num_hyphens)
+            print(f"|Avg{empty_string:<12} | {np.array(stats['map']):.3f}{empty_string:<15}| {np.array(stats['mar_100']):.3f}{empty_string:<15}|")
