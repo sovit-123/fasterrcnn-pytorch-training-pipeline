@@ -56,6 +56,12 @@ if __name__ == '__main__':
         help='computation/training device, default is GPU if GPU present'
     )
     parser.add_argument(
+        '-dn', '--discard-negative', 
+        dest='discard_negative', 
+        action='store_true',
+        help='pass this if you want to discard images with no objects'
+    )
+    parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='show class-wise mAP'
@@ -105,7 +111,9 @@ if __name__ == '__main__':
                 VALID_DIR_LABELS, 
                 IMAGE_SIZE, 
                 COCO_91_CLASSES, 
-                square_training=args['square_training']
+                square_training=args['square_training'],
+                discard_negative=args["discard_negative"]
+
             )
 
     # Load weights.
@@ -118,7 +126,8 @@ if __name__ == '__main__':
             VALID_DIR_LABELS, 
             IMAGE_SIZE, 
             CLASSES,
-            square_training=args['square_training']
+            square_training=args['square_training'],
+            discard_negative=args["discard_negative"]
         )
     model.to(DEVICE).eval()
     
