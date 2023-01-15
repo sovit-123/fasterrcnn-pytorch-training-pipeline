@@ -4,7 +4,6 @@ import numpy as np
 import os
 import glob as glob
 import random
-from copy import copy
 
 from xml.etree import ElementTree as et
 from torch.utils.data import Dataset, DataLoader
@@ -42,6 +41,8 @@ class CustomDataset(Dataset):
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
+        self.log_annot_issue_x = True
+        self.log_annot_issue_y = True
         
         # get all the image paths in sorted order
         for file_type in self.image_file_types:
@@ -137,16 +138,22 @@ class CustomDataset(Dataset):
             labels.append(self.classes.index(member.find('name').text))
             
             # xmin = left corner x-coordinates
-            xmin = int(float(member.find('bndbox').find('xmin').text))
+            xmin = float(member.find('bndbox').find('xmin').text)
             # xmax = right corner x-coordinates
-            xmax = int(float(member.find('bndbox').find('xmax').text))
+            xmax = float(member.find('bndbox').find('xmax').text)
             # ymin = left corner y-coordinates
-            ymin = int(float(member.find('bndbox').find('ymin').text))
+            ymin = float(member.find('bndbox').find('ymin').text)
             # ymax = right corner y-coordinates
-            ymax = int(float(member.find('bndbox').find('ymax').text))
+            ymax = float(member.find('bndbox').find('ymax').text)
 
             xmin, ymin, xmax, ymax = self.check_image_and_annotation(
-                xmin, ymin, xmax, ymax, image_width, image_height
+                xmin, 
+                ymin, 
+                xmax, 
+                ymax, 
+                image_width, 
+                image_height, 
+                orig_data=True
             )
 
             orig_boxes.append([xmin, ymin, xmax, ymax])
@@ -157,6 +164,16 @@ class CustomDataset(Dataset):
             xmax_final = (xmax/image_width)*image_resized.shape[1]
             ymin_final = (ymin/image_height)*image_resized.shape[0]
             ymax_final = (ymax/image_height)*image_resized.shape[0]
+
+            xmin_final, ymin_final, xmax_final, ymax_final = self.check_image_and_annotation(
+                xmin_final, 
+                ymin_final, 
+                xmax_final, 
+                ymax_final, 
+                image_resized.shape[1], 
+                image_resized.shape[0],
+                orig_data=False
+            )
             
             boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
         
@@ -174,7 +191,16 @@ class CustomDataset(Dataset):
         return image, image_resized, orig_boxes, \
             boxes, labels, area, iscrowd, (image_width, image_height)
 
-    def check_image_and_annotation(self, xmin, ymin, xmax, ymax, width, height):
+    def check_image_and_annotation(
+        self, 
+        xmin, 
+        ymin, 
+        xmax, 
+        ymax, 
+        width, 
+        height, 
+        orig_data=False
+    ):
         """
         Check that all x_max and y_max are not more than the image
         width or height.
@@ -183,6 +209,34 @@ class CustomDataset(Dataset):
             ymax = height
         if xmax > width:
             xmax = width
+        if xmax - xmin <= 1.0:
+            if orig_data:
+                # print(
+                    # '\n',
+                    # '!!! xmax is equal to xmin in data annotations !!!'
+                    # 'Please check data'
+                # )
+                # print(
+                    # 'Increasing xmax by 1 pixel to continue training for now...',
+                    # 'THIS WILL ONLY BE LOGGED ONCE',
+                    # '\n'
+                # )
+                self.log_annot_issue_x = False
+            xmax = xmin + 1
+        if ymax - ymin <= 1.0:
+            if orig_data:
+                # print(
+                #     '\n',
+                #     '!!! ymax is equal to ymin in data annotations !!!',
+                #     'Please check data'
+                # )
+                # print(
+                #     'Increasing ymax by 1 pixel to continue training for now...',
+                #     'THIS WILL ONLY BE LOGGED ONCE',
+                #     '\n'
+                # )
+                self.log_annot_issue_y = False
+            ymax = ymin + 1
         return xmin, ymin, xmax, ymax
 
 
