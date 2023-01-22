@@ -36,10 +36,6 @@ def get_train_aug():
 
 def get_train_transform():
     return A.Compose([
-        # A.Normalize(
-        #     (0.485, 0.456, 0.406),
-        #     (0.229, 0.224, 0.225)
-        # ),
         ToTensorV2(p=1.0),
     ], bbox_params={
         'format': 'pascal_voc',
@@ -80,10 +76,6 @@ def transform_mosaic(mosaic, boxes, img_size=640):
 # Define the validation transforms
 def get_valid_transform():
     return A.Compose([
-        # A.Normalize(
-        #     (0.485, 0.456, 0.406),
-        #     (0.229, 0.224, 0.225)
-        # ),
         ToTensorV2(p=1.0),
     ], bbox_params={
         'format': 'pascal_voc', 
