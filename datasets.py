@@ -222,7 +222,7 @@ class CustomDataset(Dataset):
                     # '\n'
                 # )
                 self.log_annot_issue_x = False
-            xmax = xmin + 1
+            xmin = xmin - 1
         if ymax - ymin <= 1.0:
             if orig_data:
                 # print(
@@ -236,7 +236,7 @@ class CustomDataset(Dataset):
                 #     '\n'
                 # )
                 self.log_annot_issue_y = False
-            ymax = ymin + 1
+            ymin = ymin - 1
         return xmin, ymin, xmax, ymax
 
 
