@@ -12,6 +12,8 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 ​																								[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1oFxPpBeE8SzSQq7BTUv28IIqQeiHHLdj?usp=sharing) [![Kaggle](https://kaggle.com/static/images/open-in-kaggle.svg)](https://www.kaggle.com/code/sovitrath/custom-faster-rcnn-training-kaggle/notebook)
 
+* [Find blog posts/tutorials on DebuggerCafe](#Tutorials)
+
 ## [Check Updates Here](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/blob/main/docs/updates.md)
 
 ## Custom Model Naming Conventions
@@ -308,3 +310,7 @@ python train.py --model fasterrcnn_resnet50_fpn_v2
  'fasterrcnn_squeezenet1_1']
 ```
 
+## Tutorials
+
+* [Wheat Detection using Faster RCNN and PyTorch](https://debuggercafe.com/wheat-detection-using-faster-rcnn-and-pytorch/)
+* [Plant Disease Detection using the PlantDoc Dataset and PyTorch Faster RCNN](https://debuggercafe.com/plant-disease-detection-using-plantdoc/)
