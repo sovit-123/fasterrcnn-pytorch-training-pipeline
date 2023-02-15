@@ -14,7 +14,7 @@ from torch_utils.engine import (
     train_one_epoch, evaluate, utils
 )
 from torch.utils.data import (
-    distributed, BatchSampler, RandomSampler, SequentialSampler
+    distributed, RandomSampler, SequentialSampler
 )
 from datasets import (
     create_train_dataset, create_valid_dataset, 
@@ -29,7 +29,7 @@ from utils.general import (
     yaml_save, init_seeds
 )
 from utils.logging import (
-    log, set_log, coco_log,
+    set_log, coco_log,
     set_summary_writer, 
     tensorboard_loss_log, 
     tensorboard_map_log,
@@ -248,8 +248,6 @@ def main(args):
         train_sampler = RandomSampler(train_dataset)
         valid_sampler = SequentialSampler(valid_dataset)
 
-    # train_batch_sampler = BatchSampler(train_sampler, BATCH_SIZE, drop_last=False)
-    # valid_batch_sampler = BatchSampler(valid_sampler, BATCH_SIZE, drop_last=False)
     train_loader = create_train_loader(
         train_dataset, BATCH_SIZE, NUM_WORKERS, batch_sampler=train_sampler
     )
@@ -387,7 +385,7 @@ def main(args):
             scheduler=scheduler
         )
 
-        coco_evaluator, stats, val_pred_image = evaluate(
+        stats, val_pred_image = evaluate(
             model, 
             valid_loader, 
             device=DEVICE,

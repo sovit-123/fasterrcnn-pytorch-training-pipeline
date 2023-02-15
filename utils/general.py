@@ -152,7 +152,6 @@ def save_loss_plot(
     train_ax.set_ylabel(y_label)
     figure_1.savefig(f"{OUT_DIR}/{save_name}.png")
     print('SAVING PLOTS COMPLETE...')
-    # plt.close('all')
 
 def save_mAP(OUT_DIR, map_05, map):
     """
@@ -176,7 +175,6 @@ def save_mAP(OUT_DIR, map_05, map):
     ax.set_ylabel('mAP')
     ax.legend()
     figure.savefig(f"{OUT_DIR}/map.png")
-    # plt.close('all')
 
 def visualize_mosaic_images(boxes, labels, image_resized, classes):
     print(boxes)
@@ -254,7 +252,7 @@ def denormalize(x, mean=None, std=None):
     for t, m, s in zip(x, mean, std):
         t.mul_(s).add_(m)
     # Returns tensor of shape [B, 3, H, W].
-    return torch.clamp(x, 0, 1)
+    return torch.clamp(t, 0, 1)
 
 def save_validation_results(images, detections, counter, out_dir, classes, colors):
     """
@@ -268,7 +266,6 @@ def save_validation_results(images, detections, counter, out_dir, classes, color
     image_list = [] # List to store predicted images to return.
     for i, detection in enumerate(detections):
         image_c = images[i].clone()
-        # image_c = denormalize(image_c, IMG_MEAN, IMG_STD)
         image_c = image_c.detach().cpu().numpy().astype(np.float32)
         image = np.transpose(image_c, (1, 2, 0))
 
@@ -333,4 +330,8 @@ def set_training_dir(dir_name=None):
 
 def yaml_save(file_path=None, data={}):
     with open(file_path, 'w') as f:
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+        yaml.safe_dump(
+            {k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, 
+            f, 
+            sort_keys=False
+        )
