@@ -91,6 +91,12 @@ def parse_opt():
         help='batch size to load the data'
     )
     parser.add_argument(
+        '--lr', 
+        default=0.001,
+        help='learning rate for the optimizer',
+        type=float
+    )
+    parser.add_argument(
         '-ims', '--img-size',
         dest='img_size', 
         default=640, 
