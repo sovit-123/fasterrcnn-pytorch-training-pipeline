@@ -168,6 +168,14 @@ def return_fasterrcnn_resnet101(
     )
     return model
 
+def return_fasterrcnn_vitdet(
+        num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_vitdet.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -190,4 +198,5 @@ create_model = {
     'fasterrcnn_convnext_small': return_fasterrcnn_convnext_small, 
     'fasterrcnn_convnext_tiny': return_fasterrcnn_convnext_tiny,
     'fasterrcnn_resnet101': return_fasterrcnn_resnet101,
+    'fasterrcnn_vitdet': return_fasterrcnn_vitdet
 }

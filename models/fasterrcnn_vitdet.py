@@ -16,11 +16,12 @@ import torchvision
 from abc import ABCMeta, abstractmethod
 from torch.autograd.function import Function
 from functools import partial
-from dataclasses import is_dataclass
+from dataclasses import is_dataclass, dataclass
 from typing import Any
 from omegaconf import DictConfig
 from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.models.detection import FasterRCNN
+from typing import Optional, Dict
 
 BatchNorm2d = torch.nn.BatchNorm2d
 TORCH_VERSION = tuple(int(x) for x in torch.__version__.split(".")[:2])
@@ -41,6 +42,19 @@ def _assert_strides_are_log2_contiguous(strides):
             stride, strides[i - 1]
         )
 
+@dataclass
+class ShapeSpec:
+    """
+    A simple structure that contains basic shape specification about a tensor.
+    It is often used as the auxiliary inputs/outputs of models,
+    to complement the lack of shape inference ability among pytorch modules.
+    """
+
+    channels: Optional[int] = None
+    height: Optional[int] = None
+    width: Optional[int] = None
+    stride: Optional[int] = None
+
 class Backbone(nn.Module, metaclass=ABCMeta):
     """
     Abstract base class for network backbones.
@@ -60,6 +74,49 @@ class Backbone(nn.Module, metaclass=ABCMeta):
             dict[str->Tensor]: mapping from feature name (e.g., "res2") to tensor
         """
         pass
+
+    @property
+    def size_divisibility(self) -> int:
+        """
+        Some backbones require the input height and width to be divisible by a
+        specific integer. This is typically true for encoder / decoder type networks
+        with lateral connection (e.g., FPN) for which feature maps need to match
+        dimension in the "bottom up" and "top down" paths. Set to 0 if no specific
+        input size divisibility is required.
+        """
+        return 0
+
+    @property
+    def padding_constraints(self) -> Dict[str, int]:
+        """
+        This property is a generalization of size_divisibility. Some backbones and training
+        recipes require specific padding constraints, such as enforcing divisibility by a specific
+        integer (e.g., FPN) or padding to a square (e.g., ViTDet with large-scale jitter
+        in :paper:vitdet). `padding_constraints` contains these optional items like:
+        {
+            "size_divisibility": int,
+            "square_size": int,
+            # Future options are possible
+        }
+        `size_divisibility` will read from here if presented and `square_size` indicates the
+        square padding size if `square_size` > 0.
+        TODO: use type of Dict[str, int] to avoid torchscipt issues. The type of padding_constraints
+        could be generalized as TypedDict (Python 3.8+) to support more types in the future.
+        """
+        return {}
+
+    def output_shape(self):
+        """
+        Returns:
+            dict[str->ShapeSpec]
+        """
+        # this is a backward-compatible default
+        return {
+            name: ShapeSpec(
+                channels=self._out_feature_channels[name], stride=self._out_feature_strides[name]
+            )
+            for name in self._out_features
+        }
 
 def get_rel_pos(q_size, k_size, rel_pos):
     """
@@ -141,7 +198,7 @@ def locate(name: str) -> Any:
         else:
             obj = _locate(name)  # it raises if fails
 
-    return 
+    return obj
 
 def _convert_target_to_string(t: Any) -> str:
     """
@@ -241,7 +298,7 @@ class Conv2d(torch.nn.Conv2d):
             x = self.norm(x)
         if self.activation is not None:
             x = self.activation(x)
-        return 
+        return x
 
 class Attention(nn.Module):
     """Multi-head Attention block with relative position embeddings."""
@@ -852,7 +909,7 @@ class PatchEmbed(nn.Module):
         x = self.proj(x)
         # B C H W -> B H W C
         x = x.permute(0, 2, 3, 1)
-        return 
+        return x
 
 class ViT(Backbone):
     """
@@ -982,7 +1039,7 @@ class ViT(Backbone):
             x = blk(x)
 
         outputs = {self._out_features[0]: x.permute(0, 3, 1, 2)}
-        return 
+        return outputs
 
 class LastLevelMaxPool(nn.Module):
     """
@@ -1145,45 +1202,44 @@ embed_dim, depth, num_heads, dp = 768, 12, 12, 0.1
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained SqueezeNet1_1 backbone.
-    backbone = LazyCall(SimpleFeaturePyramid)(
-        net=ViT(  # Single-scale ViT backbone
-            img_size=1024,
-            patch_size=16,
-            embed_dim=embed_dim,
-            depth=depth,
-            num_heads=num_heads,
-            drop_path_rate=dp,
-            window_size=14,
-            mlp_ratio=4,
-            qkv_bias=True,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6),
-            window_block_indexes=[
-                # 2, 5, 8 11 for global attention
-                0,
-                1,
-                3,
-                4,
-                6,
-                7,
-                9,
-                10,
-            ],
-            residual_block_indexes=[],
-            use_rel_pos=True,
-            out_feature="last_feat",
-        ),
-            in_feature="${.net.out_feature}",
-            out_channels=256,
-            scale_factors=(4.0, 2.0, 1.0, 0.5),
-            top_block=LazyCall(LastLevelMaxPool)(),
-            norm="LN",
-            square_pad=1024,
-        )
+    net = ViT(  # Single-scale ViT backbone
+        img_size=1024,
+        patch_size=16,
+        embed_dim=embed_dim,
+        depth=depth,
+        num_heads=num_heads,
+        drop_path_rate=dp,
+        window_size=14,
+        mlp_ratio=4,
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        window_block_indexes=[
+            # 2, 5, 8 11 for global attention
+            0,
+            1,
+            3,
+            4,
+            6,
+            7,
+            9,
+            10,
+        ],
+        residual_block_indexes=[],
+        use_rel_pos=True,
+        out_feature="last_feat",
+    )
+    backbone = SimpleFeaturePyramid(
+        net,
+        in_feature="last_feat",
+        out_channels=256,
+        scale_factors=(4.0, 2.0, 1.0, 0.5),
+        top_block=LastLevelMaxPool(),
+        norm="LN",
+        square_pad=1024,
+    )
 
-    # We need the output channels of the last convolutional layers from
-    # the features for the Faster RCNN model.
-    # It is 512 for SqueezeNet1_1.
     backbone.out_channels = 256
+    # print(backbone)
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
     # Meaning, anchors with 5 different sizes and 3 different aspect 
@@ -1197,7 +1253,7 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     # If backbone returns a Tensor, `featmap_names` is expected to
     # be [0]. We can choose which feature maps to use.
     roi_pooler = torchvision.ops.MultiScaleRoIAlign(
-        featmap_names=['0'],
+        featmap_names=backbone._out_features,
         output_size=7,
         sampling_ratio=2
     )
@@ -1206,7 +1262,7 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     model = FasterRCNN(
         backbone=backbone,
         num_classes=num_classes,
-        rpn_anchor_generator=anchor_generator,
+        # rpn_anchor_generator=anchor_generator,
         box_roi_pool=roi_pooler
     )
     return model
@@ -1215,7 +1271,7 @@ if __name__ == '__main__':
     # from model_summary import summary
     model = create_model(81, pretrained=True)
     # summary(model)
-    print(model)
+    # print(model)
     # Total parameters and trainable parameters.
     total_params = sum(p.numel() for p in model.parameters())
     print(f"{total_params:,} total parameters.")
