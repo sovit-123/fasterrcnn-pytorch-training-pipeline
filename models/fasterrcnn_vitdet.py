@@ -1196,11 +1196,9 @@ class SimpleFeaturePyramid(Backbone):
         assert len(self._out_features) == len(results)
         return {f: res for f, res in zip(self._out_features, results)}
 
-
-# Base
-embed_dim, depth, num_heads, dp = 768, 12, 12, 0.1
-
 def create_model(num_classes=81, pretrained=True, coco_model=False):
+    # Base
+    embed_dim, depth, num_heads, dp = 768, 12, 12, 0.1
     # Load the pretrained SqueezeNet1_1 backbone.
     net = ViT(  # Single-scale ViT backbone
         img_size=1024,
@@ -1239,7 +1237,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     )
 
     backbone.out_channels = 256
-    # print(backbone)
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
     # Meaning, anchors with 5 different sizes and 3 different aspect 
@@ -1268,18 +1265,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     return model
 
 if __name__ == '__main__':
-    # from model_summary import summary
+    from model_summary import summary
     model = create_model(81, pretrained=True)
-    # summary(model)
-    # print(model)
-    # Total parameters and trainable parameters.
-    total_params = sum(p.numel() for p in model.parameters())
-    print(f"{total_params:,} total parameters.")
-    total_trainable_params = sum(
-        p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"{total_trainable_params:,} training parameters.")
-
-    tensor = torch.randn((1, 3, 224, 224))
-    model.eval()
-    out = model(tensor)
-    print(out)
+    summary(model)
