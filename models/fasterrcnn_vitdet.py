@@ -9,16 +9,13 @@ import warnings
 import torch.nn.functional as F
 import torch.distributed as dist
 import math
-import pydoc
-import abc
 import torchvision
 
 from abc import ABCMeta, abstractmethod
 from torch.autograd.function import Function
 from functools import partial
-from dataclasses import is_dataclass, dataclass
+from dataclasses import dataclass
 from typing import Any
-from omegaconf import DictConfig
 from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.models.detection import FasterRCNN
 from typing import Optional, Dict
@@ -41,6 +38,55 @@ def _assert_strides_are_log2_contiguous(strides):
         assert stride == 2 * strides[i - 1], "Strides {} {} are not log2 contiguous".format(
             stride, strides[i - 1]
         )
+def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):
+    """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
+    This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
+    the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
+    See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
+    changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
+    'survival rate' as the argument.
+    """
+    if drop_prob == 0. or not training:
+        return x
+    keep_prob = 1 - drop_prob
+    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+    random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
+    if keep_prob > 0.0 and scale_by_keep:
+        random_tensor.div_(keep_prob)
+    return x * random_tensor
+
+class Mlp(nn.Module):
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        self.fc1 = nn.Linear(in_features, hidden_features)
+        self.act = act_layer()
+        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.drop = nn.Dropout(drop)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc2(x)
+        x = self.drop(x)
+        return x
+
+
+class DropPath(nn.Module):
+    """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
+    """
+    def __init__(self, drop_prob: float = 0., scale_by_keep: bool = True):
+        super(DropPath, self).__init__()
+        self.drop_prob = drop_prob
+        self.scale_by_keep = scale_by_keep
+
+    def forward(self, x):
+        return drop_path(x, self.drop_prob, self.training, self.scale_by_keep)
+
+    def extra_repr(self):
+        return f'drop_prob={round(self.drop_prob,3):0.3f}'
 
 @dataclass
 class ShapeSpec:
@@ -178,83 +224,6 @@ def add_decomposed_rel_pos(attn, q, rel_pos_h, rel_pos_w, q_size, k_size):
     ).view(B, q_h * q_w, k_h * k_w)
 
     return attn
-
-def locate(name: str) -> Any:
-    """
-    Locate and return an object ``x`` using an input string ``{x.__module__}.{x.__qualname__}``,
-    such as "module.submodule.class_name".
-    Raise Exception if it cannot be found.
-    """
-    obj = pydoc.locate(name)
-
-    # Some cases (e.g. torch.optim.sgd.SGD) not handled correctly
-    # by pydoc.locate. Try a private function from hydra.
-    if obj is None:
-        try:
-            # from hydra.utils import get_method - will print many errors
-            from hydra.utils import _locate
-        except ImportError as e:
-            raise ImportError(f"Cannot dynamically locate object {name}!") from e
-        else:
-            obj = _locate(name)  # it raises if fails
-
-    return obj
-
-def _convert_target_to_string(t: Any) -> str:
-    """
-    Inverse of ``locate()``.
-    Args:
-        t: any object with ``__module__`` and ``__qualname__``
-    """
-    module, qualname = t.__module__, t.__qualname__
-
-    # Compress the path to this object, e.g. ``module.submodule._impl.class``
-    # may become ``module.submodule.class``, if the later also resolves to the same
-    # object. This simplifies the string, and also is less affected by moving the
-    # class implementation.
-    module_parts = module.split(".")
-    for k in range(1, len(module_parts)):
-        prefix = ".".join(module_parts[:k])
-        candidate = f"{prefix}.{qualname}"
-        try:
-            if locate(candidate) is t:
-                return candidate
-        except ImportError:
-            pass
-    return f"{module}.{qualname}"
-
-class LazyCall:
-    """
-    Wrap a callable so that when it's called, the call will not be executed,
-    but returns a dict that describes the call.
-    LazyCall object has to be called with only keyword arguments. Positional
-    arguments are not yet supported.
-    Examples:
-    ::
-        from detectron2.config import instantiate, LazyCall
-        layer_cfg = LazyCall(nn.Conv2d)(in_channels=32, out_channels=32)
-        layer_cfg.out_channels = 64   # can edit it afterwards
-        layer = instantiate(layer_cfg)
-    """
-
-    def __init__(self, target):
-        if not (callable(target) or isinstance(target, (str, abc.Mapping))):
-            raise TypeError(
-                f"target of LazyCall must be a callable or defines a callable! Got {target}"
-            )
-        self._target = target
-
-    def __call__(self, **kwargs):
-        if is_dataclass(self._target):
-            # omegaconf object cannot hold dataclass type
-            # https://github.com/omry/omegaconf/issues/784
-            target = _convert_target_to_string(self._target)
-        else:
-            target = self._target
-        kwargs["_target_"] = target
-
-        # return DictConfig(content=kwargs, flags={"allow_objects": True})
-        return target
 
 class Conv2d(torch.nn.Conv2d):
     """
@@ -841,8 +810,6 @@ class Block(nn.Module):
             rel_pos_zero_init=rel_pos_zero_init,
             input_size=input_size if window_size == 0 else (window_size, window_size),
         )
-
-        from timm.models.layers import DropPath, Mlp
 
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
