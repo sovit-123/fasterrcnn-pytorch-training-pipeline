@@ -15,8 +15,6 @@ from abc import ABCMeta, abstractmethod
 from torch.autograd.function import Function
 from functools import partial
 from dataclasses import dataclass
-from typing import Any
-from torchvision.models.detection.rpn import AnchorGenerator
 from torchvision.models.detection import FasterRCNN
 from typing import Optional, Dict
 
@@ -105,7 +103,6 @@ class Backbone(nn.Module, metaclass=ABCMeta):
     """
     Abstract base class for network backbones.
     """
-
     def __init__(self):
         """
         The `__init__` method of any subclass can specify its own set of arguments.
@@ -168,10 +165,10 @@ def get_rel_pos(q_size, k_size, rel_pos):
     """
     Get relative positional embeddings according to the relative positions of
         query and key sizes.
-    Args:
-        q_size (int): size of query q.
-        k_size (int): size of key k.
-        rel_pos (Tensor): relative position embeddings (L, C).
+
+    :param q_size (int): size of query q.
+    :param k_size (int): size of key k.
+    :param rel_pos (Tensor): relative position embeddings (L, C).
     Returns:
         Extracted positional embeddings according to relative positions.
     """
@@ -199,13 +196,13 @@ def add_decomposed_rel_pos(attn, q, rel_pos_h, rel_pos_w, q_size, k_size):
     """
     Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
     https://github.com/facebookresearch/mvit/blob/19786631e330df9f3622e5402b4a419a263a2c80/mvit/models/attention.py   # noqa B950
-    Args:
-        attn (Tensor): attention map.
-        q (Tensor): query q in the attention layer with shape (B, q_h * q_w, C).
-        rel_pos_h (Tensor): relative position embeddings (Lh, C) for height axis.
-        rel_pos_w (Tensor): relative position embeddings (Lw, C) for width axis.
-        q_size (Tuple): spatial sequence size of query q with (q_h, q_w).
-        k_size (Tuple): spatial sequence size of key k with (k_h, k_w).
+
+    :param attn (Tensor): attention map.
+    :param q (Tensor): query q in the attention layer with shape (B, q_h * q_w, C).
+    :param rel_pos_h (Tensor): relative position embeddings (Lh, C) for height axis.
+    :param rel_pos_w (Tensor): relative position embeddings (Lw, C) for width axis.
+    :param q_size (Tuple): spatial sequence size of query q with (q_h, q_w).
+    :param k_size (Tuple): spatial sequence size of key k with (k_h, k_w).
     Returns:
         attn (Tensor): attention map with added relative positional embeddings.
     """
@@ -233,9 +230,9 @@ class Conv2d(torch.nn.Conv2d):
     def __init__(self, *args, **kwargs):
         """
         Extra keyword arguments supported in addition to those in `torch.nn.Conv2d`:
-        Args:
-            norm (nn.Module, optional): a normalization layer
-            activation (callable(Tensor) -> Tensor): a callable activation function
+        
+        :param norm (nn.Module, optional): a normalization layer
+        :param activation (callable(Tensor) -> Tensor): a callable activation function
         It assumes that norm layer is used before activation.
         """
         norm = kwargs.pop("norm", None)
@@ -282,13 +279,12 @@ class Attention(nn.Module):
         input_size=None,
     ):
         """
-        Args:
-            dim (int): Number of input channels.
-            num_heads (int): Number of attention heads.
-            qkv_bias (bool:  If True, add a learnable bias to query, key, value.
-            rel_pos (bool): If True, add relative positional embeddings to the attention map.
-            rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (int or None): Input resolution for calculating the relative positional
+        :param dim (int): Number of input channels.
+        :param num_heads (int): Number of attention heads.
+        :param qkv_bias (bool:  If True, add a learnable bias to query, key, value.
+        :param rel_pos (bool): If True, add relative positional embeddings to the attention map.
+        :param rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
+        :param input_size (int or None): Input resolution for calculating the relative positional
                 parameter size.
         """
         super().__init__()
@@ -401,8 +397,8 @@ class FrozenBatchNorm2d(nn.Module):
     def convert_frozen_batchnorm(cls, module):
         """
         Convert all BatchNorm/SyncBatchNorm in module into FrozenBatchNorm.
-        Args:
-            module (torch.nn.Module):
+        
+        :param module (torch.nn.Module):
         Returns:
             If module is BatchNorm/SyncBatchNorm, returns a new module.
             Otherwise, in-place convert module and return it.
@@ -443,10 +439,10 @@ class CNNBlockBase(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
         """
         The `__init__` method of any subclass should also contain these arguments.
-        Args:
-            in_channels (int):
-            out_channels (int):
-            stride (int):
+        
+        :param in_channels (int):
+        :param out_channels (int):
+        :param stride (int):
         """
         super().__init__()
         self.in_channels = in_channels
@@ -490,8 +486,7 @@ class LayerNorm(nn.Module):
 
 def get_norm(norm, out_channels):
     """
-    Args:
-        norm (str or callable): either one of BN, SyncBN, FrozenBN, GN;
+    :param norm (str or callable): either one of BN, SyncBN, FrozenBN, GN;
             or a callable that takes a channel number and returns
             the normalization layer as a nn.Module.
     Returns:
@@ -622,8 +617,8 @@ def c2_msra_fill(module: nn.Module) -> None:
     """
     Initialize `module.weight` using the "MSRAFill" implemented in Caffe2.
     Also initializes `module.bias` to 0.
-    Args:
-        module (torch.nn.Module): module to initialize.
+    
+    :param module (torch.nn.Module): module to initialize.
     """
     # pyre-fixme[6]: For 1st param expected `Tensor` but got `Union[Module, Tensor]`.
     nn.init.kaiming_normal_(module.weight, mode="fan_out", nonlinearity="relu")
@@ -647,14 +642,13 @@ class ResBottleneckBlock(CNNBlockBase):
         act_layer=nn.GELU,
     ):
         """
-        Args:
-            in_channels (int): Number of input channels.
-            out_channels (int): Number of output channels.
-            bottleneck_channels (int): number of output channels for the 3x3
+        :param in_channels (int): Number of input channels.
+        :param out_channels (int): Number of output channels.
+        :param bottleneck_channels (int): number of output channels for the 3x3
                 "bottleneck" conv layers.
-            norm (str or callable): normalization for all conv layers.
+        :param norm (str or callable): normalization for all conv layers.
                 See :func:`layers.get_norm` for supported format.
-            act_layer (callable): activation for all conv layers.
+        :param act_layer (callable): activation for all conv layers.
         """
         super().__init__(in_channels, out_channels, 1)
 
@@ -695,9 +689,9 @@ class ResBottleneckBlock(CNNBlockBase):
 def window_partition(x, window_size):
     """
     Partition into non-overlapping windows with padding if needed.
-    Args:
-        x (tensor): input tokens with [B, H, W, C].
-        window_size (int): window size.
+
+    :param x (tensor): input tokens with [B, H, W, C].
+    :param window_size (int): window size.
     Returns:
         windows: windows after partition with [B * num_windows, window_size, window_size, C].
         (Hp, Wp): padded height and width before partition
@@ -717,11 +711,11 @@ def window_partition(x, window_size):
 def window_unpartition(windows, window_size, pad_hw, hw):
     """
     Window unpartition into original sequences and removing padding.
-    Args:
-        x (tensor): input tokens with [B * num_windows, window_size, window_size, C].
-        window_size (int): window size.
-        pad_hw (Tuple): padded height and width (Hp, Wp).
-        hw (Tuple): original height and width (H, W) before padding.
+    
+    :param x (tensor): input tokens with [B * num_windows, window_size, window_size, C].
+    :param window_size (int): window size.
+    :param pad_hw (Tuple): padded height and width (Hp, Wp).
+    :param hw (Tuple): original height and width (H, W) before padding.
     Returns:
         x: unpartitioned sequences with [B, H, W, C].
     """
@@ -739,10 +733,10 @@ def get_abs_pos(abs_pos, has_cls_token, hw):
     """
     Calculate absolute positional embeddings. If needed, resize embeddings and remove cls_token
         dimension for the original embeddings.
-    Args:
-        abs_pos (Tensor): absolute positional embeddings with (1, num_position, C).
-        has_cls_token (bool): If true, has 1 embedding in abs_pos for cls token.
-        hw (Tuple): size of input image tokens.
+    
+    :param abs_pos (Tensor): absolute positional embeddings with (1, num_position, C).
+    :param has_cls_token (bool): If true, has 1 embedding in abs_pos for cls token.
+    :param hw (Tuple): size of input image tokens.
     Returns:
         Absolute positional embeddings after processing with shape (1, H, W, C)
     """
@@ -784,20 +778,19 @@ class Block(nn.Module):
         input_size=None,
     ):
         """
-        Args:
-            dim (int): Number of input channels.
-            num_heads (int): Number of attention heads in each ViT block.
-            mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
-            qkv_bias (bool): If True, add a learnable bias to query, key, value.
-            drop_path (float): Stochastic depth rate.
-            norm_layer (nn.Module): Normalization layer.
-            act_layer (nn.Module): Activation layer.
-            use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
-            rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            window_size (int): Window size for window attention blocks. If it equals 0, then not
+        :param dim (int): Number of input channels.
+        :param num_heads (int): Number of attention heads in each ViT block.
+        :param mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
+        :param qkv_bias (bool): If True, add a learnable bias to query, key, value.
+        :param drop_path (float): Stochastic depth rate.
+        :param norm_layer (nn.Module): Normalization layer.
+        :param act_layer (nn.Module): Activation layer.
+        :param use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
+        :param rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
+        :param window_size (int): Window size for window attention blocks. If it equals 0, then not
                 use window attention.
-            use_residual_block (bool): If True, use a residual block after the MLP block.
-            input_size (int or None): Input resolution for calculating the relative positional
+        :param use_residual_block (bool): If True, use a residual block after the MLP block.
+        :param input_size (int or None): Input resolution for calculating the relative positional
                 parameter size.
         """
         super().__init__()
@@ -859,12 +852,11 @@ class PatchEmbed(nn.Module):
         self, kernel_size=(16, 16), stride=(16, 16), padding=(0, 0), in_chans=3, embed_dim=768
     ):
         """
-        Args:
-            kernel_size (Tuple): kernel size of the projection layer.
-            stride (Tuple): stride of the projection layer.
-            padding (Tuple): padding size of the projection layer.
-            in_chans (int): Number of input image channels.
-            embed_dim (int):  embed_dim (int): Patch embedding dimension.
+        :param kernel_size (Tuple): kernel size of the projection layer.
+        :param stride (Tuple): stride of the projection layer.
+        :param padding (Tuple): padding size of the projection layer.
+        :param in_chans (int): Number of input image channels.
+        :param embed_dim (int):  embed_dim (int): Patch embedding dimension.
         """
         super().__init__()
 
@@ -910,28 +902,28 @@ class ViT(Backbone):
         out_feature="last_feat",
     ):
         """
-        Args:
-            img_size (int): Input image size.
-            patch_size (int): Patch size.
-            in_chans (int): Number of input image channels.
-            embed_dim (int): Patch embedding dimension.
-            depth (int): Depth of ViT.
-            num_heads (int): Number of attention heads in each ViT block.
-            mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
-            qkv_bias (bool): If True, add a learnable bias to query, key, value.
-            drop_path_rate (float): Stochastic depth rate.
-            norm_layer (nn.Module): Normalization layer.
-            act_layer (nn.Module): Activation layer.
-            use_abs_pos (bool): If True, use absolute positional embeddings.
-            use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
-            rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            window_size (int): Window size for window attention blocks.
-            window_block_indexes (list): Indexes for blocks using window attention.
-            residual_block_indexes (list): Indexes for blocks using conv propagation.
-            use_act_checkpoint (bool): If True, use activation checkpointing.
-            pretrain_img_size (int): input image size for pretraining models.
-            pretrain_use_cls_token (bool): If True, pretrainig models use class token.
-            out_feature (str): name of the feature from the last block.
+        
+        :param img_size (int): Input image size.
+        :param patch_size (int): Patch size.
+        :param in_chans (int): Number of input image channels.
+        :param embed_dim (int): Patch embedding dimension.
+        :param depth (int): Depth of ViT.
+        :param num_heads (int): Number of attention heads in each ViT block.
+        :param mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
+        :param qkv_bias (bool): If True, add a learnable bias to query, key, value.
+        :param drop_path_rate (float): Stochastic depth rate.
+        :param norm_layer (nn.Module): Normalization layer.
+        :param act_layer (nn.Module): Activation layer.
+        :param use_abs_pos (bool): If True, use absolute positional embeddings.
+        :param use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
+        :param rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
+        :param window_size (int): Window size for window attention blocks.
+        :param window_block_indexes (list): Indexes for blocks using window attention.
+        :param residual_block_indexes (list): Indexes for blocks using conv propagation.
+        :param use_act_checkpoint (bool): If True, use activation checkpointing.
+        :param pretrain_img_size (int): input image size for pretraining models.
+        :param pretrain_use_cls_token (bool): If True, pretrainig models use class token.
+        :param out_feature (str): name of the feature from the last block.
         """
         super().__init__()
         self.pretrain_use_cls_token = pretrain_use_cls_token
@@ -1039,23 +1031,22 @@ class SimpleFeaturePyramid(Backbone):
         square_pad=0,
     ):
         """
-        Args:
-            net (Backbone): module representing the subnetwork backbone.
+        :param net (Backbone): module representing the subnetwork backbone.
                 Must be a subclass of :class:`Backbone`.
-            in_feature (str): names of the input feature maps coming
+        :param in_feature (str): names of the input feature maps coming
                 from the net.
-            out_channels (int): number of channels in the output feature maps.
-            scale_factors (list[float]): list of scaling factors to upsample or downsample
+        :param out_channels (int): number of channels in the output feature maps.
+        :param scale_factors (list[float]): list of scaling factors to upsample or downsample
                 the input features for creating pyramid features.
-            top_block (nn.Module or None): if provided, an extra operation will
+        :param top_block (nn.Module or None): if provided, an extra operation will
                 be performed on the output of the last (smallest resolution)
                 pyramid output, and the result will extend the result list. The top_block
                 further downsamples the feature map. It must have an attribute
                 "num_levels", meaning the number of extra pyramid levels added by
                 this block, and "in_feature", which is a string representing
                 its input feature (e.g., p5).
-            norm (str): the normalization to use.
-            square_pad (int): If > 0, require input images to be padded to specific square size.
+        :param norm (str): the normalization to use.
+        :param square_pad (int): If > 0, require input images to be padded to specific square size.
         """
         super(SimpleFeaturePyramid, self).__init__()
         assert isinstance(net, Backbone)
@@ -1138,8 +1129,7 @@ class SimpleFeaturePyramid(Backbone):
 
     def forward(self, x):
         """
-        Args:
-            x: Tensor of shape (N,C,H,W). H, W must be a multiple of ``self.size_divisibility``.
+        :param x: Tensor of shape (N,C,H,W). H, W must be a multiple of ``self.size_divisibility``.
         Returns:
             dict[str->Tensor]:
                 mapping from feature map name to pyramid feature map tensor
@@ -1193,6 +1183,13 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
         use_rel_pos=True,
         out_feature="last_feat",
     )
+
+    if pretrained:
+        print('Loading MAE Pretrained ViT Base weights...')
+        # ckpt = torch.utis('weights/mae_pretrain_vit_base.pth')
+        ckpt = torch.hub.load_state_dict_from_url('https://dl.fbaipublicfiles.com/mae/pretrain/mae_pretrain_vit_base.pth')
+        net.load_state_dict(ckpt['model'], strict=False)
+
     backbone = SimpleFeaturePyramid(
         net,
         in_feature="last_feat",
@@ -1204,14 +1201,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     )
 
     backbone.out_channels = 256
-
-    # Generate anchors using the RPN. Here, we are using 5x3 anchors.
-    # Meaning, anchors with 5 different sizes and 3 different aspect 
-    # ratios.
-    anchor_generator = AnchorGenerator(
-        sizes=((32, 64, 128, 256, 512),),
-        aspect_ratios=((0.5, 1.0, 2.0),)
-    )
 
     # Feature maps to perform RoI cropping.
     # If backbone returns a Tensor, `featmap_names` is expected to
@@ -1226,7 +1215,6 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     model = FasterRCNN(
         backbone=backbone,
         num_classes=num_classes,
-        # rpn_anchor_generator=anchor_generator,
         box_roi_pool=roi_pooler
     )
     return model
