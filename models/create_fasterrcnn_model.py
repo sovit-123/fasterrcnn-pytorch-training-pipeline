@@ -169,9 +169,17 @@ def return_fasterrcnn_resnet101(
     return model
 
 def return_fasterrcnn_vitdet(
-        num_classes, pretrained=True, coco_model=False
+    num_classes, pretrained=True, coco_model=False
 ):
     model = fasterrcnn_vitdet.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_vitdet_tiny(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_vitdet_tiny.create_model(
         num_classes, pretrained, coco_model=coco_model
     )
     return model
@@ -198,5 +206,6 @@ create_model = {
     'fasterrcnn_convnext_small': return_fasterrcnn_convnext_small, 
     'fasterrcnn_convnext_tiny': return_fasterrcnn_convnext_tiny,
     'fasterrcnn_resnet101': return_fasterrcnn_resnet101,
-    'fasterrcnn_vitdet': return_fasterrcnn_vitdet
+    'fasterrcnn_vitdet': return_fasterrcnn_vitdet,
+    'fasterrcnn_vitdet_tiny': return_fasterrcnn_vitdet_tiny
 }
