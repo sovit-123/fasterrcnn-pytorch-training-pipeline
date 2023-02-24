@@ -5,6 +5,9 @@ inference_outputs
 test.sh
 *__pycache__/
 
+# Custom weights folder (mainly for testing).
+weights/
+
 # Weights and Biases
 wandb/*
 
