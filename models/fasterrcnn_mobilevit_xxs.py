@@ -1,5 +1,8 @@
 """
-...
+Faster RCNN Head with MobileViT XXS (Extra Extra Small) as backbone.
+You need to install vision_transformers library for this.
+Find the GitHub project here:
+https://github.com/sovit-123/vision_transformers
 """
 
 import torchvision
@@ -19,12 +22,10 @@ except:
     assert ('vision_transformers' in sys.modules), 'vision_transformers not found'
 
 def create_model(num_classes, pretrained=True, coco_model=False):
-    # Load the pretrained ResNet18 backbone.
-    model_backbone = mobilevit_xxs(pretrained=True)
+    # Load the backbone.
+    model_backbone = mobilevit_xxs(pretrained=pretrained)
 
     model_backbone = nn.Sequential(*list(model_backbone.children())[:-1])
-
-    # print(model_backbone)
 
     backbone = nn.Sequential(model_backbone)
 
