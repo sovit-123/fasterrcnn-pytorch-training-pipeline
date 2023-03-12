@@ -63,24 +63,22 @@ def set_summary_writer(log_dir):
     writer = SummaryWriter(log_dir=log_dir)
     return writer
 
-def tensorboard_loss_log(name, loss_np_arr, writer):
+def tensorboard_loss_log(name, loss_np_arr, writer, epoch):
     """
     To plot graphs for TensorBoard log. The save directory for this
     is the same as the training result save directory.
     """
-    for i in range(len(loss_np_arr)):
-        writer.add_scalar(name, loss_np_arr[i], i)
+    writer.add_scalar(name, loss_np_arr[-1], epoch)
 
-def tensorboard_map_log(name, val_map_05, val_map, writer):
-    for i in range(len(val_map)):
-        writer.add_scalars(
-            name,
-            {
-                'mAP@0.5': val_map_05[i], 
-                'mAP@0.5_0.95': val_map[i]
-            },
-            i
-        )
+def tensorboard_map_log(name, val_map_05, val_map, writer, epoch):
+    writer.add_scalars(
+        name,
+        {
+            'mAP@0.5': val_map_05[-1], 
+            'mAP@0.5_0.95': val_map[-1]
+        },
+        epoch
+    )
 
 def create_log_csv(log_dir):
     cols = [
