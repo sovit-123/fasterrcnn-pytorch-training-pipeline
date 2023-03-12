@@ -25,9 +25,7 @@ def create_model(num_classes, pretrained=True, coco_model=False):
     # Load the backbone.
     model_backbone = mobilevit_xxs(pretrained=pretrained)
 
-    model_backbone = nn.Sequential(*list(model_backbone.children())[:-1])
-
-    backbone = nn.Sequential(model_backbone)
+    backbone = nn.Sequential(*list(model_backbone.children())[:-1])
 
     # Output channels from the final convolutional layer.
     backbone.out_channels = 320
