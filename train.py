@@ -461,14 +461,20 @@ def main(args):
         # tensorboard_loss_log('Train loss', np.array(train_loss_list), writer)
 
         # Save epoch-wise train loss plot using TensorBoard.
-        tensorboard_loss_log('Train loss', np.array(train_loss_list_epoch), writer)
+        tensorboard_loss_log(
+            'Train loss', 
+            np.array(train_loss_list_epoch), 
+            writer,
+            epoch
+        )
 
         # Save mAP plot using TensorBoard.
         tensorboard_map_log(
             name='mAP', 
             val_map_05=np.array(val_map_05), 
             val_map=np.array(val_map),
-            writer=writer
+            writer=writer,
+            epoch=epoch
         )
 
         coco_log(OUT_DIR, stats)
