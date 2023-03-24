@@ -44,23 +44,31 @@ def parse_opt():
         help='(optional) path to the data config file'
     )
     parser.add_argument(
-        '-m', '--model', default=None,
+        '-m', '--model', 
+        default=None,
         help='name of the model'
     )
     parser.add_argument(
-        '-w', '--weights', default=None,
+        '-w', '--weights', 
+        default=None,
         help='path to trained checkpoint weights if providing custom YAML file'
     )
     parser.add_argument(
-        '-th', '--threshold', default=0.3, type=float,
+        '-th', '--threshold', 
+        default=0.3, 
+        type=float,
         help='detection threshold'
     )
     parser.add_argument(
-        '-si', '--show-image', dest='show_image', action='store_true',
+        '-si', '--show-image', 
+        dest='show_image', 
+        action='store_true',
         help='visualize output only if this argument is passed'
     )
     parser.add_argument(
-        '-mpl', '--mpl-show', dest='mpl_show', action='store_true',
+        '-mpl', '--mpl-show', 
+        dest='mpl_show', 
+        action='store_true',
         help='visualize using matplotlib, helpful in notebooks'
     )
     parser.add_argument(
