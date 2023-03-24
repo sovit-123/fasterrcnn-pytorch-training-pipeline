@@ -39,7 +39,7 @@ def parse_opt():
         help='folder path to input input image (one image or a folder path)',
     )
     parser.add_argument(
-        '-c', '--config', 
+        '--data', 
         default=None,
         help='(optional) path to the data config file'
     )
@@ -60,8 +60,7 @@ def parse_opt():
         help='detection threshold'
     )
     parser.add_argument(
-        '-si', '--show-image', 
-        dest='show_image', 
+        '-si', '--show',  
         action='store_true',
         help='visualize output only if this argument is passed'
     )
@@ -77,9 +76,8 @@ def parse_opt():
         help='computation/training device, default is GPU if GPU present'
     )
     parser.add_argument(
-        '-ims', '--img-size', 
+        '-ims', '--imgsz', 
         default=None,
-        dest='img_size',
         type=int,
         help='resize image to, by default use the original frame/image size'
     )
@@ -98,8 +96,8 @@ def main(args):
 
     # Load the data configurations.
     data_configs = None
-    if args['config'] is not None:
-        with open(args['config']) as file:
+    if args['data'] is not None:
+        with open(args['data']) as file:
             data_configs = yaml.safe_load(file)
         NUM_CLASSES = data_configs['NC']
         CLASSES = data_configs['CLASSES']
@@ -128,8 +126,8 @@ def main(args):
         # If config file is not given, load from model dictionary.
         if data_configs is None:
             data_configs = True
-            NUM_CLASSES = checkpoint['config']['NC']
-            CLASSES = checkpoint['config']['CLASSES']
+            NUM_CLASSES = checkpoint['data']['NC']
+            CLASSES = checkpoint['data']['CLASSES']
         try:
             print('Building from model name arguments...')
             build_model = create_model[str(args['model'])]
@@ -161,8 +159,8 @@ def main(args):
         image_name = test_images[i].split(os.path.sep)[-1].split('.')[0]
         orig_image = cv2.imread(test_images[i])
         frame_height, frame_width, _ = orig_image.shape
-        if args['img_size'] != None:
-            RESIZE_TO = args['img_size']
+        if args['imgsz'] != None:
+            RESIZE_TO = args['imgsz']
         else:
             RESIZE_TO = frame_width
         # orig_image = image.copy()
@@ -197,7 +195,7 @@ def main(args):
                 image_resized,
                 args
             )
-            if args['show_image']:
+            if args['show']:
                 cv2.imshow('Prediction', orig_image)
                 cv2.waitKey(1)
             if args['mpl_show']:

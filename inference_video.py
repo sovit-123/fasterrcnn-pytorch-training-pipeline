@@ -30,7 +30,7 @@ def parse_opt():
         help='path to input video',
     )
     parser.add_argument(
-        '-c', '--config', 
+        '--data', 
         default=None,
         help='(optional) path to the data config file'
     )
@@ -51,8 +51,7 @@ def parse_opt():
         help='detection threshold'
     )
     parser.add_argument(
-        '-si', '--show-image', 
-        dest='show_image', 
+        '-si', '--show',  
         action='store_true',
         help='visualize output only if this argument is passed'
     )
@@ -68,9 +67,8 @@ def parse_opt():
         help='computation/training device, default is GPU if GPU present'
     )
     parser.add_argument(
-        '-ims', '--img-size', 
+        '-ims', '--imgsz', 
         default=None,
-        dest='img_size',
         type=int,
         help='resize image to, by default use the original frame/image size'
     )
@@ -89,8 +87,8 @@ def main(args):
 
     # Load the data configurations.
     data_configs = None
-    if args['config'] is not None:
-        with open(args['config']) as file:
+    if args['data'] is not None:
+        with open(args['data']) as file:
             data_configs = yaml.safe_load(file)
         NUM_CLASSES = data_configs['NC']
         CLASSES = data_configs['CLASSES']
@@ -120,8 +118,8 @@ def main(args):
         # If config file is not given, load from model dictionary.
         if data_configs is None:
             data_configs = True
-            NUM_CLASSES = checkpoint['config']['NC']
-            CLASSES = checkpoint['config']['CLASSES']
+            NUM_CLASSES = checkpoint['data']['NC']
+            CLASSES = checkpoint['data']['CLASSES']
         try:
             print('Building from model name arguments...')
             build_model = create_model[str(args['model'])]
@@ -149,8 +147,8 @@ def main(args):
     out = cv2.VideoWriter(f"{OUT_DIR}/{save_name}.mp4", 
                         cv2.VideoWriter_fourcc(*'mp4v'), 30, 
                         (frame_width, frame_height))
-    if args['img_size'] != None:
-        RESIZE_TO = args['img_size']
+    if args['imgsz'] != None:
+        RESIZE_TO = args['imgsz']
     else:
         RESIZE_TO = frame_width
 
@@ -209,7 +207,7 @@ def main(args):
             print_string += f"Forward pass + annotation time: {forward_and_annot_time:.3f} seconds"
             print(print_string)            
             out.write(frame)
-            if args['show_image']:
+            if args['show']:
                 cv2.imshow('Prediction', frame)
                 # Press `q` to exit
                 if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -1,14 +1,14 @@
 """
-usage
+USAGE
 
 # training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
-python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs/voc.yaml --no-mosaic --batch-size 4
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --data data_configs/voc.yaml --no-mosaic --batch 4
 
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default):
-python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --data data_configs/voc.yaml --name resnet50fpn_voc --batch 4
 
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default) and added training augmentations:
-python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --config data_configs/voc.yaml --project-name resnet50fpn_voc --batch-size 4
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --data data_configs/voc.yaml --name resnet50fpn_voc --batch 4
 """
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
@@ -62,7 +62,7 @@ def parse_opt():
         help='name of the model'
     )
     parser.add_argument(
-        '-c', '--config', 
+        '--data', 
         default=None,
         help='path to the data config file'
     )
@@ -84,8 +84,7 @@ def parse_opt():
         help='number of workers for data processing/transforms/augmentations'
     )
     parser.add_argument(
-        '-b', '--batch-size', 
-        dest='batch_size', 
+        '-b', '--batch', 
         default=4, 
         type=int, 
         help='batch size to load the data'
@@ -97,17 +96,15 @@ def parse_opt():
         type=float
     )
     parser.add_argument(
-        '-ims', '--img-size',
-        dest='img_size', 
+        '-ims', '--imgsz',
         default=640, 
         type=int, 
         help='image size to feed to the network'
     )
     parser.add_argument(
-        '-pn', '--project-name', 
+        '-n', '--name', 
         default=None, 
         type=str, 
-        dest='project_name',
         help='training result dir name in outputs/training/, (default res_#)'
     )
     parser.add_argument(
@@ -194,9 +191,9 @@ def main(args):
 
     # Initialize W&B with project name.
     if not args['disable_wandb']:
-        wandb_init(name=args['project_name'])
+        wandb_init(name=args['name'])
     # Load the data configurations
-    with open(args['config']) as file:
+    with open(args['data']) as file:
         data_configs = yaml.safe_load(file)
 
     init_seeds(args['seed'] + 1 + RANK, deterministic=True)
@@ -213,9 +210,9 @@ def main(args):
     print("device",DEVICE)
     NUM_EPOCHS = args['epochs']
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
-    BATCH_SIZE = args['batch_size']
+    BATCH_SIZE = args['batch']
     VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
-    OUT_DIR = set_training_dir(args['project_name'])
+    OUT_DIR = set_training_dir(args['name'])
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
     # Set logging file.
     set_log(OUT_DIR)
@@ -224,7 +221,7 @@ def main(args):
     yaml_save(file_path=os.path.join(OUT_DIR, 'opt.yaml'), data=args)
 
     # Model configurations
-    IMAGE_SIZE = args['img_size']
+    IMAGE_SIZE = args['imgsz']
     
     train_dataset = create_train_dataset(
         TRAIN_DIR_IMAGES, 
