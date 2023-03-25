@@ -26,20 +26,24 @@ if __name__ == '__main__':
     # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-c', '--config', 
+        '--data', 
         default='data_configs/test_image_config.yaml',
         help='(optional) path to the data config file'
     )
     parser.add_argument(
-        '-m', '--model', default='fasterrcnn_resnet50_fpn',
+        '-m', '--model', 
+        default='fasterrcnn_resnet50_fpn',
         help='name of the model'
     )
     parser.add_argument(
-        '-mw', '--weights', default=None,
+        '-mw', '--weights', 
+        default=None,
         help='path to trained checkpoint weights if providing custom YAML file'
     )
     parser.add_argument(
-        '-ims', '--img-size', dest='img_size', default=640, type=int, 
+        '-ims', '--imgsz', 
+        default=640, 
+        type=int, 
         help='image size to feed to the network'
     )
     parser.add_argument(
@@ -47,7 +51,9 @@ if __name__ == '__main__':
         help='number of workers for data processing/transforms/augmentations'
     )
     parser.add_argument(
-        '-b', '--batch-size', dest='batch_size', default=8, type=int, 
+        '-b', '--batch', 
+        default=8, 
+        type=int, 
         help='batch size to load the data'
     )
     parser.add_argument(
@@ -72,7 +78,7 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     # Load the data configurations
-    with open(args['config']) as file:
+    with open(args['data']) as file:
         data_configs = yaml.safe_load(file)
 
     # Validation settings and constants.
@@ -86,10 +92,10 @@ if __name__ == '__main__':
     CLASSES = data_configs['CLASSES']
     NUM_WORKERS = args['workers']
     DEVICE = args['device']
-    BATCH_SIZE = args['batch_size']
+    BATCH_SIZE = args['batch']
 
     # Model configurations
-    IMAGE_SIZE = args['img_size']
+    IMAGE_SIZE = args['imgsz']
 
     # Load the pretrained model
     create_model = create_model[args['model']]
