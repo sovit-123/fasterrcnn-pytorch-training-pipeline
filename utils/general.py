@@ -73,7 +73,7 @@ class SaveBestModel:
             torch.save({
                 'epoch': epoch+1,
                 'model_state_dict': model.state_dict(),
-                'config': config,
+                'data': config,
                 'model_name': model_name
                 }, f"{OUT_DIR}/best_model.pth")
 
@@ -228,7 +228,7 @@ def save_model(
                 'train_loss_list_epoch': train_loss_list_epoch,
                 'val_map': val_map,
                 'val_map_05': val_map_05,
-                'config': config,
+                'data': config,
                 'model_name': model_name
                 }, f"{OUT_DIR}/last_model.pth")
 
@@ -243,7 +243,7 @@ def save_model_state(model, OUT_DIR, config, model_name):
     """
     torch.save({
                 'model_state_dict': model.state_dict(),
-                'config': config,
+                'data': config,
                 'model_name': model_name
                 }, f"{OUT_DIR}/last_model_state.pth")
 
