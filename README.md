@@ -169,13 +169,13 @@ Next, to start the training, you can use the following command.
 **Command format:**
 
 ```
-python train.py --config <path to the data config YAML file> --epochs 100 --model <model name (defaults to fasterrcnn_resnet50)> --project-name <folder name inside output/training/> --batch-size 16
+python train.py --data <path to the data config YAML file> --epochs 100 --model <model name (defaults to fasterrcnn_resnet50)> --name <folder name inside output/training/> --batch 16
 ```
 
 **In this case, the exact command would be:**
 
 ```
-python train.py --config data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --project-name smoke_training --batch-size 16
+python train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16
 ```
 
 **The terimal output should be similar to the following:**
