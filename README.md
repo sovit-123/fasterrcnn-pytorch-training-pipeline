@@ -276,6 +276,20 @@ python inference_video.py
 python inference_video.py --input data/inference_data/video_1.mp4 --weights outputs/training/smoke_training/last_model_state.pth 
 ```
 
+## Evaluation
+
+Replace the required arguments according to your need.
+
+```
+python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/trial/best_model.pth --data data_configs/aquarium.yaml --batch 4
+```
+
+You can use the following command to show a table for class-wise Average Precision.
+
+```
+python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/trial/best_model.pth --data data_configs/aquarium.yaml --batch 4 --verbose
+```
+
 ## A List of All Model Flags to Use With the Training Script
 
 ```
