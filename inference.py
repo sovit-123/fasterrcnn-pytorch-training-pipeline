@@ -87,6 +87,12 @@ def parse_opt():
         action='store_true',
         help='do not show labels during on top of bounding boxes'
     )
+    parser.add_argument(
+        '--square-img',
+        dest='square_img',
+        action='store_true',
+        help='whether to use square image resize, else use aspect ratio resize'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -164,7 +170,9 @@ def main(args):
         else:
             RESIZE_TO = frame_width
         # orig_image = image.copy()
-        image_resized = resize(orig_image, RESIZE_TO)
+        image_resized = resize(
+            orig_image, RESIZE_TO, square=args['square_img']
+        )
         image = image_resized.copy()
         # BGR to RGB
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
