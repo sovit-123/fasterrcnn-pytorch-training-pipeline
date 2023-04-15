@@ -3,6 +3,9 @@ Export to ONNX.
 
 Requirements:
 pip install onnx onnxruntime
+
+USAGE:
+python export.py --weights outputs/training/fasterrcnn_resnet18_train/best_model.pth --data data_configs/coco.yaml --out model.onnx
 """
 
 import torch

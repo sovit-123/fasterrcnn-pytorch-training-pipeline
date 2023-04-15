@@ -1,3 +1,11 @@
+"""
+Script to run inference on videos using ONNX model.
+`--input` takes the path to a video.
+
+USAGE:
+python onnx_inference_video.py --input ../inference_data/video_4_trimmed_1.mp4 --weights weights/fasterrcnn_resnet18.onnx --data data_configs/voc.yaml --show --imgsz 640
+"""
+
 import numpy as np
 import cv2
 import torch
