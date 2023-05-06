@@ -335,7 +335,10 @@ def main(args):
         )
     try:
         torchinfo.summary(
-            model, device=DEVICE, input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE)
+            model, 
+            device=DEVICE, 
+            input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE),
+            row_settings=["var_names"]
         )
     except:
         print(model)

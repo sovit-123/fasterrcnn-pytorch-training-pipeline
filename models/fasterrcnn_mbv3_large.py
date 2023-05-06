@@ -12,7 +12,7 @@ from torchvision.models.detection.rpn import AnchorGenerator
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Load the pretrained MobileNetV3 large features.
-    backbone = torchvision.models.mobilenet_v3_large(pretrained=True).features
+    backbone = torchvision.models.mobilenet_v3_large(weights='DEFAULT').features
 
     # We need the output channels of the last convolutional layers from
     # the features for the Faster RCNN model.

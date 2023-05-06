@@ -5,7 +5,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 def create_model(num_classes, pretrained=True, coco_model=False):
     # Load Faster RCNN pre-trained model
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2(
-        weights=torchvision.models.detection.FasterRCNN_ResNet50_FPN_V2_Weights.DEFAULT
+        weights='DEFAULT'
     )
     if coco_model: # Return the COCO pretrained model for COCO classes.
         return model, coco_model

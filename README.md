@@ -32,6 +32,8 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 * [Setup on Windows](#Setup-on-Windows)
 * [Train on Custom Dataset](#Train-on-Custom-Dataset)
 * [Inference](#Inference)
+* [Evaluation](#Evaluation)
+* [Available Models](#A-List-of-All-Model-Flags-to-Use-With-the-Training-Script)
 
 ## Setup on Ubuntu
 
@@ -244,7 +246,7 @@ SAVING PLOTS COMPLETE...
 
 ### Image Inference on COCO Pretrained Model
 
-By default using Faster RCNN ResNet50 FPN model.
+By default using **Faster RCNN ResNet50 FPN V2** model.
 
 ```
 python inference.py
@@ -284,7 +286,7 @@ Replace the required arguments according to your need.
 python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/trial/best_model.pth --data data_configs/aquarium.yaml --batch 4
 ```
 
-You can use the following command to show a table for class-wise Average Precision.
+You can use the following command to show a table for **class-wise Average Precision** (`--verbose` additionally needed).
 
 ```
 python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/trial/best_model.pth --data data_configs/aquarium.yaml --batch 4 --verbose
@@ -292,9 +294,11 @@ python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/tri
 
 ## A List of All Model Flags to Use With the Training Script
 
+The following command expects the `coco` dataset to be present one directory inside the `input` folder in XML format. You can find the dataset [here on Kaggle](https://www.kaggle.com/datasets/sovitrath/coco-xml-format). 
+
 ```
 # Usage 
-python train.py --model fasterrcnn_resnet50_fpn_v2
+python train.py --model fasterrcnn_resnet50_fpn_v2 --data data_configs/coco.yaml
 ```
 
 **OR USE ANY ONE OF THE FOLLOWING**
@@ -313,12 +317,12 @@ python train.py --model fasterrcnn_resnet50_fpn_v2
     'fasterrcnn_mini_darknet',
     'fasterrcnn_mini_squeezenet1_1_small_head',
     'fasterrcnn_mini_squeezenet1_1_tiny_head',
-    'fasterrcnn_mobilenetv3_large_320_fpn',
-    'fasterrcnn_mobilenetv3_large_fpn',
+    'fasterrcnn_mobilenetv3_large_320_fpn', # Torchvision COCO pretrained
+    'fasterrcnn_mobilenetv3_large_fpn', # Torchvision COCO pretrained
     'fasterrcnn_nano',
     'fasterrcnn_resnet18',
-    'fasterrcnn_resnet50_fpn_v2',
-    'fasterrcnn_resnet50_fpn', 
+    'fasterrcnn_resnet50_fpn_v2', # Torchvision COCO pretrained
+    'fasterrcnn_resnet50_fpn',  # Torchvision COCO pretrained
     'fasterrcnn_resnet101',
     'fasterrcnn_resnet152',
     'fasterrcnn_squeezenet1_0',
