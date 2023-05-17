@@ -3,8 +3,8 @@ albumentations>=1.1.0
 ipython
 jupyter
 matplotlib
-opencv-python>=4.1.1.26
-opencv-python-headless>=4.1.1.26
+opencv-python>=4.1
+opencv-python-headless>=4.1
 Pillow
 PyYAML
 scikit-image
