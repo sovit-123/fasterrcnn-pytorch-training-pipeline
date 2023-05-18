@@ -34,6 +34,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 * [Inference](#Inference)
 * [Evaluation](#Evaluation)
 * [Available Models](#A-List-of-All-Model-Flags-to-Use-With-the-Training-Script)
+* [Tutorials](#Tutorials)
 
 ## Setup on Ubuntu
 
