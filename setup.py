@@ -7,14 +7,14 @@ with open("requirements.txt", "r") as fh:
     requirements = [line.strip() for line in fh]
 
 setup(
-    name='fasterrcnn-pytorch-training-pipeline',
+    name='fasterrcnn_pytorch_training_pipeline',
     version='0.1.0',
     author='Sovit Ranjan Rath',
     author_email='sovitrath5@gmail.com',
     description='A Simple Pipeline to Train PyTorch FasterRCNN Model',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline.git',
+    url='https://github.com/falibabaei/fasterrcnn_pytorch_training_pipeline.git',
     license='MIT',
     classifiers=[
         'Intended Audience :: Information Technology',
