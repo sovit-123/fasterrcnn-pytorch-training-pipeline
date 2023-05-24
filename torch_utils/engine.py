@@ -158,8 +158,8 @@ def evaluate(
             val_saved_image = save_validation_results(
                 images, outputs, counter, out_dir, classes, colors
             )
-        else:
-            val_saved_image=None
+        elif save_valid_preds == False and counter == 1:
+            val_saved_image = np.ones((1, 64, 64, 3))
             
 
     # gather the stats from all processes
