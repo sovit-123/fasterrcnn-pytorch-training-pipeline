@@ -16,6 +16,13 @@ def return_fasterrcnn_mobilenetv3_large_fpn(
     )
     return model
 
+def return_fasterrcnn_efficientnet_b4(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_efficientnet_b4.create_model(
+        num_classes, pretrained=pretrained, coco_model=coco_model
+    )
+    return model
 def return_fasterrcnn_mobilenetv3_large_320_fpn(
     num_classes, pretrained=True, coco_model=False
 ):    
@@ -200,9 +207,18 @@ def return_fasterrcnn_regnet_y_400mf(
     )
     return model
 
+def return_fasterrcnn_mbv3_large(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_mbv3_large.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
+    'fasterrcnn_efficientnet_b4':return_fasterrcnn_efficientnet_b4,
     'fasterrcnn_mobilenetv3_large_320_fpn': return_fasterrcnn_mobilenetv3_large_320_fpn,
     'fasterrcnn_resnet18': return_fasterrcnn_resnet18,
     'fasterrcnn_custom_resnet': return_fasterrcnn_custom_resnet,
@@ -225,5 +241,6 @@ create_model = {
     'fasterrcnn_vitdet': return_fasterrcnn_vitdet,
     'fasterrcnn_vitdet_tiny': return_fasterrcnn_vitdet_tiny,
     'fasterrcnn_mobilevit_xxs': return_fasterrcnn_mobilevit_xxs,
-    'fasterrcnn_regnet_y_400mf': return_fasterrcnn_regnet_y_400mf
+    'fasterrcnn_regnet_y_400mf': return_fasterrcnn_regnet_y_400mf,
+    'fasterrcnn_mbv3_large':return_fasterrcnn_mbv3_large,
 }
