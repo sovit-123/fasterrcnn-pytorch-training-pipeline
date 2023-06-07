@@ -19,9 +19,11 @@ def resize(im, img_size=640, square=False):
 # Define the training tranforms
 def get_train_aug():
     return A.Compose([
-        A.Blur(blur_limit=3, p=0.1),
-        A.MotionBlur(blur_limit=3, p=0.1),
-        A.MedianBlur(blur_limit=3, p=0.1),
+        A.OneOf([
+            A.Blur(blur_limit=3, p=0.5),
+            A.MotionBlur(blur_limit=3, p=0.5),
+            A.MedianBlur(blur_limit=3, p=0.5),
+        ], p=0.5),
         A.ToGray(p=0.1),
         A.RandomBrightnessContrast(p=0.1),
         A.ColorJitter(p=0.1),
