@@ -176,6 +176,12 @@ def parse_opt():
         help='whether to use the wandb'
     )
     parser.add_argument(
+        '--sync-bn',
+        dest='sync_bn',
+        help='use sync batch norm',
+        action='store_true'
+    )
+    parser.add_argument(
         '--seed',
         default=0,
         type=int ,
@@ -329,6 +335,8 @@ def main(args):
                 val_map_05 = checkpoint['val_map_05']
 
     model = model.to(DEVICE)
+    if args['sync_bn'] and args['distributed']:
+        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
     if args['distributed']:
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[args['gpu']]
