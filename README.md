@@ -243,6 +243,15 @@ IoU metric: bbox
 SAVING PLOTS COMPLETE...
 ```
 
+## Distributed Training
+
+**Training on 2 GPUs**:
+
+```
+export CUDA_VISIBLE_DEVICES=0,1
+python -m torch.distributed.launch --nproc_per_node=2 --use_env train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16
+```
+
 ## Inference
 
 ### Image Inference on COCO Pretrained Model

@@ -9,6 +9,10 @@ python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --data data_configs/v
 
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default) and added training augmentations:
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --use-train-aug --data data_configs/voc.yaml --name resnet50fpn_voc --batch 4
+
+# Distributed training:
+export CUDA_VISIBLE_DEVICES=0,1
+python -m torch.distributed.launch --nproc_per_node=2 --use_env train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16
 """
 from torch_utils.engine import (
     train_one_epoch, evaluate, utils
