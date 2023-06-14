@@ -182,6 +182,11 @@ def parse_opt():
         action='store_true'
     )
     parser.add_argument(
+        '--amp',
+        action='store_true',
+        help='use automatic mixed precision'
+    )
+    parser.add_argument(
         '--seed',
         default=0,
         type=int ,
@@ -220,6 +225,7 @@ def main(args):
     VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
     OUT_DIR = set_training_dir(args['name'])
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
+    SCALER = torch.cuda.amp.GradScaler() if args['amp'] else None
     # Set logging file.
     set_log(OUT_DIR)
     writer = set_summary_writer(OUT_DIR)
@@ -396,7 +402,8 @@ def main(args):
             epoch, 
             train_loss_hist,
             print_freq=100,
-            scheduler=scheduler
+            scheduler=scheduler,
+            scaler=SCALER
         )
 
         stats, val_pred_image = evaluate(
