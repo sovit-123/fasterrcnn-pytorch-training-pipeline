@@ -2,7 +2,7 @@
 USAGE
 
 # training with Faster RCNN ResNet50 FPN model without mosaic or any other augmentation:
-python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --data data_configs/voc.yaml --no-mosaic --batch 4
+python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --data data_configs/voc.yaml --mosaic 0 --batch 4
 
 # Training on ResNet50 FPN with custom project folder name with mosaic augmentation (ON by default):
 python train.py --model fasterrcnn_resnet50_fpn --epochs 2 --data data_configs/voc.yaml --name resnet50fpn_voc --batch 4
@@ -118,18 +118,18 @@ def parse_opt():
         help='visualize transformed images fed to the network'
     )
     parser.add_argument(
-        '-nm', '--no-mosaic', 
-        dest='no_mosaic', 
-        action='store_true',
-        help='pass this to not to use mosaic augmentation'
+        '--mosaic', 
+        default=1.0,
+        type=float,
+        help='probability of applying mosaic, (default, always apply)'
     )
     parser.add_argument(
         '-uta', '--use-train-aug', 
         dest='use_train_aug', 
         action='store_true',
-        help='whether to use train augmentation, uses some advanced \
-            augmentation that may make training difficult when used \
-            with mosaic'
+        help='whether to use train augmentation, blur, gray, \
+              brightness contrast, color jitter, random gamma \
+              all at once'
     )
     parser.add_argument(
         '-ca', '--cosine-annealing', 
@@ -170,7 +170,7 @@ def parse_opt():
         '--dist-url',
         default='env://',
         type=str,
-        help='url ysed to set up the distributed training'
+        help='url used to set up the distributed training'
     )
 
     parser.add_argument(
@@ -245,7 +245,7 @@ def main(args):
         IMAGE_SIZE, 
         CLASSES,
         use_train_aug=args['use_train_aug'],
-        no_mosaic=args['no_mosaic'],
+        mosaic=args['mosaic'],
         square_training=args['square_training']
     )
     valid_dataset = create_valid_dataset(
