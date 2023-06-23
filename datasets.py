@@ -26,7 +26,7 @@ class CustomDataset(Dataset):
         transforms=None, 
         use_train_aug=False,
         train=False, 
-        no_mosaic=False,
+        mosaic=1.0,
         square_training=False
     ):
         self.transforms = transforms
@@ -36,12 +36,12 @@ class CustomDataset(Dataset):
         self.img_size = img_size
         self.classes = classes
         self.train = train
-        self.no_mosaic = no_mosaic
         self.square_training = square_training
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.image_file_types = ['*.jpg', '*.jpeg', '*.png', '*.ppm', '*.JPG']
         self.all_image_paths = []
         self.log_annot_issue_x = True
+        self.mosaic = mosaic
         self.log_annot_issue_y = True
         
         # get all the image paths in sorted order
@@ -287,24 +287,24 @@ class CustomDataset(Dataset):
             torch.tensor(np.array(final_classes)), area, iscrowd, dims
 
     def __getitem__(self, idx):
-        # Capture the image name and the full image path.
-        if self.no_mosaic:
+        if not self.train: # No mosaic during validation.
             image, image_resized, orig_boxes, boxes, \
                 labels, area, iscrowd, dims = self.load_image_and_labels(
                 index=idx
             )
 
-        if self.train and not self.no_mosaic:
-            #while True:
-            image_resized, boxes, labels, \
-                area, iscrowd, dims = self.load_cutmix_image_and_boxes(
-                idx, resize_factor=(self.img_size, self.img_size)
-            )
-                # Only needed if we don't allow training without target bounding boxes
-               # if len(boxes) > 0:
-               #     break
-        
-        # visualize_mosaic_images(boxes, labels, image_resized, self.classes)
+        if self.train: 
+            mosaic_prob = random.uniform(0.0, 1.0)
+            if self.mosaic >= mosaic_prob:
+                image_resized, boxes, labels, \
+                    area, iscrowd, dims = self.load_cutmix_image_and_boxes(
+                    idx, resize_factor=(self.img_size, self.img_size)
+                )
+            else:
+                image, image_resized, orig_boxes, boxes, \
+                    labels, area, iscrowd, dims = self.load_image_and_labels(
+                    index=idx
+                )
 
         # Prepare the final `target` dictionary.
         target = {}
@@ -314,7 +314,6 @@ class CustomDataset(Dataset):
         target["iscrowd"] = iscrowd
         image_id = torch.tensor([idx])
         target["image_id"] = image_id
-
 
         if self.use_train_aug: # Use train augmentation if argument is passed.
             train_aug = get_train_aug()
@@ -353,7 +352,7 @@ def create_train_dataset(
     img_size, 
     classes,
     use_train_aug=False,
-    no_mosaic=False,
+    mosaic=1.0,
     square_training=False
 ):
     train_dataset = CustomDataset(
@@ -364,7 +363,7 @@ def create_train_dataset(
         get_train_transform(),
         use_train_aug=use_train_aug,
         train=True, 
-        no_mosaic=no_mosaic,
+        mosaic=mosaic,
         square_training=square_training
     )
     return train_dataset
@@ -382,7 +381,6 @@ def create_valid_dataset(
         classes, 
         get_valid_transform(),
         train=False, 
-        no_mosaic=True,
         square_training=square_training
     )
     return valid_dataset
