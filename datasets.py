@@ -13,6 +13,7 @@ from utils.transforms import (
     get_train_aug,
     transform_mosaic
 )
+from tqdm.auto import tqdm
 
 
 # the dataset class
@@ -54,22 +55,9 @@ class CustomDataset(Dataset):
         self.read_and_clean()
 
     def read_and_clean(self):
-        # Discard any images and labels when the XML 
-        # file does not contain any object.
-        for annot_path in self.all_annot_paths:
-            tree = et.parse(annot_path)
-            root = tree.getroot()
-            object_present = False
-            for member in root.findall('object'):
-                if member.find('bndbox'):
-                    object_present = True
-            if object_present == False:
-                image_name = annot_path.split(os.path.sep)[-1].split('.xml')[0]
-                image_root = self.all_image_paths[0].split(os.path.sep)[:-1]
-
-        # Discard any image file when no annotation file 
-        # is not found for the image. 
-        for image_name in self.all_images:
+        print('Checking Labels and images...')
+        # Discard any image file when no annotation file is found.
+        for image_name in tqdm(self.all_images, total=len(self.all_images)):
             possible_xml_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
             if possible_xml_name not in self.all_annot_paths:
                 print(f"{possible_xml_name} not found...")
@@ -104,65 +92,65 @@ class CustomDataset(Dataset):
         boxes = []
         orig_boxes = []
         labels = []
-        tree = et.parse(annot_file_path)
-        root = tree.getroot()
         
         # Get the height and width of the image.
         image_width = image.shape[1]
         image_height = image.shape[0]
                 
         # Box coordinates for xml files are extracted and corrected for image size given.
-        for member in root.findall('object'):
-            # Map the current object name to `classes` list to get
-            # the label index and append to `labels` list.
-            labels.append(self.classes.index(member.find('name').text))
-            
-            # xmin = left corner x-coordinates
-            xmin = float(member.find('bndbox').find('xmin').text)
-            # xmax = right corner x-coordinates
-            xmax = float(member.find('bndbox').find('xmax').text)
-            # ymin = left corner y-coordinates
-            ymin = float(member.find('bndbox').find('ymin').text)
-            # ymax = right corner y-coordinates
-            ymax = float(member.find('bndbox').find('ymax').text)
+        try:
+            tree = et.parse(annot_file_path)
+            root = tree.getroot()
+            for member in root.findall('object'):
+                # Map the current object name to `classes` list to get
+                # the label index and append to `labels` list.
+                labels.append(self.classes.index(member.find('name').text))
+                
+                # xmin = left corner x-coordinates
+                xmin = float(member.find('bndbox').find('xmin').text)
+                # xmax = right corner x-coordinates
+                xmax = float(member.find('bndbox').find('xmax').text)
+                # ymin = left corner y-coordinates
+                ymin = float(member.find('bndbox').find('ymin').text)
+                # ymax = right corner y-coordinates
+                ymax = float(member.find('bndbox').find('ymax').text)
 
-            xmin, ymin, xmax, ymax = self.check_image_and_annotation(
-                xmin, 
-                ymin, 
-                xmax, 
-                ymax, 
-                image_width, 
-                image_height, 
-                orig_data=True
-            )
+                xmin, ymin, xmax, ymax = self.check_image_and_annotation(
+                    xmin, 
+                    ymin, 
+                    xmax, 
+                    ymax, 
+                    image_width, 
+                    image_height, 
+                    orig_data=True
+                )
 
-            orig_boxes.append([xmin, ymin, xmax, ymax])
-            
-            # Resize the bounding boxes according to the
-            # desired `width`, `height`.
-            xmin_final = (xmin/image_width)*image_resized.shape[1]
-            xmax_final = (xmax/image_width)*image_resized.shape[1]
-            ymin_final = (ymin/image_height)*image_resized.shape[0]
-            ymax_final = (ymax/image_height)*image_resized.shape[0]
+                orig_boxes.append([xmin, ymin, xmax, ymax])
+                
+                # Resize the bounding boxes according to the
+                # desired `width`, `height`.
+                xmin_final = (xmin/image_width)*image_resized.shape[1]
+                xmax_final = (xmax/image_width)*image_resized.shape[1]
+                ymin_final = (ymin/image_height)*image_resized.shape[0]
+                ymax_final = (ymax/image_height)*image_resized.shape[0]
 
-            xmin_final, ymin_final, xmax_final, ymax_final = self.check_image_and_annotation(
-                xmin_final, 
-                ymin_final, 
-                xmax_final, 
-                ymax_final, 
-                image_resized.shape[1], 
-                image_resized.shape[0],
-                orig_data=False
-            )
-            
-            boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
-        
+                xmin_final, ymin_final, xmax_final, ymax_final = self.check_image_and_annotation(
+                    xmin_final, 
+                    ymin_final, 
+                    xmax_final, 
+                    ymax_final, 
+                    image_resized.shape[1], 
+                    image_resized.shape[0],
+                    orig_data=False
+                )
+                
+                boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
+        except:
+            pass
         # Bounding box to tensor.
         boxes_length = len(boxes)
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
-
         # Area of the bounding boxes.
-
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0]) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
         # No crowd instances.
         iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
