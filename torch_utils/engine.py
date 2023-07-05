@@ -158,6 +158,9 @@ def evaluate(
             val_saved_image = save_validation_results(
                 images, outputs, counter, out_dir, classes, colors
             )
+        else:
+            val_saved_image=None    
+     
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
