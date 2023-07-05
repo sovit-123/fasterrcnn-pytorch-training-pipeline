@@ -344,6 +344,8 @@ def main(args):
             if checkpoint['val_map_05']:
                 val_map_05 = checkpoint['val_map_05']
 
+    # Make the model transform's `min_size` same as `imgsz` argument. 
+    model.transform.min_size = (args['imgsz'], )
     model = model.to(DEVICE)
     if args['sync_bn'] and args['distributed']:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
@@ -356,7 +358,8 @@ def main(args):
             model, 
             device=DEVICE, 
             input_size=(BATCH_SIZE, 3, IMAGE_SIZE, IMAGE_SIZE),
-            row_settings=["var_names"]
+            row_settings=["var_names"],
+            col_names=("input_size", "output_size", "num_params") 
         )
     except:
         print(model)
