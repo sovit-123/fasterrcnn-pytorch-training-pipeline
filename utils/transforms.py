@@ -31,7 +31,45 @@ def get_train_aug():
         'format': 'pascal_voc',
         'label_fields': ['labels'],
     })
+def get_train_aug_custom(augmentation_choices):
+    transform_list = []
+    for key in augmentation_choices.keys():
+        if key == 'blur':
+            transform_list.append(A.Blur(p=augmentation_choices[key]['p'],blur_limit=augmentation_choices[key]['blur_limit']))
+        elif key == 'motion_blur':
+            transform_list.append(A.MotionBlur(p=augmentation_choices[key]['p'],blur_limit=augmentation_choices[key]['blur_limit']))
+        elif key == 'median_blur':
+            transform_list.append(A.MedianBlur(p=augmentation_choices[key]['p'],blur_limit=augmentation_choices[key]['blur_limit']))
+        elif key == 'to_gray':
+            transform_list.append(A.ToGray(p=augmentation_choices[key]['p']))
+        elif key == 'random_brightness_contrast':
+            transform_list.append(A.RandomBrightnessContrast(p=augmentation_choices[key]['p']))
+        elif key == 'color_jitter':
+            transform_list.append(A.ColorJitter(p=augmentation_choices[key]['p']))
+        elif key == 'random_gamma':
+            transform_list.append(A.RandomGamma(p=augmentation_choices[key]['p']))
+        elif key == 'horizontal_flip':
+            transform_list.append(A.HorizontalFlip(p=augmentation_choices[key]['p']))
+        elif key == 'vertical_flip':
+            transform_list.append(A.VerticalFlip(p=augmentation_choices[key]['p']))
+        elif key == 'rotate':
+            transform_list.append(A.Rotate(limit=augmentation_choices[key]['p']))
+        elif key == 'shift_scale_rotate':
+            transform_list.append(A.ShiftScaleRotate(shift_limit=augmentation_choices[key]['shift_limit'], 
+                                                     scale_limit=augmentation_choices[key]['scale_limit'], 
+                                                     rotate_limit=augmentation_choices[key]['rotate_limit']))
+        elif key == 'Cutout':
+            transform_list.append(A.ShiftScaleRotate(num_holes=augmentation_choices[key]['num_holes'], 
+                                                     max_h_size=augmentation_choices[key]['max_h_size'], 
+                                                     fill_value=augmentation_choices[key]['fill_value'],
+                                                     p=augmentation_choices[key]['p']))    
+        elif key == 'rotate':
+            transform_list.append(A.ChannelShuffle(p=augmentation_choices[key]['p']))    
+        transform_list.append(ToTensorV2(p=1.0))
 
+        bbox_params = {'format': 'pascal_voc', 'label_fields': ['labels']}
+
+        return A.Compose(transform_list, bbox_params=bbox_params)
 def get_train_transform():
     return A.Compose([
         ToTensorV2(p=1.0),
