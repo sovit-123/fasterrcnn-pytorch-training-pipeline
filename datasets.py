@@ -11,6 +11,7 @@ from utils.transforms import (
     get_train_transform, 
     get_valid_transform,
     get_train_aug,
+    get_train_aug_custom,
     transform_mosaic
 )
 
@@ -23,11 +24,13 @@ class CustomDataset(Dataset):
         labels_path, 
         img_size, 
         classes, 
+        aug_option,
         transforms=None, 
         use_train_aug=False,
         train=False, 
         no_mosaic=False,
-        square_training=False
+        square_training=False,
+     
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -43,6 +46,7 @@ class CustomDataset(Dataset):
         self.all_image_paths = []
         self.log_annot_issue_x = True
         self.log_annot_issue_y = True
+        self.aug_option=aug_option
         
         # get all the image paths in sorted order
         for file_type in self.image_file_types:
@@ -316,13 +320,14 @@ class CustomDataset(Dataset):
         target["image_id"] = image_id
 
 
-        if self.use_train_aug: # Use train augmentation if argument is passed.
-            train_aug = get_train_aug()
-            sample = train_aug(image=image_resized,
-                                     bboxes=target['boxes'],
-                                     labels=labels)
-            image_resized = sample['image']
-            target['boxes'] = torch.Tensor(sample['bboxes']).to(torch.int64)
+        if self.use_train_aug: # Use train augmentation if argument is passed.    
+                train_aug = get_train_aug_custom(self.aug_option)
+                sample = train_aug(image=image_resized,
+                                        bboxes=target['boxes'],
+                                        labels=labels)
+                image_resized = sample['image']
+                target['boxes'] = torch.Tensor(sample['bboxes']).to(torch.int64)
+
         else:
             sample = self.transforms(image=image_resized,
                                      bboxes=target['boxes'],
@@ -352,6 +357,7 @@ def create_train_dataset(
     train_dir_labels, 
     img_size, 
     classes,
+    aug_option,
     use_train_aug=False,
     no_mosaic=False,
     square_training=False
@@ -361,6 +367,7 @@ def create_train_dataset(
         train_dir_labels,
         img_size, 
         classes, 
+        aug_option,
         get_train_transform(),
         use_train_aug=use_train_aug,
         train=True, 
@@ -373,6 +380,7 @@ def create_valid_dataset(
     valid_dir_labels, 
     img_size, 
     classes,
+    aug_option,
     square_training=False
 ):
     valid_dataset = CustomDataset(
@@ -380,6 +388,7 @@ def create_valid_dataset(
         valid_dir_labels, 
         img_size, 
         classes, 
+        aug_option,
         get_valid_transform(),
         train=False, 
         no_mosaic=True,
