@@ -181,39 +181,39 @@ def wandb_log(
     )
 
     bg = np.full((image_size * 2, image_size * 2, 3), 114, dtype=np.float32)
-
-    if val_pred_image is not None and len(val_pred_image) == 1:
-        log_image = overlay_on_canvas(bg, val_pred_image[0])
-        wandb.log({'predictions': [wandb.Image(log_image)]})
-
-    elif len(val_pred_image) == 2:
-        log_image = cv2.hconcat(
-            [
-                overlay_on_canvas(bg, val_pred_image[0]), 
-                overlay_on_canvas(bg, val_pred_image[1])
-            ]
-        )
-        wandb.log({'predictions': [wandb.Image(log_image)]})
-
-    elif len(val_pred_image) > 2 and len(val_pred_image) <= 8:
-        log_image = overlay_on_canvas(bg, val_pred_image[0])
-        for i in range(len(val_pred_image)-1):
-            log_image = cv2.hconcat([
-                log_image, 
-                overlay_on_canvas(bg, val_pred_image[i+1])
-            ])
-        wandb.log({'predictions': [wandb.Image(log_image)]})
+    if val_pred_image is not None:
+        if   len(val_pred_image) == 1:
+            log_image = overlay_on_canvas(bg, val_pred_image[0])
+            wandb.log({'predictions': [wandb.Image(log_image)]})
     
-    elif len(val_pred_image) > 8:
-        log_image = overlay_on_canvas(bg, val_pred_image[0])
-        for i in range(len(val_pred_image)-1):
-            if i == 7:
-                break
-            log_image = cv2.hconcat([
-                log_image, 
-                overlay_on_canvas(bg, val_pred_image[i-1])
-            ])
-        wandb.log({'predictions': [wandb.Image(log_image)]})
+        elif len(val_pred_image) == 2:
+            log_image = cv2.hconcat(
+                [
+                    overlay_on_canvas(bg, val_pred_image[0]), 
+                    overlay_on_canvas(bg, val_pred_image[1])
+                ]
+            )
+            wandb.log({'predictions': [wandb.Image(log_image)]})
+    
+        elif len(val_pred_image) > 2 and len(val_pred_image) <= 8:
+            log_image = overlay_on_canvas(bg, val_pred_image[0])
+            for i in range(len(val_pred_image)-1):
+                log_image = cv2.hconcat([
+                    log_image, 
+                    overlay_on_canvas(bg, val_pred_image[i+1])
+                ])
+            wandb.log({'predictions': [wandb.Image(log_image)]})
+        
+        elif len(val_pred_image) > 8:
+            log_image = overlay_on_canvas(bg, val_pred_image[0])
+            for i in range(len(val_pred_image)-1):
+                if i == 7:
+                    break
+                log_image = cv2.hconcat([
+                    log_image, 
+                    overlay_on_canvas(bg, val_pred_image[i-1])
+                ])
+            wandb.log({'predictions': [wandb.Image(log_image)]})
 
 def wandb_save_model(model_dir):
     """
