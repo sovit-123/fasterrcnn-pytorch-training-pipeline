@@ -182,11 +182,11 @@ def wandb_log(
 
     bg = np.full((image_size * 2, image_size * 2, 3), 114, dtype=np.float32)
 
-    if len(val_pred_image) == 1:
+    if val_pred_image is not None and len(val_pred_image) == 1:
         log_image = overlay_on_canvas(bg, val_pred_image[0])
         wandb.log({'predictions': [wandb.Image(log_image)]})
 
-    if len(val_pred_image) == 2:
+    elif len(val_pred_image) == 2:
         log_image = cv2.hconcat(
             [
                 overlay_on_canvas(bg, val_pred_image[0]), 
@@ -195,7 +195,7 @@ def wandb_log(
         )
         wandb.log({'predictions': [wandb.Image(log_image)]})
 
-    if len(val_pred_image) > 2 and len(val_pred_image) <= 8:
+    elif len(val_pred_image) > 2 and len(val_pred_image) <= 8:
         log_image = overlay_on_canvas(bg, val_pred_image[0])
         for i in range(len(val_pred_image)-1):
             log_image = cv2.hconcat([
@@ -204,7 +204,7 @@ def wandb_log(
             ])
         wandb.log({'predictions': [wandb.Image(log_image)]})
     
-    if len(val_pred_image) > 8:
+    elif len(val_pred_image) > 8:
         log_image = overlay_on_canvas(bg, val_pred_image[0])
         for i in range(len(val_pred_image)-1):
             if i == 7:
