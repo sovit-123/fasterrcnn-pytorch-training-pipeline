@@ -3,6 +3,10 @@ TRAIN_DIR_IMAGES: '../input/Aquarium Combined.v2-raw-1024.voc/train'
 TRAIN_DIR_LABELS: '../input/Aquarium Combined.v2-raw-1024.voc/train'
 VALID_DIR_IMAGES: '../input/Aquarium Combined.v2-raw-1024.voc/valid'
 VALID_DIR_LABELS: '../input/Aquarium Combined.v2-raw-1024.voc/valid'
+# Optional test data path. If given, test paths (data) will be used in
+# `eval.py`.
+TEST_DIR_IMAGES: '../input/Aquarium Combined.v2-raw-1024.voc/test'
+TEST_DIR_LABELS: '../input/Aquarium Combined.v2-raw-1024.voc/test'
 
 # Class names.
 CLASSES: [

@@ -3,6 +3,10 @@ TRAIN_DIR_IMAGES: '../input/GTSDB/train_images'
 TRAIN_DIR_LABELS: '../input/GTSDB/train_xmls'
 VALID_DIR_IMAGES: '../input/GTSDB/valid_images'
 VALID_DIR_LABELS: '../input/GTSDB/valid_xmls'
+# Optional test data path. If given, test paths (data) will be used in
+# `eval.py`.
+# TEST_DIR_IMAGES: 
+# TEST_DIR_LABELS: 
 
 # Class names.
 CLASSES: [

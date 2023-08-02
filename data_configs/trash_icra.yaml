@@ -5,6 +5,8 @@ TRAIN_DIR_IMAGES: '../input/trash_icra_xml/images/train'
 TRAIN_DIR_LABELS: '../input/trash_icra_xml/labels/train'
 VALID_DIR_IMAGES: '../input/trash_icra_xml/images/valid'
 VALID_DIR_LABELS: '../input/trash_icra_xml/labels/valid'
+# Optional test data path. If given, test paths (data) will be used in
+# `eval.py`.
 TEST_DIR_IMAGES: '../input/trash_icra_xml/images/test'
 TEST_DIR_LABELS: '../input/trash_icra_xml/labels/test'
 

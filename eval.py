@@ -2,7 +2,7 @@
 Run evaluation on a trained model to get mAP and class wise AP.
 
 USAGE:
-python eval.py --config data_configs/voc.yaml --weights outputs/training/fasterrcnn_convnext_small_voc_15e_noaug/best_model.pth --model fasterrcnn_convnext_small
+python eval.py --data data_configs/voc.yaml --weights outputs/training/fasterrcnn_convnext_small_voc_15e_noaug/best_model.pth --model fasterrcnn_convnext_small
 """
 from datasets import (
     create_valid_dataset, create_valid_loader
