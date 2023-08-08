@@ -119,7 +119,7 @@ def parse_opt():
     )
     parser.add_argument(
         '--mosaic', 
-        default=1.0,
+        default=0.0,
         type=float,
         help='probability of applying mosaic, (default, always apply)'
     )
