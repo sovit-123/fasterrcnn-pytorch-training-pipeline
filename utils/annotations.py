@@ -1,16 +1,12 @@
 import numpy as np
 import cv2
 
-def inference_annotations(
+def convert_detections(
     outputs, 
     detection_threshold, 
     classes,
-    colors, 
-    orig_image, 
-    image, 
     args
 ):
-    height, width, _ = orig_image.shape
     boxes = outputs[0]['boxes'].data.numpy()
     scores = outputs[0]['scores'].data.numpy()
 
@@ -32,6 +28,19 @@ def inference_annotations(
         # Get all the predicited class names.
         pred_classes = [classes[i] for i in outputs[0]['labels'].cpu().numpy()]
 
+    return draw_boxes, pred_classes, scores
+
+def inference_annotations(
+    draw_boxes, 
+    pred_classes, 
+    scores, 
+    classes,
+    colors, 
+    orig_image, 
+    image, 
+    args
+):
+    height, width, _ = orig_image.shape
     lw = max(round(sum(orig_image.shape) / 2 * 0.003), 2)  # Line width.
     tf = max(lw - 1, 1) # Font thickness.
     

@@ -10,9 +10,12 @@ import matplotlib.pyplot as plt
 
 from models.create_fasterrcnn_model import create_model
 from utils.general import set_infer_dir
-from utils.annotations import inference_annotations, annotate_fps
+from utils.annotations import (
+    inference_annotations, annotate_fps, convert_detections
+)
 from utils.transforms import infer_transforms, resize
 from torchvision import transforms as transforms
+from deep_sort_realtime.deepsort_tracker import DeepSort
 
 def read_return_video_data(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -91,12 +94,19 @@ def parse_opt():
         default=None,
         help='filter classes by visualization, --classes 1 2 3'
     )
+    parser.add_argument(
+        '--track',
+        action='store_true'
+    )
     args = vars(parser.parse_args())
     return args
 
 def main(args):
     # For same annotation colors each time.
     np.random.seed(42)
+
+    # Initialize Deep SORT tracker if tracker is selected.
+    tracker = DeepSort(max_age=30)
 
     # Load the data configurations.
     data_configs = None
@@ -200,9 +210,13 @@ def main(args):
             outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
+                draw_boxes, pred_classes, scores = convert_detections(
+                    outputs, detection_threshold, CLASSES, args
+                )
                 frame = inference_annotations(
-                    outputs, 
-                    detection_threshold, 
+                    draw_boxes, 
+                    pred_classes, 
+                    scores,
                     CLASSES, 
                     COLORS, 
                     orig_frame, 

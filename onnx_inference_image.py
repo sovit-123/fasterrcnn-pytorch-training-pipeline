@@ -19,7 +19,9 @@ import matplotlib.pyplot as plt
 
 from utils.transforms import infer_transforms, resize
 from utils.general import set_infer_dir
-from utils.annotations import inference_annotations
+from utils.annotations import (
+    inference_annotations, annotate_fps, convert_detections
+)
 
 def collect_all_images(dir_test):
     """
@@ -165,9 +167,13 @@ def main(args):
 
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
+            draw_boxes, pred_classes, scores = convert_detections(
+                outputs, detection_threshold, CLASSES, args
+            )
             orig_image = inference_annotations(
-                outputs, 
-                detection_threshold, 
+                draw_boxes, 
+                pred_classes, 
+                scores,
                 CLASSES,
                 COLORS, 
                 orig_image, 

@@ -9,7 +9,9 @@ import yaml
 import matplotlib.pyplot as plt
 
 from models.create_fasterrcnn_model import create_model
-from utils.annotations import inference_annotations
+from utils.annotations import (
+    inference_annotations, annotate_fps, convert_detections
+)
 from utils.general import set_infer_dir
 from utils.transforms import infer_transforms, resize
 
@@ -201,9 +203,13 @@ def main(args):
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
+            draw_boxes, pred_classes, scores = convert_detections(
+                outputs, detection_threshold, CLASSES, args
+            )
             orig_image = inference_annotations(
-                outputs, 
-                detection_threshold, 
+                draw_boxes, 
+                pred_classes, 
+                scores,
                 CLASSES,
                 COLORS, 
                 orig_image, 

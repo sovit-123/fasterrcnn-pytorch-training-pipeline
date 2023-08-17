@@ -17,7 +17,9 @@ import yaml
 import onnxruntime
 
 from utils.general import set_infer_dir
-from utils.annotations import inference_annotations, annotate_fps
+from utils.annotations import (
+    inference_annotations, annotate_fps, convert_detections
+)
 from utils.transforms import infer_transforms, resize
 
 def read_return_video_data(video_path):
@@ -165,9 +167,13 @@ def main(args):
 
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
+                draw_boxes, pred_classes, scores = convert_detections(
+                    outputs, detection_threshold, CLASSES, args
+                )
                 frame = inference_annotations(
-                    outputs, 
-                    detection_threshold, 
+                    draw_boxes, 
+                    pred_classes, 
+                    scores,
                     CLASSES, 
                     COLORS, 
                     orig_frame, 
