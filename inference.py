@@ -93,6 +93,13 @@ def parse_opt():
         action='store_true',
         help='whether to use square image resize, else use aspect ratio resize'
     )
+    parser.add_argument(
+        '--classes',
+        nargs='+',
+        type=int,
+        default=None,
+        help='filter classes by visualization, --classes 1 2 3'
+    )
     args = vars(parser.parse_args())
     return args
 

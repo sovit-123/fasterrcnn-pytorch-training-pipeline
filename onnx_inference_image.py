@@ -88,6 +88,13 @@ def parse_opt():
         action='store_true',
         help='do not show labels during on top of bounding boxes'
     )
+    parser.add_argument(
+        '--classes',
+        nargs='+',
+        type=int,
+        default=None,
+        help='filter classes by visualization, --classes 1 2 3'
+    )
     args = vars(parser.parse_args())
     return args
 

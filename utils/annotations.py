@@ -13,11 +13,24 @@ def inference_annotations(
     height, width, _ = orig_image.shape
     boxes = outputs[0]['boxes'].data.numpy()
     scores = outputs[0]['scores'].data.numpy()
-    # Filter out boxes according to `detection_threshold`.
-    boxes = boxes[scores >= detection_threshold].astype(np.int32)
-    draw_boxes = boxes.copy()
-    # Get all the predicited class names.
-    pred_classes = [classes[i] for i in outputs[0]['labels'].cpu().numpy()]
+
+    # Filter by classes if args.classes is not None.
+    if args['classes'] is not None:
+        labels = outputs[0]['labels'].cpu().numpy()
+        lbl_mask = np.isin(labels, args['classes'])
+        scores = scores[lbl_mask]
+        mask = scores > detection_threshold
+        draw_boxes = boxes[lbl_mask][mask]
+        scores = scores[mask]
+        labels = labels[lbl_mask][mask]
+        pred_classes = [classes[i] for i in labels]
+    # Else get outputs for all classes.
+    else:
+        # Filter out boxes according to `detection_threshold`.
+        boxes = boxes[scores >= detection_threshold].astype(np.int32)
+        draw_boxes = boxes.copy()
+        # Get all the predicited class names.
+        pred_classes = [classes[i] for i in outputs[0]['labels'].cpu().numpy()]
 
     lw = max(round(sum(orig_image.shape) / 2 * 0.003), 2)  # Line width.
     tf = max(lw - 1, 1) # Font thickness.
