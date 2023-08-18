@@ -17,8 +17,15 @@ import yaml
 import onnxruntime
 
 from utils.general import set_infer_dir
-from utils.annotations import inference_annotations, annotate_fps
+from utils.annotations import (
+    inference_annotations, 
+    annotate_fps, 
+    convert_detections,
+    convert_pre_track,
+    convert_post_track
+)
 from utils.transforms import infer_transforms, resize
+from deep_sort_realtime.deepsort_tracker import DeepSort
 
 def read_return_video_data(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -89,11 +96,17 @@ def parse_opt():
         default=None,
         help='filter classes by visualization, --classes 1 2 3'
     )
+    parser.add_argument(
+        '--track',
+        action='store_true'
+    )
     args = vars(parser.parse_args())
     return args
 
 def main(args):
     np.random.seed(42)
+    # Initialize Deep SORT tracker if tracker is selected.
+    tracker = DeepSort(max_age=30)
     # Load model.
     ort_session = onnxruntime.InferenceSession(
         args['weights'], providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
@@ -165,9 +178,20 @@ def main(args):
 
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
+                draw_boxes, pred_classes, scores = convert_detections(
+                    outputs, detection_threshold, CLASSES, args
+                )
+                if args['track']:
+                    tracker_inputs = convert_pre_track(
+                        draw_boxes, pred_classes, scores
+                    )
+                    # Update tracker with detections.
+                    tracks = tracker.update_tracks(tracker_inputs, frame=frame)
+                    draw_boxes, pred_classes, scores = convert_post_track(tracks) 
                 frame = inference_annotations(
-                    outputs, 
-                    detection_threshold, 
+                    draw_boxes, 
+                    pred_classes, 
+                    scores,
                     CLASSES, 
                     COLORS, 
                     orig_frame, 

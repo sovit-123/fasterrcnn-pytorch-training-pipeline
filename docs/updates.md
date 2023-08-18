@@ -1,5 +1,15 @@
 # Updates
 
+## 2023-8-18
+
+* Filter classes to visualize during inference using the `--classes` command line argument with space separated class indices from the dataset YAML file. 
+
+  For example, to visualize only persons in COCO dataset, use,  `python inference.py --classes 1 <rest of the command>`
+
+  To visualize person and car, use, `python inference.py --classes 1 3 <rest of the command>`
+
+* Added Deep SORT Real-Time tracking to `inference_video.py` and `onnx_video_inference.py`. Using `--track` command with the usual inference command. Support for **MobileNet** Re-ID for now.
+
 ## 2023-02-02
 
 * New DenseNet backbones.
