@@ -11,7 +11,11 @@ import matplotlib.pyplot as plt
 from models.create_fasterrcnn_model import create_model
 from utils.general import set_infer_dir
 from utils.annotations import (
-    inference_annotations, annotate_fps, convert_detections
+    inference_annotations, 
+    annotate_fps, 
+    convert_detections,
+    convert_pre_track,
+    convert_post_track
 )
 from utils.transforms import infer_transforms, resize
 from torchvision import transforms as transforms
@@ -213,6 +217,13 @@ def main(args):
                 draw_boxes, pred_classes, scores = convert_detections(
                     outputs, detection_threshold, CLASSES, args
                 )
+                if args['track']:
+                    tracker_inputs = convert_pre_track(
+                        draw_boxes, pred_classes, scores
+                    )
+                    # Update tracker with detections.
+                    tracks = tracker.update_tracks(tracker_inputs, frame=frame)
+                    draw_boxes, pred_classes, scores = convert_post_track(tracks) 
                 frame = inference_annotations(
                     draw_boxes, 
                     pred_classes, 

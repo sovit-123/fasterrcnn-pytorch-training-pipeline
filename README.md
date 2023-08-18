@@ -14,7 +14,17 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 * [Find blog posts/tutorials on DebuggerCafe](#Tutorials)
 
-## [Check Updates Here](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/blob/main/docs/updates.md)
+## [Check All Updates Here](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/blob/main/docs/updates.md)
+
+**Latest Update**
+
+* Filter classes to visualize during inference using the `--classes` command line argument with space separated class indices from the dataset YAML file. 
+
+  For example, to visualize only persons in COCO dataset, use,  `python inference.py --classes 1 <rest of the command>`
+
+  To visualize person and car, use, `python inference.py --classes 1 3 <rest of the command>`
+
+* Added Deep SORT Real-Time tracking to `inference_video.py` and `onnx_video_inference.py`. Using `--track` command with the usual inference command. Support for **MobileNet** Re-ID for now.
 
 ## Custom Model Naming Conventions
 
