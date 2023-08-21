@@ -172,7 +172,6 @@ def parse_opt():
         type=str,
         help='url used to set up the distributed training'
     )
-
     parser.add_argument(
         '-dw', '--disable-wandb',
         dest="disable_wandb",
@@ -195,6 +194,14 @@ def parse_opt():
         default=0,
         type=int ,
         help='golabl seed for training'
+    )
+    parser.add_argument(
+        '--project-dir',
+        dest='project_dir',
+        default=None,
+        help='save resutls to custom dir instead of `outputs` directory, \
+              --project-dir will be named if not already present',
+        type=str
     )
 
     args = vars(parser.parse_args())
@@ -227,7 +234,7 @@ def main(args):
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch']
     VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
-    OUT_DIR = set_training_dir(args['name'])
+    OUT_DIR = set_training_dir(args['name'], args['project_dir'])
     COLORS = np.random.uniform(0, 1, size=(len(CLASSES), 3))
     SCALER = torch.cuda.amp.GradScaler() if args['amp'] else None
     # Set logging file.
