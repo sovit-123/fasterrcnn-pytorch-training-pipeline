@@ -309,12 +309,15 @@ def set_infer_dir():
     os.makedirs(new_dir_name, exist_ok=True)
     return new_dir_name
 
-def set_training_dir(dir_name=None):
+def set_training_dir(dir_name=None, project_dir=None):
     """
     This functions counts the number of training directories already present
     and creates a new one in `outputs/training/`. 
     And returns the directory path.
     """
+    if project_dir != None:
+        os.makedirs(project_dir, exist_ok=True)
+        return project_dir
     if not os.path.exists('outputs/training'):
         os.makedirs('outputs/training')
     if dir_name:
