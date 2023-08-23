@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 from utils.transforms import infer_transforms, resize
 from utils.general import set_infer_dir
 from utils.annotations import (
-    inference_annotations, annotate_fps, convert_detections
+    inference_annotations, convert_detections
 )
 
 def collect_all_images(dir_test):
@@ -96,6 +96,10 @@ def parse_opt():
         type=int,
         default=None,
         help='filter classes by visualization, --classes 1 2 3'
+    )
+    parser.add_argument(
+        '--track',
+        action='store_true'
     )
     args = vars(parser.parse_args())
     return args
