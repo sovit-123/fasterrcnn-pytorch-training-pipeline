@@ -105,8 +105,8 @@ def parse_opt():
 
 def main(args):
     np.random.seed(42)
-    # Initialize Deep SORT tracker if tracker is selected.
-    tracker = DeepSort(max_age=30)
+    if args['track']: # Initialize Deep SORT tracker if tracker is selected.
+        tracker = DeepSort(max_age=30)
     # Load model.
     ort_session = onnxruntime.InferenceSession(
         args['weights'], providers=['CUDAExecutionProvider', 'CPUExecutionProvider']

@@ -109,8 +109,8 @@ def main(args):
     # For same annotation colors each time.
     np.random.seed(42)
 
-    # Initialize Deep SORT tracker if tracker is selected.
-    tracker = DeepSort(max_age=30)
+    if args['track']: # Initialize Deep SORT tracker if tracker is selected.
+        tracker = DeepSort(max_age=30)
 
     # Load the data configurations.
     data_configs = None
