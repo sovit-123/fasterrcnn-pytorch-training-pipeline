@@ -50,7 +50,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 1. Clone the repository.
 
-   ```
+   ```bash
    git clone https://github.com/sovit-123/fastercnn-pytorch-training-pipeline.git
    ```
 
@@ -58,19 +58,19 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
    1. **Method 1**: If you have CUDA and cuDNN set up already, do this in your environment of choice.
 
-      ```
+      ```bash
       pip install -r requirements.txt
       ```
 
    2. **Method 2**: If you want to install PyTorch with CUDA Toolkit in your environment of choice.
 
-      ```
+      ```bash
       conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
       ```
 
       OR
 
-      ```
+      ```bash
       conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
       ```
 
@@ -88,25 +88,25 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 2. Then install the proper **`pycocotools`** for Windows.
 
-   ```
+   ```bash
    pip install git+https://github.com/gautamchitnis/cocoapi.git@cocodataset-master#subdirectory=PythonAPI
    ```
 
 3. Clone the repository.
 
-   ```
+   ```bash
    git clone https://github.com/sovit-123/fastercnn-pytorch-training-pipeline.git
    ```
 
 4. Install PyTorch with CUDA support.
 
-   ```
+   ```bash
    conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
    ```
 
    OR
 
-   ```
+   ```bash
    conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
    ```
 
@@ -118,7 +118,7 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 Taking an exmaple of the [smoke dataset](https://www.kaggle.com/didiruh/smoke-pascal-voc) from Kaggle. Let's say that the dataset is in the `data/smoke_pascal_voc` directory in the following format. And the `smoke.yaml` is in the `data_configs` directory. Assuming, we store the smoke data in the `data` directory
 
-```
+```bash
 ├── data
 │   ├── smoke_pascal_voc
 │   │   ├── archive
@@ -181,13 +181,13 @@ Next, to start the training, you can use the following command.
 
 **Command format:**
 
-```
+```bash
 python train.py --data <path to the data config YAML file> --epochs 100 --model <model name (defaults to fasterrcnn_resnet50)> --name <folder name inside output/training/> --batch 16
 ```
 
 **In this case, the exact command would be:**
 
-```
+```bash
 python train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16
 ```
 
@@ -257,7 +257,7 @@ SAVING PLOTS COMPLETE...
 
 **Training on 2 GPUs**:
 
-```
+```bash
 export CUDA_VISIBLE_DEVICES=0,1
 python -m torch.distributed.launch --nproc_per_node=2 --use_env train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16
 ```
@@ -268,13 +268,13 @@ python -m torch.distributed.launch --nproc_per_node=2 --use_env train.py --data 
 
 By default using **Faster RCNN ResNet50 FPN V2** model.
 
-```
+```bash
 python inference.py
 ```
 
 Use model of your choice with an image input.
 
-```
+```bash
 python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input example_test_data/image_1.jpg
 ```
 
@@ -282,41 +282,60 @@ python inference.py --model fasterrcnn_mobilenetv3_large_fpn --input example_tes
 
 In this case you only need to give the weights file path and input file path. The config file and the model name are optional. If not provided they will will be automatically inferred from the weights file.
 
-```
+```bash
 python inference.py --input data/inference_data/image_1.jpg --weights outputs/training/smoke_training/last_model_state.pth
 ```
 
 ### Video Inference on COCO Pretrrained Model
 
-```
+```bash
 python inference_video.py
 ```
 
 ### Video Inference in Custom Trained Model
 
-```
+```bash
 python inference_video.py --input data/inference_data/video_1.mp4 --weights outputs/training/smoke_training/last_model_state.pth 
+```
+
+### Tracking using COCO Pretrained Models
+
+```bash
+# Track all COCO classes (Faster RCNN ResNet50 FPN V2).
+python inference_video.py --track --model fasterrcnn_resnet50_fpn_v2 --show
+
+# Track all COCO classes (Faster RCNN ResNet50 FPN V2) using own video.
+python inference_video.py --track --model fasterrcnn_resnet50_fpn_v2 --show --input ../inference_data/video_1.mp4
+
+# Tracking only person class (index 1 in COCO pretrained). Check `COCO_91_CLASSES` attribute in `data_configs/coco.yaml` for more information.
+python inference_video.py --track --model fasterrcnn_resnet50_fpn_v2 --show --input ../inference_data/video_4.mp4 --classes 1
+
+# Tracking only person and car classes (indices 1 and 3 in COCO pretrained). Check `COCO_91_CLASSES` attribute in `data_configs/coco.yaml` for more information.
+python inference_video.py --track --model fasterrcnn_resnet50_fpn_v2 --show --input ../inference_data/video_4.mp4 --classes 1 3
+
+# Tracking using custom trained weights. Just provide the path to the weights instead of model name.
+python inference_video.py --track --weights outputs/training/fish_det/best_model.pth --show --input ../inference_data/video_6.mp4
 ```
 
 ## Evaluation
 
 Replace the required arguments according to your need.
 
-```
+```bash
 python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/trial/best_model.pth --data data_configs/aquarium.yaml --batch 4
 ```
 
 You can use the following command to show a table for **class-wise Average Precision** (`--verbose` additionally needed).
 
-```
+```bash
 python eval.py --model fasterrcnn_resnet50_fpn_v2 --weights outputs/training/trial/best_model.pth --data data_configs/aquarium.yaml --batch 4 --verbose
 ```
 
 ## A List of All Model Flags to Use With the Training Script
 
-The following command expects the `coco` dataset to be present one directory inside the `input` folder in XML format. You can find the dataset [here on Kaggle](https://www.kaggle.com/datasets/sovitrath/coco-xml-format). 
+The following command expects the `coco` dataset to be present one directory back inside the `input` folder in XML format. You can find the dataset [here on Kaggle](https://www.kaggle.com/datasets/sovitrath/coco-xml-format). Check the `data_configs/coco.yaml` for more details. You can change the relative dataset path in the YAML file according to your structure.
 
-```
+```bash
 # Usage 
 python train.py --model fasterrcnn_resnet50_fpn_v2 --data data_configs/coco.yaml
 ```

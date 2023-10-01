@@ -4,7 +4,7 @@ ipython
 jupyter
 matplotlib
 opencv-python>=4.1.1.26
-opencv-python-headless>=4.1.1.26
+# opencv-python-headless>=4.1.1.26
 Pillow
 PyYAML
 scikit-image
