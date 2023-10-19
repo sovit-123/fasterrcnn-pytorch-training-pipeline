@@ -78,16 +78,18 @@ if __name__ == '__main__':
     # Model configurations
     IMAGE_WIDTH = args['img_size']
     IMAGE_HEIGHT = args['img_size']
-    
     valid_dataset = create_valid_dataset(
-        VALID_DIR_IMAGES, VALID_DIR_LABELS, 
-        IMAGE_WIDTH, IMAGE_HEIGHT, CLASSES
-    )
+            VALID_DIR_IMAGES, 
+            VALID_DIR_LABELS, 
+            args['img_size'],
+            CLASSES,
+            square_training=True
+        )
     valid_loader = create_valid_loader(valid_dataset, BATCH_SIZE, NUM_WORKERS)
 
     coco_evaluator, stats = evaluate(
             model, 
             valid_loader, 
             device=DEVICE,
-            classes=CLASSES,
+            # classes=CLASSES,
     )

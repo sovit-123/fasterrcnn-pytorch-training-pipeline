@@ -139,6 +139,7 @@ if __name__ == '__main__':
         classes=None,
         colors=None
     ):
+        metric = MeanAveragePrecision(class_metrics=args['verbose'])
         n_threads = torch.get_num_threads()
         # FIXME remove this and make paste_masks_in_image run on the GPU
         torch.set_num_threads(1)
@@ -172,13 +173,11 @@ if __name__ == '__main__':
                 preds.append(preds_dict)
                 target.append(true_dict)
             #####################################
-
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
 
         # gather the stats from all processes
         metric_logger.synchronize_between_processes()
         torch.set_num_threads(n_threads)
-        metric = MeanAveragePrecision(class_metrics=args['verbose'])
         metric.update(preds, target)
         metric_summary = metric.compute()
         return metric_summary
