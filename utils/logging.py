@@ -4,6 +4,7 @@ import pandas as pd
 import wandb
 import cv2
 import numpy as np
+import json
 
 from torch.utils.tensorboard.writer import SummaryWriter
 
@@ -222,3 +223,73 @@ def wandb_save_model(model_dir):
     :param model_dir: Local disk path where models are saved.
     """
     wandb.save(os.path.join(model_dir, 'best_model.pth'))
+
+def append_annotation_to_coco(output, image_info, output_filename):
+    """
+    Log outputs to a JSON file in COCO format during inference.
+
+    :param output: Output from the model.
+    :param image_info: Dictionary containing file name, width, and heigh.
+    :param output_filename: Path to the JSON file.
+    """
+    if not os.path.exists(output_filename):
+        # Initialize file with basic structure if it doesn't exist
+        with open(output_filename, 'w') as file:
+            json.dump({"images": [], "annotations": [], "categories": []}, file, indent=4)
+
+    with open(output_filename, 'r') as file:
+        coco_data = json.load(file)
+
+    annotations = coco_data['annotations']
+    images = coco_data['images']
+    categories = set(cat['id'] for cat in coco_data['categories'])
+    annotation_id = max([ann['id'] for ann in annotations], default=0) + 1
+    image_id = len(images) + 1
+
+    # Add image entry
+    images.append({
+        "id": image_id, 
+        "file_name": image_info['file_name'], 
+        "width": image_info['width'], 
+        "height": image_info['height']
+    })
+
+    boxes = output['boxes'].tolist()
+    labels = output['labels'].tolist()
+
+    for box, label in zip(boxes, labels):
+        xmin, ymin, xmax, ymax = box
+        width = xmax - xmin
+        height = ymax - ymin
+
+        annotation = {
+            "id": annotation_id,
+            "image_id": image_id,
+            "bbox": [xmin, ymin, width, height],
+            "area": width * height,
+            "category_id": label,
+            "iscrowd": 0
+        }
+        annotations.append(annotation)
+        annotation_id += 1
+        categories.add(label)
+
+    # Update categories
+    coco_data['categories'] = [{"id": cat_id, "name": f"category_{cat_id}"} for cat_id in categories]
+
+    with open(output_filename, 'w') as file:
+        json.dump(coco_data, file, indent=4)
+
+def log_to_json(image, out_path, outputs):
+    """
+    Function to call when saving JSON log file during inference.
+    No other file should need calling other than this to keep the code clean.
+
+    :param image: The original image/frame.
+    :param out_path: Path where the JSOn file should be saved.
+    :param outputs: Model outputs.
+    """
+    image_info = {
+        "file_name": "frame1.jpg", "width": image.shape[1], "height": image.shape[0]
+    }
+    append_annotation_to_coco(outputs[0], image_info, out_path)

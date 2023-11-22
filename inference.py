@@ -14,6 +14,7 @@ from utils.annotations import (
 )
 from utils.general import set_infer_dir
 from utils.transforms import infer_transforms, resize
+from utils.logging import log_to_json
 
 def collect_all_images(dir_test):
     """
@@ -105,6 +106,12 @@ def parse_opt():
     parser.add_argument(
         '--track',
         action='store_true'
+    )
+    parser.add_argument(
+        '--log-json',
+        dest='log_json',
+        action='store_true',
+        help='store a json log file in COCO format in the output directory'
     )
     args = vars(parser.parse_args())
     return args
@@ -205,6 +212,9 @@ def main(args):
         frame_count += 1
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+        # Log to JSON?
+        if args['log_json']:
+            log_to_json(orig_image, os.path.join(OUT_DIR, 'log.json'), outputs)
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
             draw_boxes, pred_classes, scores = convert_detections(

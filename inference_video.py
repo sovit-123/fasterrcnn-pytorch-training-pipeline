@@ -20,6 +20,7 @@ from utils.annotations import (
 from utils.transforms import infer_transforms, resize
 from torchvision import transforms as transforms
 from deep_sort_realtime.deepsort_tracker import DeepSort
+from utils.logging import log_to_json
 
 def read_return_video_data(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -101,6 +102,12 @@ def parse_opt():
     parser.add_argument(
         '--track',
         action='store_true'
+    )
+    parser.add_argument(
+        '--log-json',
+        dest='log_json',
+        action='store_true',
+        help='store a json log file in COCO format in the output directory'
     )
     args = vars(parser.parse_args())
     return args
@@ -212,6 +219,9 @@ def main(args):
             
             # Load all detection to CPU for further operations.
             outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+            # Log to JSON?
+            if args['log_json']:
+                log_to_json(frame, os.path.join(OUT_DIR, 'log.json'), outputs)
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
                 draw_boxes, pred_classes, scores = convert_detections(

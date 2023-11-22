@@ -22,6 +22,7 @@ from utils.general import set_infer_dir
 from utils.annotations import (
     inference_annotations, convert_detections
 )
+from utils.logging import log_to_json
 
 def collect_all_images(dir_test):
     """
@@ -101,6 +102,12 @@ def parse_opt():
         '--track',
         action='store_true'
     )
+    parser.add_argument(
+        '--log-json',
+        dest='log_json',
+        action='store_true',
+        help='store a json log file in COCO format in the output directory'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -168,6 +175,10 @@ def main(args):
         outputs['labels'] = torch.tensor(preds[1])
         outputs['scores'] = torch.tensor(preds[2])
         outputs = [outputs]
+
+        # Log to JSON?
+        if args['log_json']:
+            log_to_json(orig_image, os.path.join(OUT_DIR, 'log.json'), outputs)
 
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
