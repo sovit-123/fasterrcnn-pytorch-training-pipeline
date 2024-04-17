@@ -280,7 +280,7 @@ def append_annotation_to_coco(output, image_info, output_filename):
     with open(output_filename, 'w') as file:
         json.dump(coco_data, file, indent=4)
 
-def log_to_json(image, out_path, outputs):
+def log_to_json(image, file_name, out_path, outputs):
     """
     Function to call when saving JSON log file during inference.
     No other file should need calling other than this to keep the code clean.
@@ -290,6 +290,6 @@ def log_to_json(image, out_path, outputs):
     :param outputs: Model outputs.
     """
     image_info = {
-        "file_name": "frame1.jpg", "width": image.shape[1], "height": image.shape[0]
+        "file_name": file_name, "width": image.shape[1], "height": image.shape[0]
     }
     append_annotation_to_coco(outputs[0], image_info, out_path)
