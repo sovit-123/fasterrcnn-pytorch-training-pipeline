@@ -214,7 +214,7 @@ def main(args):
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
         # Log to JSON?
         if args['log_json']:
-            log_to_json(orig_image, test_images[i], os.path.join(OUT_DIR,
+            log_to_json(orig_image, image_name, os.path.join(OUT_DIR,
                 'log.json'), outputs)
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
