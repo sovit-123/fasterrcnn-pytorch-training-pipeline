@@ -42,6 +42,11 @@ def parse_opt():
         help='folder path to input input image (one image or a folder path)',
     )
     parser.add_argument(
+        '-o', '--output',
+        default=set_infer_dir(), 
+        help='folder path to output data',
+    )
+    parser.add_argument(
         '--data', 
         default=None,
         help='(optional) path to the data config file'
@@ -129,7 +134,9 @@ def main(args):
         CLASSES = data_configs['CLASSES']
 
     DEVICE = args['device']
-    OUT_DIR = set_infer_dir()
+    OUT_DIR = args['output']
+    if not os.path.exists(OUT_DIR):
+        os.makedirs(OUT_DIR)
 
     # Load the pretrained model
     if args['weights'] is None:
