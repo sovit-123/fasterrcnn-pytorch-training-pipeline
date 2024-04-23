@@ -7,6 +7,7 @@ import time
 import argparse
 import yaml
 import matplotlib.pyplot as plt
+import pandas
 
 from models.create_fasterrcnn_model import create_model
 from utils.annotations import (
@@ -118,6 +119,12 @@ def parse_opt():
         action='store_true',
         help='store a json log file in COCO format in the output directory'
     )
+    parser.add_argument(
+        '-t', '--table', 
+        dest='table', 
+        action='store_true',
+        help='outputs a csv file with a table summarizing the predicted boxes'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -183,6 +190,10 @@ def main(args):
     # score below this will be discarded.
     detection_threshold = args['threshold']
 
+    # Define dictionary to collect boxes detected in each file 
+    pred_boxes = {}
+    box_id = 1
+
     # To count the total number of frames iterated through.
     frame_count = 0
     # To keep adding the frames' FPS.
@@ -245,6 +256,27 @@ def main(args):
                 plt.imshow(orig_image[:, :, ::-1])
                 plt.axis('off')
                 plt.show()
+            if args['table']:
+                for box, label in zip(draw_boxes, pred_classes):
+                    xmin, ymin, xmax, ymax = box
+                    width = xmax - xmin
+                    height = ymax - ymin
+
+                    pred_boxes[box_id] = {
+                        "image": image_name,
+                        "label": label,
+                        "xmin": xmin,
+                        "ymin": ymin,
+                        "width": width,
+                        "height": height,
+                        "area": width * height
+                    }                    
+                    box_id = box_id + 1
+
+                df = pandas.DataFrame.from_dict(pred_boxes, orient = "index")
+                df = df.fillna(0)
+                df.to_csv(f"{OUT_DIR}/boxes.csv")
+
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {i+1} done...")
         print('-'*50)
