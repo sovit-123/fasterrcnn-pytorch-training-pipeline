@@ -44,7 +44,7 @@ def parse_opt():
     )
     parser.add_argument(
         '-o', '--output',
-        default=set_infer_dir(), 
+        default=None, 
         help='folder path to output data',
     )
     parser.add_argument(
@@ -141,9 +141,13 @@ def main(args):
         CLASSES = data_configs['CLASSES']
 
     DEVICE = args['device']
-    OUT_DIR = args['output']
-    if not os.path.exists(OUT_DIR):
-        os.makedirs(OUT_DIR)
+    print(args['output'])
+    if args['output'] is not None:
+        OUT_DIR = args['output']
+        if not os.path.exists(OUT_DIR):
+            os.makedirs(OUT_DIR)
+    else:
+        OUT_DIR=set_infer_dir() 
 
     # Load the pretrained model
     if args['weights'] is None:
@@ -286,6 +290,7 @@ def main(args):
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
+    print("Path to output files: "+OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()
