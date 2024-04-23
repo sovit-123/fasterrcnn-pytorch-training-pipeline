@@ -286,6 +286,7 @@ def log_to_json(image, file_name, out_path, outputs):
     No other file should need calling other than this to keep the code clean.
 
     :param image: The original image/frame.
+    :param file_name: image file name.
     :param out_path: Path where the JSOn file should be saved.
     :param outputs: Model outputs.
     """
