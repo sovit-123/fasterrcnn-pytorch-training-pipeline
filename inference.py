@@ -141,7 +141,6 @@ def main(args):
         CLASSES = data_configs['CLASSES']
 
     DEVICE = args['device']
-    print(args['output'])
     if args['output'] is not None:
         OUT_DIR = args['output']
         if not os.path.exists(OUT_DIR):
