@@ -269,7 +269,9 @@ def main(args):
                         "image": image_name,
                         "label": label,
                         "xmin": xmin,
+                        "xmax": xmax,
                         "ymin": ymin,
+                        "ymax": ymax,
                         "width": width,
                         "height": height,
                         "area": width * height
