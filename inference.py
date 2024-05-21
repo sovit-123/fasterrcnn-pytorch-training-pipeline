@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import pandas.io.common
 import torch
 import glob as glob
 import os
@@ -267,7 +268,7 @@ def main(args):
 
                     pred_boxes[box_id] = {
                         "image": image_name,
-                        "label": label,
+                        "label": str(label),
                         "xmin": xmin,
                         "xmax": xmax,
                         "ymin": ymin,
@@ -278,9 +279,9 @@ def main(args):
                     }                    
                     box_id = box_id + 1
 
-                df = pandas.DataFrame.from_dict(pred_boxes, orient = "index")
+                df = pandas.DataFrame.from_dict(pred_boxes, orient='index')
                 df = df.fillna(0)
-                df.to_csv(f"{OUT_DIR}/boxes.csv")
+                df.to_csv(f"{OUT_DIR}/boxes.csv", index=False, sep=' ')
 
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {i+1} done...")
