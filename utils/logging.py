@@ -224,12 +224,13 @@ def wandb_save_model(model_dir):
     """
     wandb.save(os.path.join(model_dir, 'best_model.pth'))
 
-def append_annotation_to_coco(output, image_info, output_filename):
+def append_annotation_to_coco(output, image_info, classes, output_filename):
     """
     Log outputs to a JSON file in COCO format during inference.
 
     :param output: Output from the model.
     :param image_info: Dictionary containing file name, width, and heigh.
+    :param classes: classes in the model.
     :param output_filename: Path to the JSON file.
     """
     if not os.path.exists(output_filename):
@@ -275,22 +276,23 @@ def append_annotation_to_coco(output, image_info, output_filename):
         categories.add(label)
 
     # Update categories
-    coco_data['categories'] = [{"id": cat_id, "name": f"category_{cat_id}"} for cat_id in categories]
+    coco_data['categories'] = [{"id": cat_id, "name": classes[cat_id]} for cat_id in categories]
 
     with open(output_filename, 'w') as file:
         json.dump(coco_data, file, indent=4)
 
-def log_to_json(image, file_name, out_path, outputs):
+def log_to_json(image, file_name, classes, out_path, outputs):
     """
     Function to call when saving JSON log file during inference.
     No other file should need calling other than this to keep the code clean.
 
     :param image: The original image/frame.
     :param file_name: image file name.
+    :param classes: classes in the model.
     :param out_path: Path where the JSOn file should be saved.
     :param outputs: Model outputs.
     """
     image_info = {
         "file_name": file_name, "width": image.shape[1], "height": image.shape[0]
     }
-    append_annotation_to_coco(outputs[0], image_info, out_path)
+    append_annotation_to_coco(outputs[0], image_info, classes, out_path)

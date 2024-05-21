@@ -7,6 +7,7 @@ import time
 import argparse
 import yaml
 import matplotlib.pyplot as plt
+import pandas
 
 from models.create_fasterrcnn_model import create_model
 from utils.annotations import (
@@ -40,6 +41,11 @@ def parse_opt():
     parser.add_argument(
         '-i', '--input', 
         help='folder path to input input image (one image or a folder path)',
+    )
+    parser.add_argument(
+        '-o', '--output',
+        default=None, 
+        help='folder path to output data',
     )
     parser.add_argument(
         '--data', 
@@ -113,6 +119,12 @@ def parse_opt():
         action='store_true',
         help='store a json log file in COCO format in the output directory'
     )
+    parser.add_argument(
+        '-t', '--table', 
+        dest='table', 
+        action='store_true',
+        help='outputs a csv file with a table summarizing the predicted boxes'
+    )
     args = vars(parser.parse_args())
     return args
 
@@ -129,7 +141,12 @@ def main(args):
         CLASSES = data_configs['CLASSES']
 
     DEVICE = args['device']
-    OUT_DIR = set_infer_dir()
+    if args['output'] is not None:
+        OUT_DIR = args['output']
+        if not os.path.exists(OUT_DIR):
+            os.makedirs(OUT_DIR)
+    else:
+        OUT_DIR=set_infer_dir() 
 
     # Load the pretrained model
     if args['weights'] is None:
@@ -176,6 +193,10 @@ def main(args):
     # score below this will be discarded.
     detection_threshold = args['threshold']
 
+    # Define dictionary to collect boxes detected in each file 
+    pred_boxes = {}
+    box_id = 1
+
     # To count the total number of frames iterated through.
     frame_count = 0
     # To keep adding the frames' FPS.
@@ -214,7 +235,7 @@ def main(args):
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
         # Log to JSON?
         if args['log_json']:
-            log_to_json(orig_image, image_name, os.path.join(OUT_DIR,
+            log_to_json(orig_image, image_name, CLASSES, os.path.join(OUT_DIR,
                 'log.json'), outputs)
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
@@ -238,6 +259,29 @@ def main(args):
                 plt.imshow(orig_image[:, :, ::-1])
                 plt.axis('off')
                 plt.show()
+            if args['table']:
+                for box, label in zip(draw_boxes, pred_classes):
+                    xmin, ymin, xmax, ymax = box
+                    width = xmax - xmin
+                    height = ymax - ymin
+
+                    pred_boxes[box_id] = {
+                        "image": image_name,
+                        "label": label,
+                        "xmin": xmin,
+                        "xmax": xmax,
+                        "ymin": ymin,
+                        "ymax": ymax,
+                        "width": width,
+                        "height": height,
+                        "area": width * height
+                    }                    
+                    box_id = box_id + 1
+
+                df = pandas.DataFrame.from_dict(pred_boxes, orient = "index")
+                df = df.fillna(0)
+                df.to_csv(f"{OUT_DIR}/boxes.csv")
+
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {i+1} done...")
         print('-'*50)
@@ -247,6 +291,7 @@ def main(args):
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
+    print("Path to output files: "+OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()
