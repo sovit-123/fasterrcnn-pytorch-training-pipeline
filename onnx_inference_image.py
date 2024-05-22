@@ -22,7 +22,7 @@ from utils.general import set_infer_dir
 from utils.annotations import (
     inference_annotations, convert_detections
 )
-from utils.logging import log_to_json
+# from utils.logging import log_to_json
 
 def collect_all_images(dir_test):
     """

@@ -26,7 +26,7 @@ from utils.annotations import (
 )
 from utils.transforms import infer_transforms, resize
 from deep_sort_realtime.deepsort_tracker import DeepSort
-from utils.logging import log_to_json
+# from utils.logging import log_to_json
 
 def read_return_video_data(video_path):
     cap = cv2.VideoCapture(video_path)

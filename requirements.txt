@@ -34,6 +34,6 @@ torchmetrics # Evaluation
 vision_transformers
 
 # Export-----------------------------------
-# onnxruntime
-# onnx
-# onnxruntime-gpu
+# onnxruntime==1.15 # CPU execution.
+# onnx==1.12.0
+# onnxruntime-gpu==1.15 # GPU execution. [CUDA 11.8]. For CUDA 12.2 install onnxruntime-gpu==1.17
