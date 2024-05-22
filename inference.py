@@ -16,7 +16,7 @@ from utils.annotations import (
 )
 from utils.general import set_infer_dir
 from utils.transforms import infer_transforms, resize
-from utils.logging import log_to_json
+from utils.logging import LogJSON
 
 def collect_all_images(dir_test):
     """
@@ -198,6 +198,9 @@ def main(args):
     pred_boxes = {}
     box_id = 1
 
+    if args['log_json']:
+        log_json = LogJSON(os.path.join(OUT_DIR, 'log.json'))
+
     # To count the total number of frames iterated through.
     frame_count = 0
     # To keep adding the frames' FPS.
@@ -234,16 +237,10 @@ def main(args):
         frame_count += 1
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
-        
-        # Log to JSON?
+
         if args['log_json']:
-            log_to_json(
-                orig_image, 
-                image_name, 
-                CLASSES, 
-                os.path.join(OUT_DIR, 'log.json'), 
-                outputs
-            )
+            log_json.update(orig_image, image_name, outputs[0], CLASSES)
+
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
             draw_boxes, pred_classes, scores = convert_detections(
@@ -297,10 +294,14 @@ def main(args):
 
     print('TEST PREDICTIONS COMPLETE')
     cv2.destroyAllWindows()
+
+    # Save JSON log file.
+    if args['log_json']:
+        log_json.save(os.path.join(OUT_DIR, 'log.json'))
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
-    print("Path to output files: "+OUT_DIR)
+    print('Path to output files: '+OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()

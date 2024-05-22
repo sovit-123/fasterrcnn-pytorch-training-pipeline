@@ -21,7 +21,7 @@ from utils.annotations import (
 from utils.transforms import infer_transforms, resize
 from torchvision import transforms as transforms
 from deep_sort_realtime.deepsort_tracker import DeepSort
-from utils.logging import log_to_json
+from utils.logging import LogJSON
 
 def read_return_video_data(video_path):
     cap = cv2.VideoCapture(video_path)
@@ -199,6 +199,9 @@ def main(args):
     else:
         RESIZE_TO = frame_width
 
+    if args['log_json']:
+        log_json = LogJSON(os.path.join(OUT_DIR, 'log.json'))
+
     frame_count = 0 # To count total frames.
     total_fps = 0 # To get the final frames per second.
 
@@ -233,15 +236,8 @@ def main(args):
             # Load all detection to CPU for further operations.
             outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
 
-            # Log to JSON?
             if args['log_json']:
-                log_to_json(
-                    frame, 
-                    save_name, 
-                    CLASSES, 
-                    os.path.join(OUT_DIR, 'log.json'), 
-                    outputs
-                )
+                log_json.update(frame, save_name, outputs[0], CLASSES)
                 
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
@@ -289,9 +285,14 @@ def main(args):
     # Close all frames and video windows.
     cv2.destroyAllWindows()
 
+    # Save JSON log file.
+    if args['log_json']:
+        log_json.save(os.path.join(OUT_DIR, 'log.json'))
+
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
+    print('Path to output files: '+OUT_DIR)
 
 if __name__ == '__main__':
     args = parse_opt()

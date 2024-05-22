@@ -224,75 +224,72 @@ def wandb_save_model(model_dir):
     """
     wandb.save(os.path.join(model_dir, 'best_model.pth'))
 
-def append_annotation_to_coco(output, image_info, classes, output_filename):
-    """
-    Log outputs to a JSON file in COCO format during inference.
-
-    :param output: Output from the model.
-    :param image_info: Dictionary containing file name, width, and heigh.
-    :param classes: classes in the model.
-    :param output_filename: Path to the JSON file.
-    """
-    if not os.path.exists(output_filename):
+class LogJSON():
+    def __init__(self, output_filename):
+        """
+        :param output_filename: Path where the JSOn file should be saved.
+        """
+        if not os.path.exists(output_filename):
         # Initialize file with basic structure if it doesn't exist
-        with open(output_filename, 'w') as file:
-            json.dump({"images": [], "annotations": [], "categories": []}, file, indent=4)
+            with open(output_filename, 'w') as file:
+                json.dump({"images": [], "annotations": [], "categories": []}, file, indent=4)
 
-    with open(output_filename, 'r') as file:
-        coco_data = json.load(file)
+        with open(output_filename, 'r') as file:
+            self.coco_data = json.load(file)
 
-    annotations = coco_data['annotations']
-    images = coco_data['images']
-    categories = set(cat['id'] for cat in coco_data['categories'])
-    annotation_id = max([ann['id'] for ann in annotations], default=0) + 1
-    image_id = len(images) + 1
+        self.annotations = self.coco_data['annotations']
+        self.images = self.coco_data['images']
+        self.categories = set(cat['id'] for cat in self.coco_data['categories'])
+        self.annotation_id = max([ann['id'] for ann in self.annotations], default=0) + 1
+        self.image_id = len(self.images) + 1
 
-    # Add image entry
-    images.append({
-        "id": image_id, 
-        "file_name": image_info['file_name'], 
-        "width": image_info['width'], 
-        "height": image_info['height']
-    })
+    def update(self, image, file_name, output, classes):
+        """
+        Update the log file metrics with the current image or current frame information.
 
-    boxes = output['boxes'].tolist()
-    labels = output['labels'].tolist()
-
-    for box, label in zip(boxes, labels):
-        xmin, ymin, xmax, ymax = box
-        width = xmax - xmin
-        height = ymax - ymin
-
-        annotation = {
-            "id": annotation_id,
-            "image_id": image_id,
-            "bbox": [xmin, ymin, width, height],
-            "area": width * height,
-            "category_id": label,
-            "iscrowd": 0
+        :param image: The original image/frame.
+        :param file_name: image file name.
+        :param output: Model outputs.
+        :param classes: classes in the model.
+        """
+        image_info = {
+            "file_name": file_name, "width": image.shape[1], "height": image.shape[0]
         }
-        annotations.append(annotation)
-        annotation_id += 1
-        categories.add(label)
 
-    # Update categories
-    coco_data['categories'] = [{"id": cat_id, "name": classes[cat_id]} for cat_id in categories]
+        # Add image entry
+        self.images.append({
+            "id": self.image_id, 
+            "file_name": image_info['file_name'], 
+            "width": image_info['width'], 
+            "height": image_info['height']
+        })
 
-    with open(output_filename, 'w') as file:
-        json.dump(coco_data, file, indent=4)
+        boxes = output['boxes'].tolist()
+        labels = output['labels'].tolist()
 
-def log_to_json(image, file_name, classes, out_path, outputs):
-    """
-    Function to call when saving JSON log file during inference.
-    No other file should need calling other than this to keep the code clean.
+        for box, label in zip(boxes, labels):
+            xmin, ymin, xmax, ymax = box
+            width = xmax - xmin
+            height = ymax - ymin
 
-    :param image: The original image/frame.
-    :param file_name: image file name.
-    :param classes: classes in the model.
-    :param out_path: Path where the JSOn file should be saved.
-    :param outputs: Model outputs.
-    """
-    image_info = {
-        "file_name": file_name, "width": image.shape[1], "height": image.shape[0]
-    }
-    append_annotation_to_coco(outputs[0], image_info, classes, out_path)
+            annotation = {
+                "id": self.annotation_id,
+                "image_id": self.image_id,
+                "bbox": [xmin, ymin, width, height],
+                "area": width * height,
+                "category_id": label,
+                "iscrowd": 0
+            }
+            self.annotations.append(annotation)
+            self.annotation_id += 1
+            self.categories.add(label)
+
+        # Update categories
+        self.coco_data['categories'] = [{"id": cat_id, "name": classes[cat_id]} for cat_id in self.categories]
+
+    def save(self, output_filename):
+        """
+        :param output_filename: Path where the JSOn file should be saved.
+        """
+        with open(output_filename, 'w') as file:
+            json.dump(self.coco_data, file, indent=4)
