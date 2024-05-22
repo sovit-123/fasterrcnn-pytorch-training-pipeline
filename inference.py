@@ -298,6 +298,7 @@ def main(args):
     # Save JSON log file.
     if args['log_json']:
         log_json.save(os.path.join(OUT_DIR, 'log.json'))
+        
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")

@@ -22,7 +22,7 @@ from utils.general import set_infer_dir
 from utils.annotations import (
     inference_annotations, convert_detections
 )
-# from utils.logging import log_to_json
+from utils.logging import LogJSON
 
 def collect_all_images(dir_test):
     """
@@ -136,6 +136,8 @@ def main(args):
     # score below this will be discarded.
     detection_threshold = args['threshold']
 
+    if args['log_json']:
+        log_json = LogJSON(os.path.join(OUT_DIR, 'log.json'))
 
     # To count the total number of frames iterated through.
     frame_count = 0
@@ -178,7 +180,7 @@ def main(args):
 
         # Log to JSON?
         if args['log_json']:
-            log_to_json(orig_image, os.path.join(OUT_DIR, 'log.json'), outputs)
+            log_json.update(orig_image, image_name, outputs[0], CLASSES)
 
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
@@ -208,6 +210,11 @@ def main(args):
 
     print('TEST PREDICTIONS COMPLETE')
     cv2.destroyAllWindows()
+
+    # Save JSON log file.
+    if args['log_json']:
+        log_json.save(os.path.join(OUT_DIR, 'log.json'))
+
     # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
