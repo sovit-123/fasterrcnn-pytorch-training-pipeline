@@ -234,10 +234,16 @@ def main(args):
         frame_count += 1
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+        
         # Log to JSON?
         if args['log_json']:
-            log_to_json(orig_image, image_name, CLASSES, os.path.join(OUT_DIR,
-                'log.json'), outputs)
+            log_to_json(
+                orig_image, 
+                image_name, 
+                CLASSES, 
+                os.path.join(OUT_DIR, 'log.json'), 
+                outputs
+            )
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
             draw_boxes, pred_classes, scores = convert_detections(
@@ -253,6 +259,7 @@ def main(args):
                 image_resized,
                 args
             )
+
             if args['show']:
                 cv2.imshow('Prediction', orig_image)
                 cv2.waitKey(1)
@@ -260,6 +267,7 @@ def main(args):
                 plt.imshow(orig_image[:, :, ::-1])
                 plt.axis('off')
                 plt.show()
+
             if args['table']:
                 for box, label in zip(draw_boxes, pred_classes):
                     xmin, ymin, xmax, ymax = box

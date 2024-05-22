@@ -7,6 +7,7 @@ import time
 import argparse
 import yaml
 import matplotlib.pyplot as plt
+import pandas
 
 from models.create_fasterrcnn_model import create_model
 from utils.general import set_infer_dir
@@ -36,6 +37,11 @@ def parse_opt():
     parser.add_argument(
         '-i', '--input', 
         help='path to input video',
+    )
+    parser.add_argument(
+        '-o', '--output',
+        default=None, 
+        help='folder path to output data',
     )
     parser.add_argument(
         '--data', 
@@ -128,7 +134,14 @@ def main(args):
         CLASSES = data_configs['CLASSES']
         
     DEVICE = args['device']
-    OUT_DIR = set_infer_dir()
+
+    if args['output'] is not None:
+        OUT_DIR = args['output']
+        if not os.path.exists(OUT_DIR):
+            os.makedirs(OUT_DIR)
+    else:
+        OUT_DIR=set_infer_dir()
+
     VIDEO_PATH = None
 
     # Load the pretrained model
@@ -219,9 +232,17 @@ def main(args):
             
             # Load all detection to CPU for further operations.
             outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
+
             # Log to JSON?
             if args['log_json']:
-                log_to_json(frame, os.path.join(OUT_DIR, 'log.json'), outputs)
+                log_to_json(
+                    frame, 
+                    save_name, 
+                    CLASSES, 
+                    os.path.join(OUT_DIR, 'log.json'), 
+                    outputs
+                )
+                
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
                 draw_boxes, pred_classes, scores = convert_detections(
@@ -255,15 +276,14 @@ def main(args):
             print_string += f"Forward pass + annotation time: {forward_and_annot_time:.3f} seconds"
             print(print_string)            
             out.write(frame)
+
             if args['show']:
                 cv2.imshow('Prediction', frame)
                 # Press `q` to exit
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-
         else:
             break
-
     # Release VideoCapture().
     cap.release()
     # Close all frames and video windows.
