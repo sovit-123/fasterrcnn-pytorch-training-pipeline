@@ -81,7 +81,7 @@ def main(args):
     model.eval()
 
     # Input to the model
-    x = torch.randn(1, 3, args['width'], args['height'], requires_grad=True)
+    x = torch.randn(1, 3, args['width'], args['height'])
 
     # Export the model
     torch.onnx.export(
@@ -94,7 +94,7 @@ def main(args):
         input_names=['input'],
         output_names = ['output'],
         dynamic_axes={
-            'input' : {0 : 'batch_size'},
+            'input': {0: 'batch_size', 2: 'height', 3: 'width'},
             'output' : {0 : 'batch_size'}
         }
     )
