@@ -81,7 +81,7 @@ def main(args):
     model.eval()
 
     # Input to the model
-    x = torch.randn(1, 3, args['width'], args['height'])
+    x = torch.randn(1, 3, args['height'], args['width'])
 
     # Export the model
     torch.onnx.export(
