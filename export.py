@@ -14,9 +14,15 @@ import yaml
 import os
 
 from models.create_fasterrcnn_model import create_model
+from torch.onnx import register_custom_op_symbolic
 
 def parse_opt():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--model',
+        default=None,
+        help='model name if wanting to export a torchvision pretrained model'
+    )
     parser.add_argument(
         '-w', '--weights', 
         default=None,
@@ -55,8 +61,10 @@ def parse_opt():
 
 def main(args):
     OUT_DIR = 'weights'
+
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
+
     # Load the data configurations.
     data_configs = None
     if args['data'] is not None:
@@ -64,24 +72,51 @@ def main(args):
             data_configs = yaml.safe_load(file)
         NUM_CLASSES = data_configs['NC']
         CLASSES = data_configs['CLASSES']
+
     DEVICE = args['device']
+
+    torchvision_models = [
+        'fasterrcnn_resnet50_fpn',
+        'fasterrcnn_resnet50_fpn_v2',
+        'fasterrcnn_mobilenetv3_large_320_fpn',
+        'fasterrcnn_mobilenetv3_large_fpn'
+    ]
+    # Load the pretrained mode.
+    if args['weights'] is None and args['model'] in torchvision_models:
+        # If the config file is still None, 
+        # then load the default one for COCO.
+        if data_configs is None:
+            with open(os.path.join('data_configs', 'test_video_config.yaml')) as file:
+                data_configs = yaml.safe_load(file)
+            NUM_CLASSES = data_configs['NC']
+            CLASSES = data_configs['CLASSES']
+        try:
+            build_model = create_model[args['model']]
+            model, coco_model = build_model(num_classes=NUM_CLASSES, coco_model=True)
+        except:
+            build_model = create_model['fasterrcnn_resnet50_fpn_v2']
+            model, coco_model = build_model(num_classes=NUM_CLASSES, coco_model=True)
     # Load weights if path provided.
-    checkpoint = torch.load(args['weights'], map_location=DEVICE)
-    # If config file is not given, load from model dictionary.    
-    if data_configs is None:
-        data_configs = True
-        NUM_CLASSES = checkpoint['data']['NC']
-    try:
-        print('Building from model name arguments...')
-        build_model = create_model[str(args['model'])]
-    except:
-        build_model = create_model[checkpoint['model_name']]
-    model = build_model(num_classes=NUM_CLASSES, coco_model=False)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.eval()
+    if args['weights'] is not None:
+        checkpoint = torch.load(args['weights'], map_location=DEVICE)
+        # If config file is not given, load from model dictionary.
+        if data_configs is None:
+            data_configs = True
+            NUM_CLASSES = checkpoint['data']['NC']
+            CLASSES = checkpoint['data']['CLASSES']
+        try:
+            print('Building from model name arguments...')
+            build_model = create_model[str(args['model'])]
+        except:
+            build_model = create_model[checkpoint['model_name']]
+        model = build_model(num_classes=NUM_CLASSES, coco_model=False)
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+    # model = CustomModel(model)
+    model.to(DEVICE).eval()
 
     # Input to the model
-    x = torch.randn(1, 3, args['height'], args['width'])
+    x = torch.randn(1, 3, args['height'], args['width']).to(DEVICE)
 
     # Export the model
     torch.onnx.export(
