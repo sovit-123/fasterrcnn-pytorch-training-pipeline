@@ -338,3 +338,35 @@ def yaml_save(file_path=None, data={}):
             f, 
             sort_keys=False
         )
+
+class EarlyStopping():
+    """
+    Early stopping to stop the training when the mAP does not improve after
+    certain epochs.
+    """
+    def __init__(self, patience=10, min_delta=0):
+        """
+        :param patience: how many epochs to wait before stopping mAP 
+                is not improving
+        :param min_delta: minimum difference between new mAP and old mAP for
+               new mAP to be considered as an improvement
+        """
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.best_map = None
+        self.early_stop = False
+
+    def __call__(self, map):
+        if self.best_map == None:
+            self.best_map = map
+        elif map - self.best_map > self.min_delta:
+            self.best_map = map
+            # reset counter if validation loss improves
+            self.counter = 0
+        elif map - self.best_map < self.min_delta:
+            self.counter += 1
+            print(f"INFO: Early stopping counter {self.counter} of {self.patience}")
+            if self.counter >= self.patience:
+                print('INFO: Early stopping')
+                self.early_stop = True

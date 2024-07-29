@@ -30,7 +30,7 @@ from utils.general import (
     save_model, save_loss_plot,
     show_tranformed_image,
     save_mAP, save_model_state, SaveBestModel,
-    yaml_save, init_seeds
+    yaml_save, init_seeds, EarlyStopping
 )
 from utils.logging import (
     set_log, coco_log,
@@ -188,6 +188,13 @@ def parse_opt():
         '--amp',
         action='store_true',
         help='use automatic mixed precision'
+    )
+    parser.add_argument(
+        '--patience',
+        default=10,
+        help='number of epochs to wait for when mAP does not increase to \
+              trigger early stopping',
+        type=int
     )
     parser.add_argument(
         '--seed',
@@ -400,6 +407,7 @@ def main(args):
         scheduler = None
 
     save_best_model = SaveBestModel()
+    early_stopping = EarlyStopping()
 
     for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
@@ -560,6 +568,11 @@ def main(args):
             data_configs,
             args['model']
         )
+
+            # Early stopping check.
+        early_stopping(stats[0])
+        if early_stopping.early_stop:
+            break
     
     # Save models to Weights&Biases.
     if not args['disable_wandb']:
