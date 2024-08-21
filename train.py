@@ -308,7 +308,7 @@ def main(args):
     start_epochs = 0
 
     if args['weights'] is None:
-        print('Building model from scratch...')
+        print('Building model from models folder...')
         build_model = create_model[args['model']]
         model = build_model(num_classes=NUM_CLASSES, pretrained=True)
 
