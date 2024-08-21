@@ -238,12 +238,9 @@ def main(args):
         # Load all detection to CPU for further operations.
         outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
 
-        if args['log_json']:
-            log_json.update(orig_image, image_name, outputs[0], CLASSES)
-
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
-            draw_boxes, pred_classes, scores = convert_detections(
+            draw_boxes, pred_classes, scores, labels = convert_detections(
                 outputs, detection_threshold, CLASSES, args
             )
             orig_image = inference_annotations(
@@ -287,6 +284,9 @@ def main(args):
                 df = pandas.DataFrame.from_dict(pred_boxes, orient='index')
                 df = df.fillna(0)
                 df.to_csv(f"{OUT_DIR}/boxes.csv", index=False, sep=' ')
+
+            if args['log_json']:
+                log_json.update(orig_image, image_name, draw_boxes, labels, CLASSES)
 
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {i+1} done...")

@@ -8,7 +8,7 @@ def convert_detections(
     args
 ):
     """
-    Return the bounding boxes, scores, and classes.
+    Return the bounding boxes, scores, classes names, and class IDs.
     """
     boxes = outputs[0]['boxes'].data.numpy()
     scores = outputs[0]['scores'].data.numpy()
@@ -31,7 +31,7 @@ def convert_detections(
         # Get all the predicited class names.
         pred_classes = [classes[i] for i in outputs[0]['labels'].cpu().numpy()]
 
-    return draw_boxes, pred_classes, scores
+    return draw_boxes, pred_classes, scores, outputs[0]['labels'][:len(draw_boxes)]
 
 def convert_pre_track(
     draw_boxes, pred_classes, scores
