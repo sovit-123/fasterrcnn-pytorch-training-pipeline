@@ -243,7 +243,7 @@ class LogJSON():
         self.annotation_id = max([ann['id'] for ann in self.annotations], default=0) + 1
         self.image_id = len(self.images) + 1
 
-    def update(self, image, file_name, output, classes):
+    def update(self, image, file_name, boxes, labels, classes):
         """
         Update the log file metrics with the current image or current frame information.
 
@@ -264,8 +264,8 @@ class LogJSON():
             "height": image_info['height']
         })
 
-        boxes = output['boxes'].tolist()
-        labels = output['labels'].tolist()
+        boxes = np.array(boxes, dtype=np.float64)
+        labels = np.array(labels, dtype=np.float64)
 
         for box, label in zip(boxes, labels):
             xmin, ymin, xmax, ymax = box
@@ -282,7 +282,7 @@ class LogJSON():
             }
             self.annotations.append(annotation)
             self.annotation_id += 1
-            self.categories.add(label)
+            self.categories.add(int(label))
 
         # Update categories
         self.coco_data['categories'] = [{"id": cat_id, "name": classes[cat_id]} for cat_id in self.categories]

@@ -235,13 +235,10 @@ def main(args):
             
             # Load all detection to CPU for further operations.
             outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
-
-            if args['log_json']:
-                log_json.update(frame, save_name, outputs[0], CLASSES)
                 
             # Carry further only if there are detected boxes.
             if len(outputs[0]['boxes']) != 0:
-                draw_boxes, pred_classes, scores = convert_detections(
+                draw_boxes, pred_classes, scores, labels = convert_detections(
                     outputs, detection_threshold, CLASSES, args
                 )
                 if args['track']:
@@ -263,6 +260,10 @@ def main(args):
                 )
             else:
                 frame = orig_frame
+
+            if args['log_json']:
+                log_json.update(frame, save_name, draw_boxes, labels, CLASSES)
+
             frame = annotate_fps(frame, fps)
 
             final_end_time = time.time()
