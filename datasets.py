@@ -56,13 +56,50 @@ class CustomDataset(Dataset):
 
     def read_and_clean(self):
         print('Checking Labels and images...')
-        # Discard any image file when no annotation file is found.
+        images_to_remove = []
+        problematic_images = []
+
         for image_name in tqdm(self.all_images, total=len(self.all_images)):
             possible_xml_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
             if possible_xml_name not in self.all_annot_paths:
-                print(f"{possible_xml_name} not found...")
-                print(f"Removing {image_name} image")
-                self.all_images = [image_instance for image_instance in self.all_images if image_instance != image_name]
+                print(f"⚠️ {possible_xml_name} not found... Removing {image_name}")
+                images_to_remove.append(image_name)
+                continue
+
+            # Check for invalid bounding boxes
+            tree = et.parse(possible_xml_name)
+            root = tree.getroot()
+            invalid_bbox = False
+
+            for member in root.findall('object'):
+                xmin = float(member.find('bndbox').find('xmin').text)
+                xmax = float(member.find('bndbox').find('xmax').text)
+                ymin = float(member.find('bndbox').find('ymin').text)
+                ymax = float(member.find('bndbox').find('ymax').text)
+
+                if xmin >= xmax or ymin >= ymax:
+                    invalid_bbox = True
+                    break
+
+            if invalid_bbox:
+                problematic_images.append(image_name)
+                images_to_remove.append(image_name)
+
+        # Remove problematic images and their annotations
+        self.all_images = [img for img in self.all_images if img not in images_to_remove]
+        self.all_annot_paths = [
+            path for path in self.all_annot_paths 
+            if not any(os.path.splitext(os.path.basename(path))[0] + ext in images_to_remove 
+                       for ext in self.image_file_types)
+        ]
+
+        # Print warnings for problematic images
+        if problematic_images:
+            print("\n⚠️ The following images have invalid bounding boxes and will be removed:")
+            for img in problematic_images:
+                print(f"⚠️ {img}")
+
+        print(f"Removed {len(images_to_remove)} problematic images and annotations.")
 
     def resize(self, im, square=False):
         if square:
