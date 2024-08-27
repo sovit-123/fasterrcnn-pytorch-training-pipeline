@@ -1,5 +1,5 @@
 """
-SAHI image inference complete with my Faster RCNN codebase and command line arguments.
+SAHI image inference with Faster RCNN pretrained models.
 """
 
 import numpy as np
