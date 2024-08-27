@@ -407,7 +407,7 @@ def main(args):
         scheduler = None
 
     save_best_model = SaveBestModel()
-    early_stopping = EarlyStopping()
+    early_stopping = EarlyStopping(patience=args['patience'])
 
     for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
