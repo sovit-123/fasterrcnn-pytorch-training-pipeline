@@ -33,6 +33,9 @@ torchmetrics # Evaluation
 # Transformer based models.
 vision_transformers
 
+# SAHI inference
+sahi
+
 # Export-----------------------------------
 # onnxruntime==1.15 # CPU execution.
 # onnx==1.12.0

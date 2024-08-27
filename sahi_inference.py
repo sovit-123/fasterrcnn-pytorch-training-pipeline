@@ -1,21 +1,26 @@
+"""
+SAHI image inference complete with my Faster RCNN codebase and command line arguments.
+"""
+
 import numpy as np
 import cv2
-import pandas.io.common
 import torch
-import glob as glob
 import os
 import time
 import argparse
 import yaml
 import matplotlib.pyplot as plt
 import pandas
+import glob as glob
+
+from sahi import AutoDetectionModel
+from sahi.predict import get_sliced_prediction
+from sahi.utils.file import list_files
 
 from models.create_fasterrcnn_model import create_model
-from utils.annotations import (
-    inference_annotations, convert_detections
-)
+from utils.annotations import inference_annotations, convert_detections
 from utils.general import set_infer_dir
-from utils.transforms import infer_transforms, resize
+from utils.transforms import resize
 from utils.logging import LogJSON
 
 def collect_all_images(dir_test):
@@ -37,103 +42,135 @@ def collect_all_images(dir_test):
     return test_images    
 
 def parse_opt():
-    # Construct the argument parser.
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-i', '--input', 
-        help='folder path to input input image (one image or a folder path)',
+        '-i', 
+        '--input', 
+        help='folder path to input image (one image or a folder path)'
     )
     parser.add_argument(
-        '-o', '--output',
+        '-o', 
+        '--output', 
         default=None, 
-        help='folder path to output data',
+        help='folder path to output data'
     )
     parser.add_argument(
         '--data', 
-        default=None,
+        default=None, 
         help='(optional) path to the data config file'
     )
     parser.add_argument(
-        '-m', '--model', 
-        default=None,
+        '-m', 
+        '--model', 
+        default=None, 
         help='name of the model'
     )
     parser.add_argument(
-        '-w', '--weights', 
-        default=None,
+        '-w', 
+        '--weights', 
+        default=None, 
         help='path to trained checkpoint weights if providing custom YAML file'
     )
     parser.add_argument(
-        '-th', '--threshold', 
+        '-th', 
+        '--threshold', 
         default=0.3, 
-        type=float,
+        type=float, 
         help='detection threshold'
     )
     parser.add_argument(
-        '-si', '--show',  
-        action='store_true',
+        '-si', 
+        '--show', 
+        action='store_true', 
         help='visualize output only if this argument is passed'
     )
     parser.add_argument(
-        '-mpl', '--mpl-show', 
+        '-mpl', 
+        '--mpl-show', 
         dest='mpl_show', 
-        action='store_true',
+        action='store_true', 
         help='visualize using matplotlib, helpful in notebooks'
     )
     parser.add_argument(
-        '-d', '--device', 
-        default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'),
+        '-d', 
+        '--device', 
+        default=torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'), 
         help='computation/training device, default is GPU if GPU present'
     )
     parser.add_argument(
-        '-ims', '--imgsz', 
-        default=None,
-        type=int,
+        '-ims', 
+        '--imgsz', 
+        default=None, 
+        type=int, 
         help='resize image to, by default use the original frame/image size'
     )
     parser.add_argument(
-        '-nlb', '--no-labels',
-        dest='no_labels',
-        action='store_true',
-        help='do not show labels during on top of bounding boxes'
+        '-nlb', 
+        '--no-labels', 
+        dest='no_labels', 
+        action='store_true', 
+        help='do not show labels on top of bounding boxes'
     )
     parser.add_argument(
-        '--square-img',
-        dest='square_img',
-        action='store_true',
+        '--square-img', 
+        dest='square_img', 
+        action='store_true', 
         help='whether to use square image resize, else use aspect ratio resize'
     )
     parser.add_argument(
-        '--classes',
-        nargs='+',
-        type=int,
-        default=None,
+        '--classes', 
+        nargs='+', 
+        type=int, 
+        default=None, 
         help='filter classes by visualization, --classes 1 2 3'
     )
     parser.add_argument(
-        '--track',
+        '--track', 
         action='store_true'
     )
     parser.add_argument(
-        '--log-json',
-        dest='log_json',
-        action='store_true',
+        '--log-json', 
+        dest='log_json', 
+        action='store_true', 
         help='store a json log file in COCO format in the output directory'
     )
     parser.add_argument(
-        '-t', '--table', 
+        '-t', 
+        '--table', 
         dest='table', 
-        action='store_true',
+        action='store_true', 
         help='outputs a csv file with a table summarizing the predicted boxes'
+    )
+    parser.add_argument(
+        '--slice-height', 
+        type=int, 
+        default=512, 
+        help='slice height for SAHI'
+    )
+    parser.add_argument(
+        '--slice-width', 
+        type=int, 
+        default=512, 
+        help='slice width for SAHI'
+    )
+    parser.add_argument(
+        '--overlap-height-ratio', 
+        type=float, 
+        default=0.2, 
+        help='overlap height ratio for SAHI'
+    )
+    parser.add_argument(
+        '--overlap-width-ratio', 
+        type=float, 
+        default=0.2, 
+        help='overlap width ratio for SAHI'
     )
     args = vars(parser.parse_args())
     return args
 
 def main(args):
-    # For same annotation colors each time.
     np.random.seed(42)
 
-    # Load the data configurations.
     data_configs = None
     if args['data'] is not None:
         with open(args['data']) as file:
@@ -142,17 +179,11 @@ def main(args):
         CLASSES = data_configs['CLASSES']
 
     DEVICE = args['device']
-    if args['output'] is not None:
-        OUT_DIR = args['output']
-        if not os.path.exists(OUT_DIR):
-            os.makedirs(OUT_DIR)
-    else:
-        OUT_DIR=set_infer_dir() 
+    OUT_DIR = args['output'] if args['output'] is not None else set_infer_dir()
+    if not os.path.exists(OUT_DIR):
+        os.makedirs(OUT_DIR)
 
-    # Load the pretrained model
     if args['weights'] is None:
-        # If the config file is still None, 
-        # then load the default one for COCO.
         if data_configs is None:
             with open(os.path.join('data_configs', 'test_image_config.yaml')) as file:
                 data_configs = yaml.safe_load(file)
@@ -164,10 +195,8 @@ def main(args):
         except:
             build_model = create_model['fasterrcnn_resnet50_fpn_v2']
             model, coco_model = build_model(num_classes=NUM_CLASSES, coco_model=True)
-    # Load weights if path provided.
-    if args['weights'] is not None:
+    else:
         checkpoint = torch.load(args['weights'], map_location=DEVICE)
-        # If config file is not given, load from model dictionary.
         if data_configs is None:
             data_configs = True
             NUM_CLASSES = checkpoint['data']['NC']
@@ -181,68 +210,61 @@ def main(args):
         model.load_state_dict(checkpoint['model_state_dict'])
     model.to(DEVICE).eval()
 
+    detection_model = AutoDetectionModel.from_pretrained(
+        model_type='torchvision',
+        model=model,
+        confidence_threshold=args['threshold'],
+        device=args['device']
+    )
+
     COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
-    if args['input'] == None:
+    if args['input'] is None:
         DIR_TEST = data_configs['image_path']
-        test_images = collect_all_images(DIR_TEST)
     else:
         DIR_TEST = args['input']
-        test_images = collect_all_images(DIR_TEST)
+    test_images = collect_all_images(DIR_TEST)
     print(f"Test instances: {len(test_images)}")
 
-    # Define the detection threshold any detection having
-    # score below this will be discarded.
     detection_threshold = args['threshold']
-
-    # Define dictionary to collect boxes detected in each file 
     pred_boxes = {}
     box_id = 1
 
     if args['log_json']:
         log_json = LogJSON(os.path.join(OUT_DIR, 'log.json'))
 
-    # To count the total number of frames iterated through.
     frame_count = 0
-    # To keep adding the frames' FPS.
     total_fps = 0
-    for i in range(len(test_images)):
-        # Get the image file name for saving output later on.
-        image_name = test_images[i].split(os.path.sep)[-1].split('.')[0]
-        orig_image = cv2.imread(test_images[i])
+    for i, image_path in enumerate(test_images):
+        image_name = os.path.splitext(os.path.basename(image_path))[0]
+        orig_image = cv2.imread(image_path)
         frame_height, frame_width, _ = orig_image.shape
-        if args['imgsz'] != None:
-            RESIZE_TO = args['imgsz']
-        else:
-            RESIZE_TO = frame_width
-        # orig_image = image.copy()
-        image_resized = resize(
-            orig_image, RESIZE_TO, square=args['square_img']
-        )
-        image = image_resized.copy()
-        # BGR to RGB
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = infer_transforms(image)
-        # Add batch dimension.
-        image = torch.unsqueeze(image, 0)
+        RESIZE_TO = args['imgsz'] if args['imgsz'] is not None else frame_width
+
         start_time = time.time()
-        with torch.no_grad():
-            outputs = model(image.to(DEVICE))
+        result = get_sliced_prediction(
+            image_path,
+            detection_model,
+            slice_height=args['slice_height'],
+            slice_width=args['slice_width'],
+            overlap_height_ratio=args['overlap_height_ratio'],
+            overlap_width_ratio=args['overlap_width_ratio']
+        )
         end_time = time.time()
 
-        # Get the current fps.
         fps = 1 / (end_time - start_time)
-        # Add `fps` to `total_fps`.
         total_fps += fps
-        # Increment frame count.
         frame_count += 1
-        # Load all detection to CPU for further operations.
-        outputs = [{k: v.to('cpu') for k, v in t.items()} for t in outputs]
 
-        # Carry further only if there are detected boxes.
-        if len(outputs[0]['boxes']) != 0:
-            draw_boxes, pred_classes, scores, labels = convert_detections(
-                outputs, detection_threshold, CLASSES, args
-            )
+        boxes = []
+        scores = []
+        pred_classes = []
+        for object_prediction in result.object_prediction_list:
+            boxes.append(object_prediction.bbox.to_xyxy())
+            scores.append(object_prediction.score.value)
+            pred_classes.append(object_prediction.category.name)
+
+        if len(boxes) > 0:
+            draw_boxes = np.array(boxes)
             orig_image = inference_annotations(
                 draw_boxes, 
                 pred_classes, 
@@ -250,7 +272,7 @@ def main(args):
                 CLASSES,
                 COLORS, 
                 orig_image, 
-                image_resized,
+                resize(orig_image, RESIZE_TO, square=args['square_img']),
                 args
             )
 
@@ -267,7 +289,6 @@ def main(args):
                     xmin, ymin, xmax, ymax = box
                     width = xmax - xmin
                     height = ymax - ymin
-
                     pred_boxes[box_id] = {
                         "image": image_name,
                         "label": str(label),
@@ -279,14 +300,10 @@ def main(args):
                         "height": height,
                         "area": width * height
                     }                    
-                    box_id = box_id + 1
-
-                df = pandas.DataFrame.from_dict(pred_boxes, orient='index')
-                df = df.fillna(0)
-                df.to_csv(f"{OUT_DIR}/boxes.csv", index=False)
+                    box_id += 1
 
             if args['log_json']:
-                log_json.update(orig_image, image_name, draw_boxes, labels, CLASSES)
+                log_json.update(orig_image, image_name, draw_boxes, pred_classes, CLASSES)
 
         cv2.imwrite(f"{OUT_DIR}/{image_name}.jpg", orig_image)
         print(f"Image {i+1} done...")
@@ -295,11 +312,14 @@ def main(args):
     print('TEST PREDICTIONS COMPLETE')
     cv2.destroyAllWindows()
 
-    # Save JSON log file.
     if args['log_json']:
         log_json.save(os.path.join(OUT_DIR, 'log.json'))
+
+    if args['table']:
+        df = pandas.DataFrame.from_dict(pred_boxes, orient='index')
+        df = df.fillna(0)
+        df.to_csv(f"{OUT_DIR}/boxes.csv", index=False)
         
-    # Calculate and print the average FPS.
     avg_fps = total_fps / frame_count
     print(f"Average FPS: {avg_fps:.3f}")
     print('Path to output files: '+OUT_DIR)
