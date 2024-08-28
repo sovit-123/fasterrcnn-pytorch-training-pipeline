@@ -220,7 +220,9 @@ def main(args):
         model_type='torchvision',
         model=model,
         confidence_threshold=args['threshold'],
-        device=args['device']
+        device=args['device'],
+        category_mapping={str(i): CLASSES[i] for i in range(1, len(CLASSES))},
+        # category_remapping={CLASSES[i]: i for i in range(1, len(CLASSES))}
     )
 
     COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
