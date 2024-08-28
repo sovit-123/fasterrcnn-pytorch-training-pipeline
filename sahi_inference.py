@@ -1,5 +1,11 @@
 """
 SAHI image inference with Faster RCNN pretrained models.
+Only available for torchvision models.
+Model Keys that can be used:
+- fasterrcnn_resnet50_fpn_v2
+- fasterrcnn_resnet50_fpn
+- fasterrcnn_mobilenet_v3_large_fpn
+- fasterrcnn_mobilenetv3_large_320_fpn
 """
 
 import numpy as np
