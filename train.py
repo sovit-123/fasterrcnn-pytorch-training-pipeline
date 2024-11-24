@@ -238,6 +238,11 @@ def main(args):
     DEVICE = torch.device(args['device'])
     print("device",DEVICE)
     NUM_EPOCHS = args['epochs']
+    if args['patience']:
+        patienceM = args['patience']
+    else:
+        patienceM = 10
+    print("patience", patienceM)
     SAVE_VALID_PREDICTIONS = data_configs['SAVE_VALID_PREDICTION_IMAGES']
     BATCH_SIZE = args['batch']
     VISUALIZE_TRANSFORMED_IMAGES = args['vis_transformed']
@@ -407,7 +412,7 @@ def main(args):
         scheduler = None
 
     save_best_model = SaveBestModel()
-    early_stopping = EarlyStopping(patience=args['patience'])
+    early_stopping = EarlyStopping(patience = patienceM)
 
     for epoch in range(start_epochs, NUM_EPOCHS):
         train_loss_hist.reset()
