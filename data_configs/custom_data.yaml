@@ -1,0 +1,17 @@
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: '/content/fastercnn-pytorch-training-pipeline/custom_data/train'
+TRAIN_DIR_LABELS: '/content/fastercnn-pytorch-training-pipeline/custom_data/train'
+VALID_DIR_IMAGES: '/content/fastercnn-pytorch-training-pipeline/custom_data/valid'
+VALID_DIR_LABELS: '/content/fastercnn-pytorch-training-pipeline/custom_data/valid'
+
+# Class names.
+CLASSES: [
+    '__background__',
+    'strawberry'
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 2
+
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True
