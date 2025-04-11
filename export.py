@@ -16,6 +16,12 @@ import os
 from models.create_fasterrcnn_model import create_model
 
 def parse_opt():
+    """Parse command-line arguments for configuring model conversion and execution settings.
+    Parameters:
+        - None
+    Returns:
+        - dict: A dictionary of parsed arguments with keys representing argument names and values representing argument values.
+"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-w', '--weights', 
@@ -54,6 +60,12 @@ def parse_opt():
     return args
 
 def main(args):
+    """Converts a PyTorch model to ONNX format and saves it to a specified directory.
+    Parameters:
+        - args (dict): Dictionary containing model configurations, including data file path, device type, model height and width, weights file path, output file path, and model name.
+    Returns:
+        - None: Function does not return a value.
+"""
     OUT_DIR = 'weights'
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
