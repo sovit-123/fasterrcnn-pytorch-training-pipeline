@@ -10,8 +10,8 @@ PyYAML
 scikit-image
 scikit-learn
 scipy
-torch>=1.12.0
-torchvision>=0.13.0
+torch==2.7.0
+torchvision==0.22.0
 numpy
 protobuf<=3.20.1
 pandas
@@ -26,8 +26,8 @@ tensorboard
 torchinfo
 
 # Extras-----------------------------------
-pycocotools>=2.0.2
-setuptools==59.5.0
+pycocotools==2.0.8
+setuptools==80.9.0
 torchmetrics # Evaluation
 
 # Transformer based models.

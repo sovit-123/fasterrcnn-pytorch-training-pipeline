@@ -42,13 +42,15 @@ def train_one_epoch(
         )
 
     step_counter = 0
+    # AMP Autocast does not accepts torch deivce, string only.
+    amp_device = 'cuda' if device == 'cuda' else 'cpu'
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         step_counter += 1
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device).to(torch.int64) for k, v in t.items()} for t in targets]
 
 
-        with torch.cuda.amp.autocast(enabled=scaler is not None):
+        with torch.amp.autocast(device_type=amp_device, enabled=scaler is not None):
             loss_dict = model(images, targets)
             losses = sum(loss for loss in loss_dict.values())
 
