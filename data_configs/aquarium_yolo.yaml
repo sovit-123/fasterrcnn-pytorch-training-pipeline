@@ -1,0 +1,23 @@
+# Images and labels direcotry should be relative to train.py
+TRAIN_DIR_IMAGES: '../input/Fish Detection.v1i.yolov8/train/images'
+TRAIN_DIR_LABELS: '../input/Fish Detection.v1i.yolov8/train/labels'
+VALID_DIR_IMAGES: '../input/Fish Detection.v1i.yolov8/valid/images'
+VALID_DIR_LABELS: '../input/Fish Detection.v1i.yolov8/valid/labels'
+# Optional test data path. If given, test paths (data) will be used in
+# `eval.py`.
+TEST_DIR_IMAGES: '../input/Fish Detection.v1i.yolov8/test/images'
+TEST_DIR_LABELS: '../input/Fish Detection.v1i.yolov8/test/labels'
+
+# Class names.
+# For YOLO annotations, give the names in order of the data.yaml file here.
+CLASSES: [
+    '__background__',
+    'fish', 'jellyfish', 'penguin', 
+    'puffin', 'shark', 'starfish', 'stingray'
+]
+
+# Number of classes (object classes + 1 for background class in Faster RCNN).
+NC: 8
+
+# Whether to save the predictions of the validation set while training.
+SAVE_VALID_PREDICTION_IMAGES: True

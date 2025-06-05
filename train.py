@@ -210,6 +210,14 @@ def parse_opt():
               --project-dir will be named if not already present',
         type=str
     )
+    parser.add_argument(
+        '--label-type',
+        dest='label_type',
+        default='pascal_voc',
+        choices=['pascal_voc', 'yolo'],
+        help='label files type, you can either Pascal VOC XML type or, \
+              yolo txt type label files'
+    )
 
     args = vars(parser.parse_args())
     return args
@@ -260,14 +268,16 @@ def main(args):
         CLASSES,
         use_train_aug=args['use_train_aug'],
         mosaic=args['mosaic'],
-        square_training=args['square_training']
+        square_training=args['square_training'],
+        label_type=args['label_type']
     )
     valid_dataset = create_valid_dataset(
         VALID_DIR_IMAGES, 
         VALID_DIR_LABELS, 
         IMAGE_SIZE, 
         CLASSES,
-        square_training=args['square_training']
+        square_training=args['square_training'],
+        label_type=args['label_type']
     )
     print('Creating data loaders')
     if args['distributed']:
