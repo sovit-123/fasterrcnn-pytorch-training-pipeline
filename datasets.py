@@ -60,14 +60,14 @@ class CustomDataset(Dataset):
         problematic_images = []
 
         for image_name in tqdm(self.all_images, total=len(self.all_images)):
-            possible_xml_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
-            if possible_xml_name not in self.all_annot_paths:
-                print(f"⚠️ {possible_xml_name} not found... Removing {image_name}")
+            possible_annot_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
+            if possible_annot_name not in self.all_annot_paths:
+                print(f"⚠️ {possible_annot_name} not found... Removing {image_name}")
                 images_to_remove.append(image_name)
                 continue
 
             # Check for invalid bounding boxes
-            tree = et.parse(possible_xml_name)
+            tree = et.parse(possible_annot_name)
             root = tree.getroot()
             invalid_bbox = False
 
