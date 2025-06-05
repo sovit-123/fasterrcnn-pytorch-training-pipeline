@@ -28,7 +28,8 @@ class CustomDataset(Dataset):
         use_train_aug=False,
         train=False, 
         mosaic=1.0,
-        square_training=False
+        square_training=False,
+        label_type='pascal_voc'
     ):
         self.transforms = transforms
         self.use_train_aug = use_train_aug
@@ -44,6 +45,7 @@ class CustomDataset(Dataset):
         self.log_annot_issue_x = True
         self.mosaic = mosaic
         self.log_annot_issue_y = True
+        self.label_type = label_type
         
         # get all the image paths in sorted order
         for file_type in self.image_file_types:
@@ -52,7 +54,8 @@ class CustomDataset(Dataset):
         self.all_images = [image_path.split(os.path.sep)[-1] for image_path in self.all_image_paths]
         self.all_images = sorted(self.all_images)
         # Remove all annotations and images when no object is present.
-        self.read_and_clean()
+        if self.label_type == 'pascal_voc':
+            self.read_and_clean()
 
     def read_and_clean(self):
         print('Checking Labels and images...')
@@ -60,14 +63,14 @@ class CustomDataset(Dataset):
         problematic_images = []
 
         for image_name in tqdm(self.all_images, total=len(self.all_images)):
-            possible_xml_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
-            if possible_xml_name not in self.all_annot_paths:
-                print(f"⚠️ {possible_xml_name} not found... Removing {image_name}")
+            possible_annot_name = os.path.join(self.labels_path, os.path.splitext(image_name)[0]+'.xml')
+            if possible_annot_name not in self.all_annot_paths:
+                print(f"⚠️ {possible_annot_name} not found... Removing {image_name}")
                 images_to_remove.append(image_name)
                 continue
 
             # Check for invalid bounding boxes
-            tree = et.parse(possible_xml_name)
+            tree = et.parse(possible_annot_name)
             root = tree.getroot()
             invalid_bbox = False
 
@@ -122,6 +125,20 @@ class CustomDataset(Dataset):
         image_resized = self.resize(image, square=self.square_training)
         image_resized /= 255.0
         
+        if self.label_type == 'pascal_voc':
+            image, image_resized, orig_boxes, \
+            boxes, labels, area, iscrowd, (image_width, image_height) \
+            = self.load_pascal_voc(image, image_name, image_resized)
+
+        if self.label_type == 'yolo':
+            image, image_resized, orig_boxes, \
+            boxes, labels, area, iscrowd, (image_width, image_height) \
+            = self.load_yolo(image, image_name, image_resized)
+        
+        return image, image_resized, orig_boxes, \
+            boxes, labels, area, iscrowd, (image_width, image_height)
+    
+    def load_pascal_voc(self, image, image_name, image_resized):
         # Capture the corresponding XML file for getting the annotations.
         annot_filename = os.path.splitext(image_name)[0] + '.xml'
         annot_file_path = os.path.join(self.labels_path, annot_filename)
@@ -193,6 +210,82 @@ class CustomDataset(Dataset):
         iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
         # Labels to tensor.
         labels = torch.as_tensor(labels, dtype=torch.int64)
+
+        return image, image_resized, orig_boxes, \
+            boxes, labels, area, iscrowd, (image_width, image_height)
+    
+    def load_yolo(self, image, image_name, image_resized):
+        # Capture the corresponding text file for getting the annotations.
+        annot_filename = os.path.splitext(image_name)[0] + '.txt'
+        annot_file_path = os.path.join(self.labels_path, annot_filename)
+
+        boxes = []
+        orig_boxes = []
+        labels = []
+        
+        # Get the height and width of the image.
+        image_width = image.shape[1]
+        image_height = image.shape[0]
+
+        with open(annot_file_path, 'r') as f:
+            annot_file_content = f.readlines()
+            f.close()
+
+        for line in annot_file_content:
+            label, norm_xc, norm_yc, norm_w, norm_h = line.split()
+            label, norm_xc, norm_yc, norm_w, norm_h = \
+                int(label), float(norm_xc), float(norm_yc), float(norm_w), float(norm_h)
+
+            labels.append(label + 1)
+            xc, w = norm_xc * image_width, norm_w * image_width 
+            yc, h = norm_yc * image_height, norm_h * image_height
+
+            xmin = xc - (w / 2)
+            ymin = yc - (h / 2)
+            xmax = xmin + w
+            ymax = ymin + h
+
+            xmin, ymin, xmax, ymax = self.check_image_and_annotation(
+                xmin, 
+                ymin, 
+                xmax, 
+                ymax, 
+                image_width, 
+                image_height, 
+                orig_data=True
+            )
+
+            orig_boxes.append([xmin, ymin, xmax, ymax])
+
+            # Resize the bounding boxes according to the
+            # desired `width`, `height`.
+            xmin_final = (xmin/image_width)*image_resized.shape[1]
+            xmax_final = (xmax/image_width)*image_resized.shape[1]
+            ymin_final = (ymin/image_height)*image_resized.shape[0]
+            ymax_final = (ymax/image_height)*image_resized.shape[0]
+
+            xmin_final, ymin_final, xmax_final, ymax_final = self.check_image_and_annotation(
+                xmin_final, 
+                ymin_final, 
+                xmax_final, 
+                ymax_final, 
+                image_resized.shape[1], 
+                image_resized.shape[0],
+                orig_data=False
+            )
+            
+            boxes.append([xmin_final, ymin_final, xmax_final, ymax_final])
+
+        # Bounding box to tensor.
+        boxes_length = len(boxes)
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        # Area of the bounding boxes.
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0]) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
+        # No crowd instances.
+        iscrowd = torch.zeros((boxes.shape[0],), dtype=torch.int64) if boxes_length > 0 else torch.as_tensor(boxes, dtype=torch.float32)
+        # Labels to tensor.
+        labels = torch.as_tensor(labels, dtype=torch.int64)
+
         return image, image_resized, orig_boxes, \
             boxes, labels, area, iscrowd, (image_width, image_height)
 
@@ -382,7 +475,8 @@ def create_train_dataset(
     classes,
     use_train_aug=False,
     mosaic=1.0,
-    square_training=False
+    square_training=False,
+    label_type='pascal_voc'
 ):
     train_dataset = CustomDataset(
         train_dir_images, 
@@ -393,7 +487,8 @@ def create_train_dataset(
         use_train_aug=use_train_aug,
         train=True, 
         mosaic=mosaic,
-        square_training=square_training
+        square_training=square_training,
+        label_type=label_type
     )
     return train_dataset
 def create_valid_dataset(
@@ -401,7 +496,8 @@ def create_valid_dataset(
     valid_dir_labels, 
     img_size, 
     classes,
-    square_training=False
+    square_training=False,
+    label_type='pascal_voc'
 ):
     valid_dataset = CustomDataset(
         valid_dir_images, 
@@ -410,7 +506,8 @@ def create_valid_dataset(
         classes, 
         get_valid_transform(),
         train=False, 
-        square_training=square_training
+        square_training=square_training,
+        label_type=label_type
     )
     return valid_dataset
 
