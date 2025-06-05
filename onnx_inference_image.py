@@ -184,7 +184,7 @@ def main(args):
 
         # Carry further only if there are detected boxes.
         if len(outputs[0]['boxes']) != 0:
-            draw_boxes, pred_classes, scores = convert_detections(
+            draw_boxes, pred_classes, scores, labels = convert_detections(
                 outputs, detection_threshold, CLASSES, args
             )
             orig_image = inference_annotations(
