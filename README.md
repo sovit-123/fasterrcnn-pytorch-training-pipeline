@@ -16,6 +16,8 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 ## Updates
 
+* **June 6 2025:** Support for both Pascal VOC and YOLO text file annotation type during training. Check [custom training section](#Train-on-Custom-Dataset)
+
 * **August 28 2024:** SAHI image inference for all pretrained Torchvision Faster RCNN models integrated. [Find the script here](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/blob/main/sahi_inference.py).
 
 * Filter classes to visualize during inference using the `--classes` command line argument with space separated class indices from the dataset YAML file. 
@@ -56,27 +58,9 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 2. Install requirements.
 
-   1. **Method 1**: If you have CUDA and cuDNN set up already, do this in your environment of choice.
-
-      ```bash
-      pip install -r requirements.txt
-      ```
-
-   2. **Method 2**: If you want to install PyTorch with CUDA Toolkit in your environment of choice.
-
-      ```bash
-      conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
-      ```
-
-      OR
-
-      ```bash
-      conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
-      ```
-
-      OR install the version with CUDA support as per your choice from **[here](https://pytorch.org/get-started/locally/)**.
-
-      Then install the remaining **[requirements](https://github.com/sovit-123/fasterrcnn-pytorch-training-pipeline/blob/main/requirements.txt)**.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Setup on Windows
 
@@ -100,19 +84,11 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
 
 4. Install PyTorch with CUDA support.
 
-   ```bash
-   conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
-   ```
-
-   OR
-
-   ```bash
-   conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
-   ```
-
-   OR install the version with CUDA support as per your choice from **[here](https://pytorch.org/get-started/locally/)**.
-
    Then install the remaining **[requirements](https://github.com/sovit-123/pytorch-efficientdet-api/blob/main/requirements.txt)** except for `pycocotools`.
+   
+   ```
+   pip install -r requirements.txt
+   ```
 
 ## Train on Custom Dataset
 
@@ -152,15 +128,19 @@ Taking an exmaple of the [smoke dataset](https://www.kaggle.com/didiruh/smoke-pa
 └── train.py
 ```
 
-The content of the `smoke.yaml` should be the following:
+The content of the `smoke.yaml` should be the following. The folder containing the annotation files can either point to **Pascal VOC XML** files or **YOLO text labels** folder. The images and labels (for both Pascal VOC XML and YOLO text files) can be either in the same folder or in different folders because the image and annotation files are matched based on the file names during dataset preparation. 
+
+**If the data config file (shown below) points to Pascal VOC XML annotations, the `CLASSES` field can contain the class names in any order after the `__background__` class. If the data config file points to YOLO text file annotation folder, the `CLASSES` should contain the class names in the order as present in the YOLO dataset `data.yaml` file. This is necessary to maintain indexing order during training.**
+
+![](readme_images/fasterrcnn_yolo_config_example.png)
 
 ```yaml
 # Images and labels direcotry should be relative to train.py
 TRAIN_DIR_IMAGES: ../../xml_od_data/smoke_pascal_voc/archive/train/images
-TRAIN_DIR_LABELS: ../../xml_od_data/smoke_pascal_voc/archive/train/annotations
+TRAIN_DIR_LABELS: ../../xml_od_data/smoke_pascal_voc/archive/train/annotations # This can contain .xml or .txt files
 # VALID_DIR should be relative to train.py
 VALID_DIR_IMAGES: ../../xml_od_data/smoke_pascal_voc/archive/valid/images
-VALID_DIR_LABELS: ../../xml_od_data/smoke_pascal_voc/archive/valid/annotations
+VALID_DIR_LABELS: ../../xml_od_data/smoke_pascal_voc/archive/valid/annotations # This can contain .xml or .txt files
 
 # Class names.
 CLASSES: [
@@ -181,14 +161,16 @@ Next, to start the training, you can use the following command.
 
 **Command format:**
 
+During training, we need to provide a `--label-type` argument which should be either `yolo` or `pascal_voc` depending on the annotation folder path in the data configuration file above. Default is `pascal_voc`
+
 ```bash
-python train.py --data <path to the data config YAML file> --epochs 100 --model <model name (defaults to fasterrcnn_resnet50)> --name <folder name inside output/training/> --batch 16
+python train.py --data <path to the data config YAML file> --epochs 100 --model <model name (defaults to fasterrcnn_resnet50)> --name <folder name inside output/training/> --batch 16 --label-type <pascal_voc or yolo>
 ```
 
 **In this case, the exact command would be:**
 
 ```bash
-python train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16
+python train.py --data data_configs/smoke.yaml --epochs 100 --model fasterrcnn_resnet50_fpn --name smoke_training --batch 16 --label-type pascal_voc
 ```
 
 **The terimal output should be similar to the following:**
