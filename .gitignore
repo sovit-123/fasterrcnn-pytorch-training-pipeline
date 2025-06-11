@@ -1,6 +1,7 @@
 data/*
 !data/README.md
-outputs/
+outputs/training/
+venv/
 inference_outputs
 test.sh
 *__pycache__/

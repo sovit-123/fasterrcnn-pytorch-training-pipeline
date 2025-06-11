@@ -1,18 +1,16 @@
 # Images and labels direcotry should be relative to train.py
-TRAIN_DIR_IMAGES: ../input/smoke_pascal_voc/archive/train/images
-TRAIN_DIR_LABELS: ../input/smoke_pascal_voc/archive/train/annotations
-VALID_DIR_IMAGES: ../input/smoke_pascal_voc/archive/valid/images
-VALID_DIR_LABELS: ../input/smoke_pascal_voc/archive/valid/annotations
+TRAIN_DIR_IMAGES: ./data/smoke-pascal-voc/archive/train/images
+TRAIN_DIR_LABELS: ./data/smoke-pascal-voc/archive/train/annotations
+VALID_DIR_IMAGES: ./data/smoke-pascal-voc/archive/valid/images
+VALID_DIR_LABELS: ./data/smoke-pascal-voc/archive/valid/annotations
+
 # Optional test data path. If given, test paths (data) will be used in
 # `eval.py`.
-# TEST_DIR_IMAGES: 
-# TEST_DIR_LABELS: 
+# TEST_DIR_IMAGES:
+# TEST_DIR_LABELS:
 
 # Class names.
-CLASSES: [
-    '__background__',
-    'smoke'
-]
+CLASSES: ["__background__", "smoke"]
 
 # Number of classes (object classes + 1 for background class in Faster RCNN).
 NC: 2

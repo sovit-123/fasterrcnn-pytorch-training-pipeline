@@ -13,7 +13,7 @@ scipy
 torch==2.7.0
 torchvision==0.22.0
 numpy
-protobuf<=3.20.1
+protobuf==5.26.1
 pandas
 tqdm
 deep-sort-realtime
