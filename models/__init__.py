@@ -26,5 +26,6 @@ __all__ = [
     'fasterrcnn_vitdet_tiny',
     'fasterrcnn_mobilevit_xxs',
     'fasterrcnn_regnet_y_400mf',
-    'fasterrcnn_vgg16'
+    'fasterrcnn_vgg16',
+    'fasterrcnn_dinov3_convnext_tiny'
 ]
