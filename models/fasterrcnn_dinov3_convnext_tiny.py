@@ -35,15 +35,20 @@ class Dinov3Backbone(nn.Module):
             weights=WEIGHTS_URL
         )
 
+        self.pool = nn.AdaptiveAvgPool1d(400)
+
     def forward(self, x):
-        out = self.backbone.forward(x, is_training=True)['x_norm_patchtokens']
-        out = torch.reshape(out, (
-            out.shape[0], 
-            int(math.sqrt(out.shape[1])), 
-            int(math.sqrt(out.shape[1])), 
-            out.shape[2]
+        x = self.backbone.forward(x, is_training=True)['x_norm_patchtokens']
+        x = x.transpose(1, 2)
+        x = self.pool(x)
+        x = x.transpose(1, 2)
+        x = torch.reshape(x, (
+            x.shape[0], 
+            int(math.sqrt(x.shape[1])), 
+            int(math.sqrt(x.shape[1])), 
+            x.shape[2]
         ))
-        out = out.permute(0, 3, 1, 2)
+        out = x.permute(0, 3, 1, 2)
         return out
     
 
@@ -51,6 +56,13 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     backbone = Dinov3Backbone()
 
     backbone.out_channels = 768
+
+    # Dummy forward.
+    # backbone(torch.rand(1, 3, 244, 244))
+    # exit(0)
+
+    for name, params in backbone.named_parameters():
+        params.requires_grad_(False)
 
     # Generate anchors using the RPN. Here, we are using 5x3 anchors.
     # Meaning, anchors with 5 different sizes and 3 different aspect 
