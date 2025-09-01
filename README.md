@@ -56,6 +56,12 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
    git clone https://github.com/sovit-123/fastercnn-pytorch-training-pipeline.git
    ```
 
+   Optional: Initialize DINOv3 submodule for training DINOv3 Faster RCNN models. 
+
+   ```bash
+   git submodule update --init
+   ```
+
 2. Install requirements.
 
    ```bash
@@ -89,6 +95,28 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
    ```
    pip install -r requirements.txt
    ```
+
+## Using Custom Weights
+
+Some models like **DINOv3 based Faster RCNN** models require the pretrained weights to be present locally. Put all the DINOv3 backbone weights in the `weights` directory. The respective model files will load them from the directory.
+
+You can download the weights by [filling the form here](https://github.com/facebookresearch/dinov3/tree/main?tab=readme-ov-file#pretrained-models).
+
+For example, for the FasterRCNN DINOv3 ConvNext Tiny model (`models/fasterrcnn_dinov3_convnext_tiny.py`) the weights are loaded using the following syntax with relative path.
+
+```python
+# Relative to parent fasterrcnn directory.
+REPO_DIR = 'dinov3'
+# Relative to parent fasterrcnn directory or the absolute path.
+WEIGHTS_URL = 'weights/dinov3_convnext_tiny_pretrain_lvd1689m-21b726bb.pth'
+
+self.backbone = torch.hub.load(
+    REPO_DIR, 
+    "dinov3_convnext_tiny", 
+    source='local', 
+    weights=WEIGHTS_URL
+)
+```
 
 ## Train on Custom Dataset
 
