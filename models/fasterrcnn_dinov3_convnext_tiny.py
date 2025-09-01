@@ -35,21 +35,27 @@ class Dinov3Backbone(nn.Module):
             weights=WEIGHTS_URL
         )
 
-        self.pool = nn.AdaptiveAvgPool1d(400)
+        # self.pool = nn.AdaptiveAvgPool1d(400)
 
+    # def forward(self, x):
+    #     x = self.backbone.forward(x, is_training=True)['x_norm_patchtokens']
+    #     x = x.transpose(1, 2)
+    #     x = self.pool(x)
+    #     x = x.transpose(1, 2)
+    #     x = torch.reshape(x, (
+    #         x.shape[0], 
+    #         int(math.sqrt(x.shape[1])), 
+    #         int(math.sqrt(x.shape[1])), 
+    #         x.shape[2]
+    #     ))
+    #     out = x.permute(0, 3, 1, 2)
+    #     return out
+    
     def forward(self, x):
-        x = self.backbone.forward(x, is_training=True)['x_norm_patchtokens']
-        x = x.transpose(1, 2)
-        x = self.pool(x)
-        x = x.transpose(1, 2)
-        x = torch.reshape(x, (
-            x.shape[0], 
-            int(math.sqrt(x.shape[1])), 
-            int(math.sqrt(x.shape[1])), 
-            x.shape[2]
-        ))
-        out = x.permute(0, 3, 1, 2)
-        return out
+        out = self.backbone.get_intermediate_layers(
+            x, n=1, reshape=True, return_class_token=False, norm=True
+        )
+        return out[0]
     
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
