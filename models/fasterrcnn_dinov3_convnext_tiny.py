@@ -23,7 +23,7 @@ sys.path.append(os.path.join(parent_dir, 'dinov3'))
 # Relative to parent fasterrcnn directory.
 REPO_DIR = 'dinov3'
 # Relative to parent fasterrcnn directory or the absolute path.
-WEIGHTS_URL = '/media/sovit/crucial1tb/my_data/Data_Science/projects/Computer_Vision/dinov3_exps/weights/dinov3_convnext_tiny_pretrain_lvd1689m-21b726bb.pth'
+WEIGHTS_URL = 'weights/dinov3_convnext_tiny_pretrain_lvd1689m-21b726bb.pth'
 
 class Dinov3Backbone(nn.Module):
     def __init__(self):
