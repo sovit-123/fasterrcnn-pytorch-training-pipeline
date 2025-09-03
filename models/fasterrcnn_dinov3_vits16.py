@@ -33,12 +33,20 @@ class Dinov3Backbone(nn.Module):
             source='local', 
             weights=WEIGHTS_URL
         )
+
+        self.out_indices = [3, 6, 9, 11]
     
     def forward(self, x):
         out = self.backbone.get_intermediate_layers(
-            x, n=1, reshape=True, return_class_token=False, norm=True
+            x, n=self.out_indices, reshape=True, return_class_token=False, norm=True
         )
-        return out[0]
+        
+        return {
+            '0': out[0],
+            '1': out[1],
+            '2': out[2],
+            '3': out[3],
+        }
     
 
 def create_model(num_classes=81, pretrained=True, coco_model=False):
@@ -57,15 +65,15 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Meaning, anchors with 5 different sizes and 3 different aspect 
     # ratios.
     anchor_generator = AnchorGenerator(
-        sizes=((32, 64, 128, 256, 512),),
-        aspect_ratios=((0.5, 1.0, 2.0),)
+        sizes=((32, 64, 128, 256, 512),) * 4,
+        aspect_ratios=((0.5, 1.0, 2.0),) * 4
     )
 
     # Feature maps to perform RoI cropping.
     # If backbone returns a Tensor, `featmap_names` is expected to
     # be [0]. We can choose which feature maps to use.
     roi_pooler = torchvision.ops.MultiScaleRoIAlign(
-        featmap_names=['0'],
+        featmap_names=['1', '2', '3', '4'],
         output_size=7,
         sampling_ratio=2
     )
@@ -83,6 +91,8 @@ if __name__ == '__main__':
     from models.model_summary import summary
 
     model = create_model(81, pretrained=True)
+
+    print(model)
     
     random_tensor = torch.randn(1, 3, 640, 640)
 

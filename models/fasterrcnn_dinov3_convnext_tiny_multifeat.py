@@ -36,7 +36,7 @@ class Dinov3Backbone(nn.Module):
         )
         self.out_indices = [1, 2, 3]
 
-        self.out_channels = 768
+        self.out_channels = 256
 
         # project each feature map to the same number of channels
         self.lateral_convs = nn.ModuleList([
@@ -62,7 +62,7 @@ class Dinov3Backbone(nn.Module):
 def create_model(num_classes=81, pretrained=True, coco_model=False):
     backbone = Dinov3Backbone()
 
-    backbone.out_channels = 768
+    backbone.out_channels = 256
 
     for name, params in backbone.named_parameters():
         params.requires_grad_(False)
@@ -71,7 +71,7 @@ def create_model(num_classes=81, pretrained=True, coco_model=False):
     # Meaning, anchors with 5 different sizes and 3 different aspect 
     # ratios.
     anchor_generator = AnchorGenerator(
-        sizes=((32,), (64,), (128,)),   # one size per feature map
+        sizes=((32, 64, 128, 256, 512),) * 3,   # one size per feature map
         aspect_ratios=((0.5, 1.0, 2.0),) * 3  # repeat for each feature map
     )
 

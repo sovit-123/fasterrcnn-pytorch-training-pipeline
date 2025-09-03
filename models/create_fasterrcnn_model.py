@@ -224,6 +224,14 @@ def return_fasterrcnn_dinov3_vits16(
     )
     return model
 
+def return_fasterrcnn_dinov3_convnext_tiny_multifeat(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_convnext_tiny_multifeat.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -252,5 +260,6 @@ create_model = {
     'fasterrcnn_regnet_y_400mf': return_fasterrcnn_regnet_y_400mf,
     'fasterrcnn_vgg16': return_fasterrcnn_vgg16,
     'fasterrcnn_dinov3_convnext_tiny': return_fasterrcnn_dinov3_convnext_tiny,
-    'fasterrcnn_dinov3_vits16': return_fasterrcnn_dinov3_vits16
+    'fasterrcnn_dinov3_vits16': return_fasterrcnn_dinov3_vits16,
+    'fasterrcnn_dinov3_convnext_tiny_multifeat': return_fasterrcnn_dinov3_convnext_tiny_multifeat
 }
