@@ -397,7 +397,7 @@ def main(args):
     params = [p for p in model.parameters() if p.requires_grad]
     # Define the optimizer.
     optimizer = torch.optim.SGD(params, lr=args['lr'], momentum=0.9, nesterov=True)
-    # optimizer = torch.optim.AdamW(params, lr=0.0001, weight_decay=0.0005)
+    # optimizer = torch.optim.AdamW(params, lr=args['lr'])
     if args['resume_training']: 
         # LOAD THE OPTIMIZER STATE DICTIONARY FROM THE CHECKPOINT.
         print('Loading optimizer state dictionary...')
