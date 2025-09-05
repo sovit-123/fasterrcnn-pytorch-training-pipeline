@@ -22,18 +22,18 @@ sys.path.append(os.path.join(parent_dir, 'dinov3'))
 # Relative to parent fasterrcnn directory.
 REPO_DIR = 'dinov3'
 # Relative to parent fasterrcnn directory or the absolute path.
-WEIGHTS_URL = 'weights/dinov3_convnext_tiny_pretrain_lvd1689m-21b726bb.pth'
+WEIGHTS_URL = 'weights/dinov3_convnext_small_pretrain_lvd1689m-296db49d.pth'
 
 class Dinov3Backbone(nn.Module):
     def __init__(self):
         super().__init__()
         self.backbone = torch.hub.load(
             REPO_DIR, 
-            'dinov3_convnext_tiny', 
+            'dinov3_convnext_small', 
             source='local', 
             weights=WEIGHTS_URL
         )
-
+        
     def forward(self, x):
         out = self.backbone.get_intermediate_layers(
             x, n=1, reshape=True, return_class_token=False, norm=True

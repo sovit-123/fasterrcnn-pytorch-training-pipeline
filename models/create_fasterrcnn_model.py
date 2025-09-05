@@ -232,6 +232,62 @@ def return_fasterrcnn_dinov3_convnext_tiny_multifeat(
     )
     return model
 
+def return_fasterrcnn_dinov3_vits16plus(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_vits16plus.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_dinov3_vitb16(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_vitb16.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_dinov3_vitl16(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_vitl16.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_dinov3_vith16plus(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_vith16plus.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_dinov3_convnext_small(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_convnext_small.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_dinov3_convnext_base(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_convnext_base.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
+def return_fasterrcnn_dinov3_convnext_large(
+    num_classes, pretrained=True, coco_model=False
+):
+    model = fasterrcnn_dinov3_convnext_large.create_model(
+        num_classes, pretrained, coco_model=coco_model
+    )
+    return model
+
 create_model = {
     'fasterrcnn_resnet50_fpn': return_fasterrcnn_resnet50_fpn,
     'fasterrcnn_mobilenetv3_large_fpn': return_fasterrcnn_mobilenetv3_large_fpn,
@@ -261,5 +317,12 @@ create_model = {
     'fasterrcnn_vgg16': return_fasterrcnn_vgg16,
     'fasterrcnn_dinov3_convnext_tiny': return_fasterrcnn_dinov3_convnext_tiny,
     'fasterrcnn_dinov3_vits16': return_fasterrcnn_dinov3_vits16,
-    'fasterrcnn_dinov3_convnext_tiny_multifeat': return_fasterrcnn_dinov3_convnext_tiny_multifeat
+    'fasterrcnn_dinov3_convnext_tiny_multifeat': return_fasterrcnn_dinov3_convnext_tiny_multifeat,
+    'fasterrcnn_dinov3_vits16plus': return_fasterrcnn_dinov3_vits16plus,
+    'fasterrcnn_dinov3_vitb16': return_fasterrcnn_dinov3_vitb16,
+    'fasterrcnn_dinov3_vitl16': return_fasterrcnn_dinov3_vitl16,
+    'fasterrcnn_dinov3_vith16plus': return_fasterrcnn_dinov3_vith16plus,
+    'fasterrcnn_dinov3_convnext_small': return_fasterrcnn_dinov3_convnext_small,
+    'fasterrcnn_dinov3_convnext_base': return_fasterrcnn_dinov3_convnext_base,
+    'fasterrcnn_dinov3_convnext_large': return_fasterrcnn_dinov3_convnext_large
 }
