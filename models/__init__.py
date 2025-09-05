@@ -29,5 +29,12 @@ __all__ = [
     'fasterrcnn_vgg16',
     'fasterrcnn_dinov3_convnext_tiny',
     'fasterrcnn_dinov3_vits16',
-    'fasterrcnn_dinov3_convnext_tiny_multifeat'
+    'fasterrcnn_dinov3_convnext_tiny_multifeat',
+    'fasterrcnn_dinov3_vits16plus',
+    'fasterrcnn_dinov3_vitb16',
+    'fasterrcnn_dinov3_vitl16',
+    'fasterrcnn_dinov3_vith16plus',
+    'fasterrcnn_dinov3_convnext_small',
+    'fasterrcnn_dinov3_convnext_base',
+    'fasterrcnn_dinov3_convnext_large'
 ]

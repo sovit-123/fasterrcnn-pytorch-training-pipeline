@@ -29,7 +29,7 @@ class Dinov3Backbone(nn.Module):
         super().__init__()
         self.backbone = torch.hub.load(
             REPO_DIR, 
-            "dinov3_vits16", 
+            'dinov3_vits16', 
             source='local', 
             weights=WEIGHTS_URL
         )
