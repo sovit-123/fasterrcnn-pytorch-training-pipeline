@@ -218,6 +218,11 @@ def parse_opt():
         help='label files type, you can either Pascal VOC XML type or, \
               yolo txt type label files'
     )
+    parser.add_argument(
+        '--optimizer',
+        default=None,
+        choices=['SGD', 'AdamW']
+    )
 
     args = vars(parser.parse_args())
     return args
@@ -396,12 +401,17 @@ def main(args):
     # Get the model parameters.
     params = [p for p in model.parameters() if p.requires_grad]
     # Define the optimizer.
-    if 'dinov3' in args['model']:
-        optimizer = torch.optim.AdamW(params, lr=args['lr'])
+
+    if args['optimizer'] is not None:
+        optimizer = getattr(torch.optim, args['optimizer'])(params, lr=args['lr'], momentum=0.9, nesterov=True)
         print(f"Using {optimizer} for {args['model']}")
     else:
-        optimizer = torch.optim.SGD(params, lr=args['lr'], momentum=0.9, nesterov=True)
-        print(f"Using {optimizer} for {args['model']}")
+        if 'dinov3' in args['model']:
+            optimizer = torch.optim.AdamW(params, lr=args['lr'])
+            print(f"Using {optimizer} for {args['model']}")
+        else:
+            optimizer = torch.optim.SGD(params, lr=args['lr'], momentum=0.9, nesterov=True)
+            print(f"Using {optimizer} for {args['model']}")
     if args['resume_training']: 
         # LOAD THE OPTIMIZER STATE DICTIONARY FROM THE CHECKPOINT.
         print('Loading optimizer state dictionary...')
