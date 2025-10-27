@@ -62,11 +62,26 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
    git submodule update --init
    ```
 
-2. Install requirements.
+2. Install requirements as per GPU.
+   Install requirements on **RTX 30/40** (**Ampere and Ada Lovelace**) series and **T4/P100 GPUs**.
 
    ```bash
    pip install -r requirements.txt
    ```
+
+**OR**	
+
+Install requirements for **RTX 50** series and **Blackwell GPUs**. First install PyTorch >= 2.8 with CUDA >= 12.9
+
+```
+pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu129
+```
+
+Install rest of the requirements
+
+```
+pip install -r requirements_blackwell.txt
+```
 
 ## Setup on Windows
 
@@ -88,13 +103,27 @@ Train PyTorch FasterRCNN models easily on any custom dataset. Choose between off
    git clone https://github.com/sovit-123/fastercnn-pytorch-training-pipeline.git
    ```
 
-4. Install PyTorch with CUDA support.
+4. Then install the remaining **[requirements](https://github.com/sovit-123/pytorch-efficientdet-api/blob/main/requirements.txt)** except for `pycocotools`.
 
-   Then install the remaining **[requirements](https://github.com/sovit-123/pytorch-efficientdet-api/blob/main/requirements.txt)** except for `pycocotools`.
-   
-   ```
+   Install requirements on **RTX 30/40** (**Ampere and Ada Lovelace**) series and **T4/P100 GPUs**.
+
+   ```bash
    pip install -r requirements.txt
    ```
+
+**OR**	
+
+Install requirements for **RTX 50** series and **Blackwell GPUs**. First install PyTorch >= 2.8 with CUDA >= 12.9
+
+```
+pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu129
+```
+
+Install rest of the requirements (apart from `pycocotools`)
+
+```
+pip install -r requirements_blackwell.txt
+```
 
 ## Using Custom Weights
 
