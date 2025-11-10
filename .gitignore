@@ -14,3 +14,7 @@ wandb/*
 
 # IPython checkpoints
 .ipynb_checkpoints
+
+#VSCode workspace files
+*.code-workspace
+.vscode/
